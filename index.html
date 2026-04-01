@@ -70,12 +70,135 @@ canvas {
   .hud-value { font-size: 16px; }
 }
 
+/* -- Main Menu Screen -- */
+#mainMenu {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 150;
+  background: #0D0D0F;
+  overflow: hidden;
+}
+
+#mainMenu .mm-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.25;
+  filter: brightness(0.7) saturate(0.8);
+}
+
+#mainMenu .mm-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(13,13,15,0.3) 0%, rgba(13,13,15,0.85) 70%);
+}
+
+.mm-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.mm-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(32px, 8vw, 64px);
+  font-weight: 700;
+  color: #D4A03C;
+  text-transform: uppercase;
+  letter-spacing: 6px;
+  text-shadow: 0 0 40px rgba(212,160,60,0.5), 0 0 80px rgba(212,160,60,0.2);
+  text-align: center;
+  line-height: 1.1;
+}
+
+.mm-subtitle {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(10px, 2.5vw, 14px);
+  color: rgba(200,184,138,0.35);
+  letter-spacing: 4px;
+  margin-bottom: 32px;
+}
+
+.mm-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: clamp(200px, 50vw, 320px);
+}
+
+.mm-btn {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(14px, 3vw, 18px);
+  font-weight: 700;
+  padding: 14px 24px;
+  border: 1px solid rgba(200,184,138,0.25);
+  background: rgba(26,26,31,0.6);
+  color: rgba(200,184,138,0.6);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  transition: all 0.2s;
+  pointer-events: auto;
+  min-height: 48px;
+  border-radius: 4px;
+  backdrop-filter: blur(4px);
+}
+
+.mm-btn:hover, .mm-btn:active {
+  border-color: rgba(200,184,138,0.5);
+  color: #C8B88A;
+  background: rgba(200,184,138,0.08);
+}
+
+.mm-btn-primary {
+  border-color: rgba(212,160,60,0.5);
+  color: #D4A03C;
+  background: rgba(212,160,60,0.1);
+  font-size: clamp(16px, 3.5vw, 22px);
+  letter-spacing: 4px;
+  box-shadow: 0 0 20px rgba(212,160,60,0.1);
+}
+
+.mm-btn-primary:hover, .mm-btn-primary:active {
+  background: rgba(212,160,60,0.2);
+  border-color: #D4A03C;
+  box-shadow: 0 0 30px rgba(212,160,60,0.25);
+  color: #D4A03C;
+}
+
+.mm-btn-red {
+  border-color: rgba(255,51,68,0.3);
+  color: rgba(255,51,68,0.7);
+}
+
+.mm-btn-red:hover, .mm-btn-red:active {
+  border-color: rgba(255,51,68,0.6);
+  color: #FF3344;
+  background: rgba(255,51,68,0.1);
+}
+
+.mm-version {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: rgba(200,184,138,0.15);
+  margin-top: 40px;
+  letter-spacing: 2px;
+}
+
 /* -- Station Selection Screen -- */
 #stationSelect {
   position: absolute;
   inset: 0;
   background: radial-gradient(ellipse at center, #1A1A1F 0%, #0D0D0F 70%);
-  display: flex;
+  display: none;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -370,6 +493,22 @@ canvas {
     <div class="hud-item"><span class="hud-label">Kills</span><span class="hud-value" id="hudKills">0</span></div>
   </div>
 
+  <!-- MAIN MENU -->
+  <div id="mainMenu">
+    <div class="mm-bg" id="mmBg"></div>
+    <div class="mm-overlay"></div>
+    <div class="mm-content">
+      <h1 class="mm-title">Ilzarah's<br>Guardian</h1>
+      <div class="mm-subtitle">// PROTOTYPE //</div>
+      <div class="mm-buttons">
+        <button class="mm-btn mm-btn-primary" id="btnRunStart">Run Starten</button>
+        <button class="mm-btn" id="btnTech">Technologie</button>
+        <button class="mm-btn" id="btnSettings">Einstellungen</button>
+      </div>
+      <div class="mm-version">v0.3 — EARLY PROTOTYPE</div>
+    </div>
+  </div>
+
   <div id="stationSelect">
     <h1>Ilzarah's Guardian</h1>
     <div class="subtitle">// STATION AUSWAHL //</div>
@@ -398,8 +537,8 @@ canvas {
 
 <script>
 // =====================================================
-// ILZARAH'S GUARDIAN — GAME ENGINE v2
-// Mobile-ready, Real Sprites, Realistic Combat, 5 Weapon Types
+// ILZARAH'S GUARDIAN — GAME ENGINE v3
+// Main Menu, Tracer Rounds, Mounted Turrets, Fast Pirates
 // =====================================================
 
 // -- Asset Loader --
@@ -510,7 +649,6 @@ function playSound(name) {
 }
 
 // -- Station Data --
-// Station sprite mapping: 0=station_1, 1=station_2, 2=station_1_2, 3=station_2_2, 4=station_3
 const STATIONS = [
   { id: 0, name: "Kreuzstation", hp: 800, shield: 200, dmgBonus: 0.15, crit: 0.05, slotCount: 5, locked: false, desc: "Offensiv", sprite: 0 },
   { id: 1, name: "Sternstation", hp: 1200, shield: 400, dmgBonus: 0.0, crit: 0.02, slotCount: 4, locked: false, desc: "Defensiv", sprite: 1 },
@@ -519,31 +657,31 @@ const STATIONS = [
   { id: 4, name: "Nexus", hp: 1400, shield: 500, dmgBonus: 0.20, crit: 0.08, slotCount: 8, locked: true, desc: "Hybrid", sprite: 4 },
 ];
 
-// -- Weapon Definitions (5 types, all weapon slots) --
+// -- Weapon Definitions (all 10 RoF, damage adjusted for similar DPS) --
 const WEAPONS = {
   rocket_t1: {
-    name: "Rocket T1", cost: 60, range: 200, fireRate: 0.5, damage: 40, projSpeed: 250,
-    color: "#FF6633", desc: "Langsam, hoher Schaden", sprite: 'rocket_t1',
+    name: "Rocket T1", cost: 60, range: 200, fireRate: 10, damage: 2, projSpeed: 450,
+    color: "#FF6633", desc: "Schnellfeuer-Raketen", sprite: 'rocket_t1',
     projSize: 5, projColor: '#FF6633', splashRadius: 0,
   },
   rocket_t2: {
-    name: "Rocket T2", cost: 90, range: 220, fireRate: 0.8, damage: 30, projSpeed: 300,
-    color: "#FF8844", desc: "Schneller, mittlerer Schaden", sprite: 'rocket_t2',
+    name: "Rocket T2", cost: 90, range: 220, fireRate: 10, damage: 2.4, projSpeed: 500,
+    color: "#FF8844", desc: "Verbesserte Raketen", sprite: 'rocket_t2',
     projSize: 4, projColor: '#FF8844', splashRadius: 0,
   },
   gun_t1: {
-    name: "Gun T1", cost: 35, range: 150, fireRate: 2.0, damage: 8, projSpeed: 500,
-    color: "#44AAFF", desc: "Schnell, niedriger Schaden", sprite: 'gun_t1',
+    name: "Gun T1", cost: 35, range: 150, fireRate: 10, damage: 1.6, projSpeed: 700,
+    color: "#44AAFF", desc: "Basis-Geschuetz", sprite: 'gun_t1',
     projSize: 2, projColor: '#44AAFF', splashRadius: 0,
   },
   gun_t2: {
-    name: "Gun T2", cost: 55, range: 170, fireRate: 2.8, damage: 10, projSpeed: 550,
-    color: "#33CCFF", desc: "Schneller, mittlerer Schaden", sprite: 'gun_t2',
+    name: "Gun T2", cost: 55, range: 170, fireRate: 10, damage: 2.8, projSpeed: 750,
+    color: "#33CCFF", desc: "Mittleres Geschuetz", sprite: 'gun_t2',
     projSize: 2.5, projColor: '#33CCFF', splashRadius: 0,
   },
   gun_t3: {
-    name: "Gun T3", cost: 100, range: 190, fireRate: 3.5, damage: 14, projSpeed: 600,
-    color: "#00EEFF", desc: "Am schnellsten, hoher Schaden", sprite: 'gun_t3',
+    name: "Gun T3", cost: 100, range: 190, fireRate: 10, damage: 4.9, projSpeed: 800,
+    color: "#00EEFF", desc: "Schweres Geschuetz", sprite: 'gun_t3',
     projSize: 3, projColor: '#00EEFF', splashRadius: 0,
   },
 };
@@ -610,14 +748,41 @@ class Game {
     document.getElementById('btnNewRun').addEventListener('click', () => this.newRun());
     document.getElementById('btnNewRun').addEventListener('touchend', (e) => { e.preventDefault(); this.newRun(); });
 
+    // Main Menu buttons
+    document.getElementById('btnRunStart').addEventListener('click', () => this.startFromMenu());
+    document.getElementById('btnRunStart').addEventListener('touchend', (e) => { e.preventDefault(); this.startFromMenu(); });
+    document.getElementById('btnTech').addEventListener('click', () => this.showPlaceholder('Technologie'));
+    document.getElementById('btnTech').addEventListener('touchend', (e) => { e.preventDefault(); this.showPlaceholder('Technologie'); });
+    document.getElementById('btnSettings').addEventListener('click', () => this.showPlaceholder('Einstellungen'));
+    document.getElementById('btnSettings').addEventListener('touchend', (e) => { e.preventDefault(); this.showPlaceholder('Einstellungen'); });
+
     this.init();
   }
 
   async init() {
     await loadAssets();
+    // Set menu background image
+    const bgEl = document.getElementById('mmBg');
+    if (IMAGES.menuBg && IMAGES.menuBg.src) {
+      bgEl.style.backgroundImage = `url(${IMAGES.menuBg.src})`;
+    }
+    this.state = 'mainmenu';
+    document.getElementById('mainMenu').style.display = 'flex';
+    document.getElementById('stationSelect').style.display = 'none';
+    this.loop(0);
+  }
+
+  startFromMenu() {
+    playSound('confirm');
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('stationSelect').style.display = 'flex';
     this.state = 'menu';
     this.renderStationSelect();
-    this.loop(0);
+  }
+
+  showPlaceholder(name) {
+    playSound('click');
+    this.showBanner(`${name} — Kommt bald!`);
   }
 
   resize() {
@@ -637,10 +802,21 @@ class Game {
     }
   }
 
+  // -- Turret slots mounted ON the station (small ring) --
+  getStationSpriteSize() {
+    const base = Math.min(this.W, this.H) * 0.18;
+    return Math.max(70, Math.min(150, base));
+  }
+
+  getRingRadius() {
+    // Turrets sit on the station body
+    return this.getStationSpriteSize() * 0.45;
+  }
+
   regenerateSlotPositions() {
     if (!this.slots.length) return;
     const total = this.slots.length;
-    const ringRadius = Math.min(this.W, this.H) * 0.22;
+    const ringRadius = this.getRingRadius();
     for (let i = 0; i < total; i++) {
       const angle = (i / total) * Math.PI * 2 - Math.PI / 2;
       this.slots[i].x = this.stationCenter.x + Math.cos(angle) * ringRadius;
@@ -710,7 +886,7 @@ class Game {
   generateSlots() {
     this.slots = [];
     const total = this.station.slotCount;
-    const ringRadius = Math.min(this.W, this.H) * 0.22;
+    const ringRadius = this.getRingRadius();
 
     for (let i = 0; i < total; i++) {
       const angle = (i / total) * Math.PI * 2 - Math.PI / 2;
@@ -719,7 +895,7 @@ class Game {
         y: this.stationCenter.y + Math.sin(angle) * ringRadius,
         building: null,
         angle: angle,
-        radius: this.isMobile ? 28 : 22,
+        radius: this.isMobile ? 22 : 18,
         pulsePhase: Math.random() * Math.PI * 2,
       });
     }
@@ -832,10 +1008,11 @@ class Game {
     const angle = Math.random() * Math.PI * 2;
     const dist = Math.max(this.W, this.H) * 0.65;
     const baseHP = 30 + this.wave * 5;
-    const speed = 60 + Math.random() * 20;
+    // FAST PIRATES: base speed 140-180
+    const speed = 140 + Math.random() * 40;
 
-    // Pirate tier based on wave (stronger pirates in later waves)
-    let tier = 0; // pirate1
+    // Pirate tier based on wave
+    let tier = 0;
     if (this.wave >= 8) tier = Math.min(4, Math.floor(Math.random() * 3) + 2);
     else if (this.wave >= 5) tier = Math.min(3, Math.floor(Math.random() * 2) + 1);
     else if (this.wave >= 3) tier = Math.random() < 0.4 ? 1 : 0;
@@ -844,8 +1021,6 @@ class Game {
     const dmgMultiplier = 1 + tier * 0.3;
     const sizeMultiplier = 1 + tier * 0.15;
     const vsuReward = (8 + this.wave) * (1 + tier * 0.5);
-
-    // Shooting range: enemies shoot from this distance
     const firingRange = 140 + tier * 20;
 
     this.enemies.push({
@@ -859,20 +1034,16 @@ class Game {
       tier: tier,
       vsuReward: Math.floor(vsuReward),
       hitFlash: 0,
-      // AI state machine
       aiState: ENEMY_STATE.APPROACH,
       firingRange: firingRange,
       fireTimer: 0,
-      fireRate: 0.8 + tier * 0.2, // shots per second
+      fireRate: 0.8 + tier * 0.2,
       shotsInPass: 0,
       maxShotsPerPass: 2 + Math.floor(tier * 0.5),
-      // Breakoff direction
       breakAngle: 0,
       breakTimer: 0,
-      // Circle
       circleAngle: 0,
       circleTimer: 0,
-      // Rotation (visual)
       rotation: angle + Math.PI,
     });
     this.waveEnemiesSpawned++;
@@ -931,6 +1102,11 @@ class Game {
         const isCrit = Math.random() < this.station.crit;
         const finalDmg = isCrit ? dmg * 2 : dmg;
 
+        // Calculate direction for tracer angle
+        const pdx = nearestEnemy.x - slot.x;
+        const pdy = nearestEnemy.y - slot.y;
+        const pAngle = Math.atan2(pdy, pdx);
+
         this.projectiles.push({
           x: slot.x, y: slot.y,
           targetEnemy: nearestEnemy,
@@ -940,13 +1116,16 @@ class Game {
           trail: [],
           size: turret.projSize,
           color: turret.projColor,
+          angle: pAngle,
         });
 
+        // Small muzzle flash
         this.particles.push({
-          x: slot.x, y: slot.y,
+          x: slot.x + Math.cos(turret.barrelAngle) * 8,
+          y: slot.y + Math.sin(turret.barrelAngle) * 8,
           vx: 0, vy: 0,
-          life: 0.1, maxLife: 0.1,
-          color: turret.color, size: 8,
+          life: 0.06, maxLife: 0.06,
+          color: turret.color, size: 5,
         });
       }
     }
@@ -959,7 +1138,10 @@ class Game {
       const dy = p.targetEnemy.y - p.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
 
-      p.trail.push({ x: p.x, y: p.y, life: 0.15 });
+      // Update angle for tracer rendering
+      p.angle = Math.atan2(dy, dx);
+
+      p.trail.push({ x: p.x, y: p.y, life: 0.08, angle: p.angle });
       p.trail = p.trail.filter(t => { t.life -= dt; return t.life > 0; });
 
       if (dist < 14) {
@@ -1009,7 +1191,7 @@ class Game {
       p.y += p.vy * dt;
       p.life -= dt;
 
-      p.trail.push({ x: p.x, y: p.y, life: 0.1 });
+      p.trail.push({ x: p.x, y: p.y, life: 0.08, angle: p.angle });
       p.trail = p.trail.filter(t => { t.life -= dt; return t.life > 0; });
 
       const dx = p.x - this.stationCenter.x;
@@ -1048,12 +1230,10 @@ class Game {
 
     switch (enemy.aiState) {
       case ENEMY_STATE.APPROACH: {
-        // Fly toward station
         enemy.x += Math.cos(angleToStation) * enemy.speed * dt;
         enemy.y += Math.sin(angleToStation) * enemy.speed * dt;
         enemy.rotation = angleToStation;
 
-        // When in firing range, start shooting
         if (dist <= enemy.firingRange) {
           enemy.aiState = ENEMY_STATE.FIRING;
           enemy.fireTimer = 0;
@@ -1063,18 +1243,15 @@ class Game {
       }
 
       case ENEMY_STATE.FIRING: {
-        // Slow down while firing
         enemy.x += Math.cos(angleToStation) * enemy.speed * 0.3 * dt;
         enemy.y += Math.sin(angleToStation) * enemy.speed * 0.3 * dt;
         enemy.rotation = angleToStation;
 
-        // Fire at station
         enemy.fireTimer -= dt;
         if (enemy.fireTimer <= 0 && enemy.shotsInPass < enemy.maxShotsPerPass) {
           enemy.fireTimer = 1 / enemy.fireRate;
           enemy.shotsInPass++;
 
-          // Shoot projectile at station
           const projAngle = angleToStation + (Math.random() - 0.5) * 0.15;
           const projSpeed = 200 + enemy.tier * 30;
           this.enemyProjectiles.push({
@@ -1085,9 +1262,9 @@ class Game {
             life: 3.0,
             trail: [],
             tier: enemy.tier,
+            angle: projAngle,
           });
 
-          // Muzzle flash
           this.particles.push({
             x: enemy.x + Math.cos(angleToStation) * enemy.radius,
             y: enemy.y + Math.sin(angleToStation) * enemy.radius,
@@ -1097,16 +1274,13 @@ class Game {
           });
         }
 
-        // After firing all shots, break off
         if (enemy.shotsInPass >= enemy.maxShotsPerPass) {
           enemy.aiState = ENEMY_STATE.BREAK_OFF;
-          // Choose a perpendicular break direction (left or right)
           const side = Math.random() < 0.5 ? 1 : -1;
           enemy.breakAngle = angleToStation + Math.PI + side * (0.6 + Math.random() * 0.8);
           enemy.breakTimer = 1.2 + Math.random() * 0.6;
         }
 
-        // Emergency break-off if too close
         if (dist < 50) {
           enemy.aiState = ENEMY_STATE.BREAK_OFF;
           enemy.breakAngle = angleToStation + Math.PI + (Math.random() - 0.5) * 1.0;
@@ -1116,7 +1290,6 @@ class Game {
       }
 
       case ENEMY_STATE.BREAK_OFF: {
-        // Fly away at break angle
         enemy.x += Math.cos(enemy.breakAngle) * enemy.speed * 1.2 * dt;
         enemy.y += Math.sin(enemy.breakAngle) * enemy.speed * 1.2 * dt;
         enemy.rotation = enemy.breakAngle;
@@ -1131,7 +1304,6 @@ class Game {
       }
 
       case ENEMY_STATE.CIRCLING: {
-        // Circle around station before next approach
         const circleRadius = dist;
         const circleSpeed = enemy.speed * 0.6 / Math.max(circleRadius, 100);
         enemy.circleAngle += circleSpeed * dt;
@@ -1152,7 +1324,6 @@ class Game {
       }
     }
 
-    // Keep enemies in bounds (wrap if they fly too far)
     const maxDist = Math.max(this.W, this.H) * 0.8;
     if (dist > maxDist && enemy.aiState !== ENEMY_STATE.APPROACH) {
       enemy.aiState = ENEMY_STATE.APPROACH;
@@ -1208,7 +1379,6 @@ class Game {
     document.getElementById('buildUI').style.display = 'flex';
     document.getElementById('hudPhase').textContent = 'BUILD';
 
-    // Regenerate some shield
     this.stationShield = Math.min(this.stationMaxShield, this.stationShield + 15);
 
     this.renderBuildButtons();
@@ -1217,14 +1387,14 @@ class Game {
 
   newRun() {
     document.getElementById('gameOverScreen').style.display = 'none';
-    document.getElementById('stationSelect').style.display = 'flex';
-    this.state = 'menu';
+    document.getElementById('stationSelect').style.display = 'none';
+    document.getElementById('mainMenu').style.display = 'flex';
+    this.state = 'mainmenu';
     this.enemies = [];
     this.projectiles = [];
     this.enemyProjectiles = [];
     this.particles = [];
     this.damageNumbers = [];
-    this.renderStationSelect();
   }
 
   // -- Update --
@@ -1313,7 +1483,7 @@ class Game {
     ctx.fillStyle = '#0D0D0F';
     ctx.fillRect(-10, -10, W + 20, H + 20);
 
-    if (this.state === 'menu' || this.state === 'loading') {
+    if (this.state === 'mainmenu' || this.state === 'menu' || this.state === 'loading') {
       this.renderMenuBackground(ctx, W, H);
       ctx.restore();
       return;
@@ -1355,26 +1525,12 @@ class Game {
       this.renderEnemy(ctx, enemy);
     }
 
-    // Enemy projectiles
+    // Enemy projectiles — TRACER style
     for (const ep of this.enemyProjectiles) {
-      for (const t of ep.trail) {
-        const alpha = t.life / 0.1;
-        ctx.beginPath();
-        ctx.arc(t.x, t.y, 1.5 * alpha, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,68,68,${alpha * 0.4})`;
-        ctx.fill();
-      }
-      ctx.beginPath();
-      ctx.arc(ep.x, ep.y, 3, 0, Math.PI * 2);
-      ctx.fillStyle = '#FF4444';
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(ep.x, ep.y, 6, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255,68,68,0.15)';
-      ctx.fill();
+      this.renderEnemyProjectile(ctx, ep);
     }
 
-    // Turret projectiles
+    // Turret projectiles — TRACER style
     for (const proj of this.projectiles) {
       this.renderProjectile(ctx, proj);
     }
@@ -1423,7 +1579,6 @@ class Game {
   }
 
   renderMenuBackground(ctx, W, H) {
-    // Try to draw menu background image
     if (IMAGES.menuBg && IMAGES.menuBg.complete && IMAGES.menuBg.naturalWidth > 0) {
       const imgW = IMAGES.menuBg.naturalWidth;
       const imgH = IMAGES.menuBg.naturalHeight;
@@ -1435,7 +1590,6 @@ class Game {
       ctx.globalAlpha = 1;
     }
 
-    // Dark overlay
     const grad = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W * 0.5);
     grad.addColorStop(0, 'rgba(26,26,31,0.5)');
     grad.addColorStop(1, 'rgba(13,13,15,0.9)');
@@ -1469,18 +1623,17 @@ class Game {
 
     // Glow
     const glowAlpha = 0.08 + Math.sin(this.gridPulse * 1.5) * 0.03;
-    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 80);
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 100);
     grad.addColorStop(0, `rgba(212,160,60,${glowAlpha * 2})`);
     grad.addColorStop(1, 'rgba(212,160,60,0)');
     ctx.fillStyle = grad;
-    ctx.fillRect(cx - 80, cy - 80, 160, 160);
+    ctx.fillRect(cx - 100, cy - 100, 200, 200);
 
-    // Draw station sprite
+    // Draw station sprite — BIGGER
     if (this.station) {
       const spriteImg = IMAGES.stations[this.station.sprite];
       if (spriteImg && spriteImg.complete && spriteImg.naturalWidth > 0) {
-        const size = Math.min(this.W, this.H) * 0.1;
-        const s = Math.max(48, Math.min(80, size));
+        const s = this.getStationSpriteSize();
         ctx.imageSmoothingEnabled = false;
         ctx.drawImage(spriteImg, cx - s/2, cy - s/2, s, s);
         ctx.imageSmoothingEnabled = true;
@@ -1489,7 +1642,7 @@ class Game {
         ctx.beginPath();
         for (let i = 0; i < 6; i++) {
           const angle = (i / 6) * Math.PI * 2 - Math.PI / 2;
-          const r = 28;
+          const r = 40;
           const px = cx + Math.cos(angle) * r;
           const py = cy + Math.sin(angle) * r;
           if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
@@ -1503,11 +1656,12 @@ class Game {
       }
     }
 
-    // Shield visual (ring around station)
+    // Shield visual
     if (this.stationShield > 0) {
       const shieldRatio = this.stationShield / this.stationMaxShield;
+      const shieldR = this.getStationSpriteSize() * 0.55;
       ctx.beginPath();
-      ctx.arc(cx, cy, 38, 0, Math.PI * 2 * shieldRatio);
+      ctx.arc(cx, cy, shieldR, 0, Math.PI * 2 * shieldRatio);
       ctx.strokeStyle = `rgba(0,212,255,${0.2 + shieldRatio * 0.3})`;
       ctx.lineWidth = 2;
       ctx.stroke();
@@ -1536,13 +1690,13 @@ class Game {
         ctx.fill();
 
         // "W" label
-        ctx.font = `${this.isMobile ? 11 : 9}px "Share Tech Mono"`;
+        ctx.font = `${this.isMobile ? 10 : 8}px "Share Tech Mono"`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = `rgba(212,160,60,${baseAlpha + 0.1})`;
         ctx.fillText('W', slot.x, slot.y);
 
-        // Connection line
+        // Connection line to station center
         ctx.beginPath();
         ctx.moveTo(slot.x, slot.y);
         ctx.lineTo(this.stationCenter.x, this.stationCenter.y);
@@ -1573,15 +1727,26 @@ class Game {
       ctx.stroke();
     }
 
-    // Draw weapon sprite
+    // Draw weapon sprite with CORRECT ASPECT RATIO
     const spriteImg = IMAGES.weapons[b.sprite];
     if (spriteImg && spriteImg.complete && spriteImg.naturalWidth > 0) {
-      const size = this.isMobile ? 36 : 28;
+      const baseSize = this.isMobile ? 32 : 26;
+      const nw = spriteImg.naturalWidth;
+      const nh = spriteImg.naturalHeight;
+      const aspect = nw / nh;
+      let drawW, drawH;
+      if (aspect >= 1) {
+        drawW = baseSize;
+        drawH = baseSize / aspect;
+      } else {
+        drawH = baseSize;
+        drawW = baseSize * aspect;
+      }
       ctx.save();
       ctx.translate(slot.x, slot.y);
       ctx.rotate(b.barrelAngle + Math.PI / 2);
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(spriteImg, -size/2, -size/2, size, size);
+      ctx.drawImage(spriteImg, -drawW/2, -drawH/2, drawW, drawH);
       ctx.imageSmoothingEnabled = true;
       ctx.restore();
     } else {
@@ -1662,7 +1827,7 @@ class Game {
     ctx.fillStyle = hpRatio > 0.5 ? '#88FF44' : (hpRatio > 0.25 ? '#FFD700' : '#FF3344');
     ctx.fillRect(barX, barY, barW * hpRatio, barH);
 
-    // AI state indicator (small dot)
+    // AI state indicator
     if (enemy.aiState === ENEMY_STATE.FIRING) {
       ctx.beginPath();
       ctx.arc(enemy.x, barY - 3, 2, 0, Math.PI * 2);
@@ -1671,33 +1836,120 @@ class Game {
     }
   }
 
+  // TRACER-STYLE turret projectile rendering
   renderProjectile(ctx, proj) {
+    const angle = proj.angle || 0;
+    const tracerLen = proj.isCrit ? 14 : 10;
+    const tracerWidth = proj.isCrit ? 3 : 2;
+
+    // Trail segments (fading tracer trail)
     for (const t of proj.trail) {
-      const alpha = t.life / 0.15;
+      const alpha = t.life / 0.08;
+      const tAngle = t.angle || angle;
+      ctx.save();
+      ctx.translate(t.x, t.y);
+      ctx.rotate(tAngle);
+      ctx.globalAlpha = alpha * 0.3;
       ctx.beginPath();
-      ctx.arc(t.x, t.y, (proj.size * 0.5) * alpha, 0, Math.PI * 2);
-      ctx.fillStyle = proj.isCrit ? `rgba(255,215,0,${alpha * 0.5})` : `${proj.color}${Math.floor(alpha * 128).toString(16).padStart(2,'0')}`;
-      ctx.fill();
+      ctx.moveTo(-tracerLen * 0.8, 0);
+      ctx.lineTo(0, 0);
+      ctx.strokeStyle = proj.isCrit ? '#FFD700' : proj.color;
+      ctx.lineWidth = tracerWidth * 0.6;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.restore();
     }
 
-    ctx.beginPath();
-    ctx.arc(proj.x, proj.y, proj.isCrit ? proj.size + 1.5 : proj.size, 0, Math.PI * 2);
-    ctx.fillStyle = proj.isCrit ? '#FFD700' : proj.color;
-    ctx.fill();
+    // Main tracer body
+    ctx.save();
+    ctx.translate(proj.x, proj.y);
+    ctx.rotate(angle);
 
+    // Outer glow
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = proj.isCrit ? '#FFD700' : proj.color;
+
+    // Colored tracer line
     ctx.beginPath();
-    ctx.arc(proj.x, proj.y, proj.isCrit ? proj.size * 2.5 : proj.size * 2, 0, Math.PI * 2);
-    ctx.fillStyle = proj.isCrit ? 'rgba(255,215,0,0.12)' : `${proj.color}1A`;
-    ctx.fill();
+    ctx.moveTo(-tracerLen, 0);
+    ctx.lineTo(3, 0);
+    ctx.strokeStyle = proj.isCrit ? '#FFD700' : proj.color;
+    ctx.lineWidth = tracerWidth;
+    ctx.stroke();
+
+    // Bright white core
+    ctx.beginPath();
+    ctx.moveTo(-tracerLen * 0.4, 0);
+    ctx.lineTo(2, 0);
+    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
+
+  // TRACER-STYLE enemy projectile rendering
+  renderEnemyProjectile(ctx, ep) {
+    const angle = ep.angle || Math.atan2(ep.vy, ep.vx);
+    const tracerLen = 8;
+    const tracerWidth = 2;
+
+    // Trail
+    for (const t of ep.trail) {
+      const alpha = t.life / 0.08;
+      const tAngle = t.angle || angle;
+      ctx.save();
+      ctx.translate(t.x, t.y);
+      ctx.rotate(tAngle);
+      ctx.globalAlpha = alpha * 0.25;
+      ctx.beginPath();
+      ctx.moveTo(-tracerLen * 0.7, 0);
+      ctx.lineTo(0, 0);
+      ctx.strokeStyle = '#FF4444';
+      ctx.lineWidth = tracerWidth * 0.5;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+
+    // Main tracer body
+    ctx.save();
+    ctx.translate(ep.x, ep.y);
+    ctx.rotate(angle);
+
+    // Outer glow
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = '#FF4444';
+
+    // Red tracer line
+    ctx.beginPath();
+    ctx.moveTo(-tracerLen, 0);
+    ctx.lineTo(3, 0);
+    ctx.strokeStyle = '#FF4444';
+    ctx.lineWidth = tracerWidth;
+    ctx.stroke();
+
+    // Bright core
+    ctx.beginPath();
+    ctx.moveTo(-tracerLen * 0.3, 0);
+    ctx.lineTo(2, 0);
+    ctx.strokeStyle = 'rgba(255,200,180,0.9)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+    ctx.restore();
   }
 
   renderStationHPBar(ctx) {
     const cx = this.stationCenter.x;
     const cy = this.stationCenter.y;
+    const stationSize = this.getStationSpriteSize();
     const barW = this.isMobile ? 70 : 80;
     const barH = 6;
     const barX = cx - barW / 2;
-    const barY = cy + 44;
+    const barY = cy + stationSize * 0.55 + 8;
 
     ctx.fillStyle = 'rgba(13,13,15,0.8)';
     ctx.fillRect(barX - 1, barY - 1, barW + 2, barH + 2);
