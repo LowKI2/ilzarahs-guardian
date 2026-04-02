@@ -3160,10 +3160,10 @@ class Game {
           weaponKey: turret.weaponKey,
         });
 
-        // Weapon fire sound (throttled — only play if not already playing)
+        // Weapon fire sounds
         if (turret.weaponKey && turret.weaponKey.startsWith('rocket')) {
           playSound('rocketflight');
-        } else if (turret.burstCount === 1) {
+        } else {
           playSound('gatling');
         }
 
@@ -3246,7 +3246,7 @@ class Game {
           this.explosions.push({
             x: hitEnemy.x, y: hitEnemy.y,
             life: 2.5, maxLife: 2.5,
-            size: 40 + hitEnemy.tier * 8,
+            size: 70 + hitEnemy.tier * 12,
           });
 
           // Wreck — delayed spawn, appears near end of explosion, fades over 3s
@@ -3520,7 +3520,7 @@ class Game {
     document.getElementById('hudPhase').textContent = 'VORBEREITEN';
     playMusic('drifting');
 
-    this.stationShield = Math.min(this.stationMaxShield, this.stationShield + 15);
+    this.stationShield = this.stationMaxShield;
 
     this.renderBuildButtons();
     this.updateUpgradeUI();
@@ -3955,7 +3955,7 @@ class Game {
       const shieldRatio = this.stationShield / this.stationMaxShield;
       const shieldR = this.getStationSpriteSize() * 0.52;
       const pulse = Math.sin(this.gridPulse * 2) * 0.02;
-      const baseAlpha = 0.03 + shieldRatio * 0.04 + pulse;
+      const baseAlpha = (0.07 + pulse) * shieldRatio;
 
       // Inner fill — very faint, transparent center, visible at edges
       const bubbleGrad = ctx.createRadialGradient(cx, cy, shieldR * 0.3, cx, cy, shieldR);
@@ -3970,14 +3970,14 @@ class Game {
       // Edge stroke — subtle rim
       ctx.beginPath();
       ctx.arc(cx, cy, shieldR, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(0,212,255,${0.08 + shieldRatio * 0.12})`;
+      ctx.strokeStyle = `rgba(0,212,255,${0.20 * shieldRatio})`;
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
       // Specular highlight — small bright arc at top-left
       ctx.beginPath();
       ctx.arc(cx, cy, shieldR * 0.97, -Math.PI * 0.85, -Math.PI * 0.55);
-      ctx.strokeStyle = `rgba(180,230,255,${0.06 + shieldRatio * 0.08})`;
+      ctx.strokeStyle = `rgba(180,230,255,${0.14 * shieldRatio})`;
       ctx.lineWidth = 2;
       ctx.stroke();
     }
