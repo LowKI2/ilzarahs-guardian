@@ -5,16 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Ilzarah's Guardian — Prototype</title>
+<title>Guardian of Ilzarah — Prototype</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Audiowide&family=Share+Tech+Mono&display=swap');
+
+:root {
+  --amber: #d4820a;
+  --amber-bright: #f0a832;
+  --amber-dim: #7a4a06;
+  --amber-glow: #ffbd55;
+  --steel: #141820;
+  --steel-light: #2c3440;
+  --ilzarah: #c8dff0;
+  --text: #bcc8d8;
+  --text-dim: #556070;
+  --font-ui: 'Audiowide', sans-serif;
+  --font-body: 'Agency FB', 'Rajdhani', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+}
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body {
-  background: #0D0D0F;
-  color: #C8B88A;
-  font-family: 'Rajdhani', sans-serif;
+  background: var(--steel);
+  color: var(--text);
+  font-family: var(--font-body);
   overflow: hidden;
   height: 100%;
   width: 100%;
@@ -35,7 +50,7 @@ html, body {
 
 canvas {
   display: block;
-  background: #0D0D0F;
+  background: var(--steel);
   width: 100%;
   height: 100%;
 }
@@ -45,13 +60,13 @@ canvas {
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 44px;
-  background: linear-gradient(180deg, rgba(13,13,15,0.95) 0%, rgba(13,13,15,0.7) 100%);
-  border-bottom: 1px solid rgba(212,160,60,0.3);
+  background: linear-gradient(180deg, rgba(20,24,32,0.95) 0%, rgba(20,24,32,0.7) 100%);
+  border-bottom: 1px solid var(--amber-dim);
   display: none;
   align-items: center;
   justify-content: space-around;
   padding: 0 8px;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
   z-index: 10;
   pointer-events: none;
@@ -59,9 +74,9 @@ canvas {
 }
 
 .hud-item { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
-.hud-label { color: rgba(200,184,138,0.5); font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; }
-.hud-value { color: #D4A03C; font-size: 14px; font-weight: 700; }
-.hud-value.cyan { color: #00D4FF; }
+.hud-label { color: var(--text-dim); font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; }
+.hud-value { color: var(--amber); font-size: 14px; font-weight: 700; }
+.hud-value.cyan { color: var(--ilzarah); }
 .hud-value.red { color: #FF3344; }
 
 @media (min-width: 600px) {
@@ -79,7 +94,7 @@ canvas {
   align-items: center;
   justify-content: center;
   z-index: 150;
-  background: #0D0D0F;
+  background: var(--steel);
   overflow: hidden;
 }
 
@@ -95,7 +110,7 @@ canvas {
 #mainMenu .mm-overlay {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, rgba(13,13,15,0.3) 0%, rgba(13,13,15,0.85) 70%);
+  background: radial-gradient(ellipse at center, rgba(20,24,32,0.3) 0%, rgba(20,24,32,0.85) 70%);
 }
 
 .mm-content {
@@ -108,21 +123,28 @@ canvas {
 }
 
 .mm-title {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-ui);
   font-size: clamp(32px, 8vw, 64px);
   font-weight: 700;
-  color: #D4A03C;
+  color: var(--ilzarah);
   text-transform: uppercase;
   letter-spacing: 6px;
-  text-shadow: 0 0 40px rgba(212,160,60,0.5), 0 0 80px rgba(212,160,60,0.2);
+  text-shadow: 0 0 40px rgba(212,130,10,0.5), 0 0 80px rgba(212,130,10,0.2);
   text-align: center;
   line-height: 1.1;
 }
 
+.mm-title-of {
+  font-size: 0.45em;
+  letter-spacing: 3px;
+  color: var(--amber);
+  text-transform: lowercase;
+}
+
 .mm-subtitle {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--font-mono);
   font-size: clamp(10px, 2.5vw, 14px);
-  color: rgba(200,184,138,0.35);
+  color: var(--text-dim);
   letter-spacing: 4px;
   margin-bottom: 32px;
 }
@@ -135,13 +157,13 @@ canvas {
 }
 
 .mm-btn {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-ui);
   font-size: clamp(14px, 3vw, 18px);
   font-weight: 700;
   padding: 14px 24px;
-  border: 1px solid rgba(200,184,138,0.25);
-  background: rgba(26,26,31,0.6);
-  color: rgba(200,184,138,0.6);
+  border: 1px solid var(--steel-light);
+  background: rgba(44,52,64,0.6);
+  color: var(--text-dim);
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 3px;
@@ -153,25 +175,25 @@ canvas {
 }
 
 .mm-btn:hover, .mm-btn:active {
-  border-color: rgba(200,184,138,0.5);
-  color: #C8B88A;
-  background: rgba(200,184,138,0.08);
+  border-color: var(--amber-dim);
+  color: var(--text);
+  background: rgba(212,130,10,0.08);
 }
 
 .mm-btn-primary {
-  border-color: rgba(212,160,60,0.5);
-  color: #D4A03C;
-  background: rgba(212,160,60,0.1);
+  border-color: var(--amber);
+  color: var(--amber-bright);
+  background: rgba(212,130,10,0.1);
   font-size: clamp(16px, 3.5vw, 22px);
   letter-spacing: 4px;
-  box-shadow: 0 0 20px rgba(212,160,60,0.1);
+  box-shadow: 0 0 20px rgba(212,130,10,0.15);
 }
 
 .mm-btn-primary:hover, .mm-btn-primary:active {
-  background: rgba(212,160,60,0.2);
-  border-color: #D4A03C;
-  box-shadow: 0 0 30px rgba(212,160,60,0.25);
-  color: #D4A03C;
+  background: rgba(212,130,10,0.2);
+  border-color: var(--amber-bright);
+  box-shadow: 0 0 30px rgba(255,189,85,0.25);
+  color: var(--amber-glow);
 }
 
 .mm-btn-red {
@@ -186,9 +208,9 @@ canvas {
 }
 
 .mm-version {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
-  color: rgba(200,184,138,0.15);
+  color: var(--text-dim);
   margin-top: 40px;
   letter-spacing: 2px;
 }
@@ -197,7 +219,7 @@ canvas {
 #stationSelect {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, #1A1A1F 0%, #0D0D0F 70%);
+  background: radial-gradient(ellipse at center, var(--steel-light) 0%, var(--steel) 70%);
   display: none;
   flex-direction: column;
   align-items: center;
@@ -208,21 +230,21 @@ canvas {
 }
 
 #stationSelect h1 {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-ui);
   font-size: clamp(24px, 6vw, 42px);
   font-weight: 700;
-  color: #D4A03C;
+  color: var(--ilzarah);
   text-transform: uppercase;
   letter-spacing: 3px;
   margin-bottom: 4px;
-  text-shadow: 0 0 20px rgba(212,160,60,0.4);
+  text-shadow: 0 0 20px rgba(212,130,10,0.4);
   text-align: center;
 }
 
 #stationSelect .subtitle {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--font-mono);
   font-size: clamp(10px, 2.5vw, 13px);
-  color: rgba(200,184,138,0.4);
+  color: var(--text-dim);
   margin-bottom: 24px;
   letter-spacing: 2px;
 }
@@ -238,8 +260,8 @@ canvas {
 
 .station-card {
   width: clamp(130px, 28vw, 160px);
-  background: linear-gradient(180deg, rgba(26,26,31,0.9) 0%, rgba(13,13,15,0.95) 100%);
-  border: 1px solid rgba(212,160,60,0.2);
+  background: linear-gradient(180deg, rgba(44,52,64,0.9) 0%, rgba(20,24,32,0.95) 100%);
+  border: 1px solid var(--amber-dim);
   border-radius: 6px;
   padding: 12px;
   cursor: pointer;
@@ -254,15 +276,15 @@ canvas {
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #D4A03C, transparent);
+  background: linear-gradient(90deg, transparent, var(--amber), transparent);
   opacity: 0;
   transition: opacity 0.2s;
 }
 
 .station-card:active, .station-card:hover {
-  border-color: rgba(212,160,60,0.6);
+  border-color: var(--amber);
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(212,160,60,0.15);
+  box-shadow: 0 4px 20px rgba(212,130,10,0.2);
 }
 
 .station-card:active::before, .station-card:hover::before { opacity: 1; }
@@ -282,23 +304,23 @@ canvas {
   max-height: 56px;
   max-width: 80%;
   image-rendering: pixelated;
-  filter: drop-shadow(0 0 8px rgba(212,160,60,0.3));
+  filter: drop-shadow(0 0 8px rgba(212,130,10,0.3));
 }
 
-.station-name { font-size: 14px; font-weight: 700; color: #D4A03C; margin-bottom: 6px; text-align: center; }
-.station-stat { display: flex; justify-content: space-between; font-family: 'Share Tech Mono', monospace; font-size: 10px; margin-bottom: 2px; }
-.station-stat .label { color: rgba(200,184,138,0.5); }
-.station-stat .val { color: #C8B88A; }
+.station-name { font-size: 14px; font-weight: 700; color: var(--amber-bright); margin-bottom: 6px; text-align: center; }
+.station-stat { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; margin-bottom: 2px; }
+.station-stat .label { color: var(--text-dim); }
+.station-stat .val { color: var(--text); }
 .station-stat .val.dmg { color: #FF3344; }
-.station-stat .val.def { color: #00D4FF; }
-.station-slots { margin-top: 6px; font-family: 'Share Tech Mono', monospace; font-size: 9px; color: rgba(200,184,138,0.4); text-align: center; border-top: 1px solid rgba(212,160,60,0.1); padding-top: 4px; }
+.station-stat .val.def { color: var(--ilzarah); }
+.station-slots { margin-top: 6px; font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); text-align: center; border-top: 1px solid var(--amber-dim); padding-top: 4px; }
 
 /* -- Build Phase UI -- */
 #buildUI {
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  background: linear-gradient(0deg, rgba(13,13,15,0.97) 0%, rgba(13,13,15,0.8) 100%);
-  border-top: 1px solid rgba(212,160,60,0.3);
+  background: linear-gradient(0deg, rgba(20,24,32,0.97) 0%, rgba(20,24,32,0.8) 100%);
+  border-top: 1px solid var(--amber-dim);
   display: none;
   flex-direction: column;
   align-items: center;
@@ -317,13 +339,13 @@ canvas {
 }
 
 .build-btn {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 600;
   padding: 10px 8px;
-  border: 1px solid rgba(212,160,60,0.4);
-  background: rgba(26,26,31,0.8);
-  color: #D4A03C;
+  border: 1px solid var(--amber-dim);
+  background: rgba(44,52,64,0.8);
+  color: var(--amber);
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -341,21 +363,24 @@ canvas {
 }
 
 .build-btn img {
-  width: 24px;
-  height: 24px;
+  max-width: 28px;
+  max-height: 24px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
   image-rendering: pixelated;
 }
 
 .build-btn.selected {
-  background: rgba(212,160,60,0.2);
-  border-color: #D4A03C;
-  box-shadow: 0 0 12px rgba(212,160,60,0.3);
+  background: rgba(212,130,10,0.2);
+  border-color: var(--amber-bright);
+  box-shadow: 0 0 12px rgba(212,130,10,0.3);
 }
 
 .build-btn:active, .build-btn:hover {
-  background: rgba(212,160,60,0.15);
-  border-color: #D4A03C;
-  box-shadow: 0 0 12px rgba(212,160,60,0.2);
+  background: rgba(212,130,10,0.15);
+  border-color: var(--amber);
+  box-shadow: 0 0 12px rgba(212,130,10,0.2);
 }
 
 .build-btn.start-combat {
@@ -373,16 +398,240 @@ canvas {
 
 .build-btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
 
+/* -- Combat Controls (bottom-right, KAMPF + AUTO) -- */
+#combatControls {
+  position: absolute;
+  bottom: 12px; right: 12px;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  z-index: 12;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* -- Pause Menu Button (HUD top-right) -- */
+#btnPauseMenu {
+  position: absolute;
+  top: 6px; right: 8px;
+  width: 32px; height: 32px;
+  background: rgba(44,52,64,0.7);
+  border: 1px solid var(--amber-dim);
+  color: var(--amber);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  cursor: pointer;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 11;
+  transition: background 0.15s, border-color 0.15s;
+}
+#btnPauseMenu:hover { background: rgba(212,130,10,0.15); border-color: var(--amber); }
+
+@media (min-width: 600px) {
+  #btnPauseMenu { top: 8px; right: 16px; width: 36px; height: 36px; font-size: 18px; }
+}
+
+/* -- Pause Menu Overlay -- */
+#pauseMenu {
+  position: absolute;
+  inset: 0;
+  background: rgba(10,12,16,0.85);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  gap: 12px;
+}
+
+#pauseMenu.visible { display: flex; }
+
+.pause-title {
+  font-family: var(--font-ui);
+  font-size: clamp(20px, 5vw, 32px);
+  color: var(--amber-bright);
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  margin-bottom: 16px;
+}
+
+.pause-btn {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  background: rgba(44,52,64,0.6);
+  border: 1px solid var(--amber-dim);
+  color: var(--amber);
+  padding: 12px 32px;
+  min-width: 200px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.pause-btn:hover {
+  background: rgba(212,130,10,0.15);
+  border-color: var(--amber);
+  color: var(--amber-bright);
+}
+
+.pause-btn.danger {
+  color: rgba(255,51,68,0.7);
+  border-color: rgba(255,51,68,0.3);
+}
+
+.pause-btn.danger:hover {
+  background: rgba(255,51,68,0.1);
+  border-color: rgba(255,51,68,0.6);
+  color: #FF3344;
+}
+
 @media (min-width: 600px) {
   .build-btn { font-size: 12px; padding: 10px 14px; min-width: 80px; max-width: 140px; }
   .build-btn img { width: 28px; height: 28px; }
 }
 
+/* -- Upgrade Sidebar (left side during build phase) -- */
+#upgradeSidebar {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 15;
+  pointer-events: auto;
+}
+
+.upg-cat-btn {
+  width: 40px; height: 40px;
+  border-radius: 6px;
+  border: 1px solid;
+  background: rgba(20,24,32,0.9);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  position: relative;
+}
+
+.upg-cat-btn.attack { border-color: rgba(255,80,40,0.5); color: #FF5028; }
+.upg-cat-btn.attack:hover, .upg-cat-btn.attack.active { background: rgba(255,80,40,0.15); border-color: #FF5028; box-shadow: 0 0 10px rgba(255,80,40,0.3); }
+.upg-cat-btn.defense { border-color: rgba(0,180,220,0.5); color: #00B4DC; }
+.upg-cat-btn.defense:hover, .upg-cat-btn.defense.active { background: rgba(0,180,220,0.15); border-color: #00B4DC; box-shadow: 0 0 10px rgba(0,180,220,0.3); }
+.upg-cat-btn.resource { border-color: rgba(80,200,80,0.5); color: #50C850; }
+.upg-cat-btn.resource:hover, .upg-cat-btn.resource.active { background: rgba(80,200,80,0.15); border-color: #50C850; box-shadow: 0 0 10px rgba(80,200,80,0.3); }
+.upg-cat-btn.repair { border-color: rgba(212,130,10,0.5); color: var(--amber); }
+.upg-cat-btn.repair:hover { background: rgba(212,130,10,0.15); border-color: var(--amber); box-shadow: 0 0 10px rgba(212,130,10,0.3); }
+.upg-cat-btn.repair:disabled { opacity: 0.3; cursor: not-allowed; box-shadow: none; }
+
+.upg-cat-btn .upg-lvl {
+  position: absolute;
+  top: -4px; right: -4px;
+  background: var(--steel);
+  border: 1px solid;
+  border-radius: 50%;
+  width: 16px; height: 16px;
+  font-size: 8px;
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-color: inherit;
+  color: inherit;
+}
+
+/* -- Upgrade Overlay Panel -- */
+.upg-panel {
+  position: absolute;
+  left: 56px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(20,24,32,0.96);
+  border: 1px solid var(--amber-dim);
+  border-radius: 6px;
+  padding: 10px 12px;
+  min-width: 220px;
+  max-width: 260px;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 16;
+  pointer-events: auto;
+}
+
+.upg-panel.visible { display: flex; }
+
+.upg-panel-title {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid;
+  margin-bottom: 2px;
+}
+
+.upg-panel.attack .upg-panel-title { color: #FF5028; border-color: rgba(255,80,40,0.3); }
+.upg-panel.defense .upg-panel-title { color: #00B4DC; border-color: rgba(0,180,220,0.3); }
+.upg-panel.resource .upg-panel-title { color: #50C850; border-color: rgba(80,200,80,0.3); }
+
+.upg-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.upg-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.upg-name {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.upg-val {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+}
+
+.upg-buy {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  padding: 3px 8px;
+  border: 1px solid var(--amber-dim);
+  background: rgba(44,52,64,0.8);
+  color: var(--amber);
+  cursor: pointer;
+  border-radius: 3px;
+  white-space: nowrap;
+  transition: all 0.1s;
+  flex-shrink: 0;
+}
+
+.upg-buy:hover { background: rgba(212,130,10,0.15); border-color: var(--amber); }
+.upg-buy:disabled { opacity: 0.3; cursor: not-allowed; }
+
 /* -- Game Over Screen -- */
 #gameOverScreen {
   position: absolute;
   inset: 0;
-  background: rgba(13,13,15,0.92);
+  background: rgba(20,24,32,0.92);
   display: none;
   flex-direction: column;
   align-items: center;
@@ -392,7 +641,7 @@ canvas {
 }
 
 #gameOverScreen h2 {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-ui);
   font-size: clamp(32px, 8vw, 48px);
   font-weight: 700;
   color: #FF3344;
@@ -403,25 +652,25 @@ canvas {
 }
 
 #gameOverScreen .go-subtitle {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 13px;
-  color: rgba(200,184,138,0.5);
+  color: var(--text-dim);
   margin-bottom: 24px;
 }
 
 .go-stats { display: flex; gap: 30px; margin-bottom: 30px; flex-wrap: wrap; justify-content: center; }
 .go-stat { text-align: center; }
-.go-stat .go-val { font-family: 'Share Tech Mono', monospace; font-size: clamp(24px, 5vw, 32px); font-weight: 700; color: #D4A03C; }
-.go-stat .go-label { font-size: 11px; color: rgba(200,184,138,0.4); text-transform: uppercase; letter-spacing: 1px; }
+.go-stat .go-val { font-family: var(--font-mono); font-size: clamp(24px, 5vw, 32px); font-weight: 700; color: var(--amber-bright); }
+.go-stat .go-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
 
 .go-btn {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-ui);
   font-size: 18px;
   font-weight: 700;
   padding: 14px 48px;
-  border: 1px solid rgba(212,160,60,0.5);
-  background: rgba(212,160,60,0.1);
-  color: #D4A03C;
+  border: 1px solid var(--amber);
+  background: rgba(212,130,10,0.1);
+  color: var(--amber-bright);
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 2px;
@@ -432,9 +681,9 @@ canvas {
 }
 
 .go-btn:active, .go-btn:hover {
-  background: rgba(212,160,60,0.25);
-  border-color: #D4A03C;
-  box-shadow: 0 0 20px rgba(212,160,60,0.3);
+  background: rgba(212,130,10,0.25);
+  border-color: var(--amber-bright);
+  box-shadow: 0 0 20px rgba(255,189,85,0.3);
 }
 
 /* -- Wave Banner -- */
@@ -443,13 +692,13 @@ canvas {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-ui);
   font-size: clamp(24px, 5vw, 36px);
   font-weight: 700;
-  color: #D4A03C;
+  color: var(--amber-bright);
   text-transform: uppercase;
   letter-spacing: 3px;
-  text-shadow: 0 0 30px rgba(212,160,60,0.6);
+  text-shadow: 0 0 30px rgba(212,130,10,0.6);
   opacity: 0;
   z-index: 50;
   pointer-events: none;
@@ -461,12 +710,12 @@ canvas {
 /* -- Tooltip (desktop only) -- */
 #tooltip {
   position: absolute;
-  background: rgba(13,13,15,0.95);
-  border: 1px solid rgba(212,160,60,0.4);
+  background: rgba(20,24,32,0.95);
+  border: 1px solid var(--amber-dim);
   padding: 8px 12px;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: #C8B88A;
+  color: var(--text);
   pointer-events: none;
   z-index: 300;
   display: none;
@@ -478,9 +727,537 @@ canvas {
 @media (pointer: coarse) {
   #tooltip { display: none !important; }
 }
+
+/* -- Mobile: Upgrade Sidebar + Panels + Skill Tree -- */
+@media (max-width: 600px) {
+  /* Upgrade sidebar: horizontal row above build bar */
+  #upgradeSidebar {
+    flex-direction: row;
+    left: 0; right: auto;
+    top: auto;
+    bottom: 64px;
+    transform: none;
+    padding: 0 6px;
+    gap: 5px;
+    width: auto;
+    background: linear-gradient(0deg, rgba(20,24,32,0.9) 0%, rgba(20,24,32,0.6) 100%);
+    border-radius: 0 6px 0 0;
+    padding: 5px 8px;
+  }
+
+  #upgradeSidebar hr { display: none; }
+
+  .upg-cat-btn {
+    width: 36px; height: 36px;
+    font-size: 14px;
+  }
+
+  .upg-cat-btn .upg-lvl {
+    width: 14px; height: 14px;
+    font-size: 7px;
+    top: -3px; right: -3px;
+  }
+
+  /* Upgrade panels: anchored above sidebar, full-width */
+  .upg-panel {
+    position: fixed;
+    left: 4px; right: 4px;
+    bottom: 108px;
+    top: auto;
+    transform: none;
+    min-width: 0;
+    max-width: none;
+    width: auto;
+    max-height: 50vh;
+    overflow-y: auto;
+    border-radius: 8px;
+  }
+
+  .upg-row { padding: 5px 0; }
+  .upg-name { font-size: 11px; }
+  .upg-val { font-size: 10px; }
+  .upg-buy { font-size: 10px; padding: 5px 12px; min-height: 32px; }
+
+  /* Skill tree: responsive canvas */
+  .sk-viewport {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .sk-canvas {
+    min-width: 700px;
+    min-height: 450px;
+    transform: scale(0.85);
+    transform-origin: top left;
+  }
+
+  .sk-cat-label { font-size: 10px; }
+
+  /* Bigger touch targets for nodes */
+  .sk-node.small {
+    width: 38px; height: 38px;
+    font-size: 12px;
+  }
+
+  .sk-node.big {
+    width: 50px; height: 50px;
+    font-size: 18px;
+  }
+
+  /* Tooltip: fixed bottom overlay */
+  .sk-tooltip {
+    position: fixed;
+    left: 8px !important;
+    right: 8px;
+    bottom: 12px !important;
+    top: auto !important;
+    transform: none;
+    width: auto;
+    border-radius: 8px;
+    padding: 12px 16px;
+  }
+
+  .sk-tooltip-name { font-size: 14px; }
+  .sk-tooltip-desc { font-size: 10px; }
+  .sk-tooltip-level { font-size: 11px; }
+  .sk-tooltip-btn { padding: 10px 0; font-size: 12px; min-height: 40px; }
+}
+
+/* -- CRT Scanlines + Vignette -- */
+#crtOverlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+#crtOverlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0,0,0,0.06) 0px,
+    rgba(0,0,0,0.06) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  z-index: 50;
+}
+
+#crtOverlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%);
+  z-index: 49;
+}
+
+/* -- Tech Screen -- */
+#techScreen {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  z-index: 160;
+  background: var(--steel);
+  overflow: hidden;
+}
+
+.tech-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--amber-dim);
+  background: rgba(20,24,32,0.95);
+  flex-shrink: 0;
+  z-index: 5;
+}
+
+.tech-title {
+  font-family: var(--font-ui);
+  font-size: clamp(18px, 4vw, 28px);
+  font-weight: 700;
+  color: var(--amber-bright);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+}
+
+.tech-ep {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--ilzarah);
+}
+
+.tech-back {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 8px 16px;
+  border: 1px solid var(--amber-dim);
+  background: rgba(44,52,64,0.6);
+  color: var(--text-dim);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border-radius: 4px;
+  min-height: 40px;
+}
+
+.tech-back:hover, .tech-back:active {
+  border-color: var(--amber);
+  color: var(--amber-bright);
+  background: rgba(212,130,10,0.1);
+}
+
+/* -- Skill Tree Constellation Layout -- */
+.sk-viewport {
+  flex: 1;
+  position: relative;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sk-canvas {
+  position: relative;
+  min-width: 900px;
+  min-height: 600px;
+  width: 100%;
+  height: 100%;
+}
+
+.sk-canvas svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.sk-canvas svg line {
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.sk-canvas svg line.locked { opacity: 0.15; }
+.sk-canvas svg line.active { opacity: 0.6; }
+
+/* Category labels */
+.sk-cat-label {
+  position: absolute;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  opacity: 0.5;
+  z-index: 2;
+}
+
+.sk-cat-label.attack { color: #FF5028; }
+.sk-cat-label.defense { color: #00B4DC; }
+.sk-cat-label.resource { color: #50C850; }
+
+/* Nodes */
+.sk-node {
+  position: absolute;
+  z-index: 3;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -50%);
+}
+
+.sk-node:hover { transform: translate(-50%, -50%) scale(1.15); }
+
+/* Small nodes (infinite, circular) */
+.sk-node.small {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 2px solid;
+  background: rgba(20,24,32,0.9);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.sk-node.small.attack { border-color: rgba(255,80,40,0.5); color: #FF5028; }
+.sk-node.small.defense { border-color: rgba(0,180,220,0.5); color: #00B4DC; }
+.sk-node.small.resource { border-color: rgba(80,200,80,0.5); color: #50C850; }
+
+.sk-node.small.owned { box-shadow: 0 0 8px rgba(255,189,85,0.3); }
+.sk-node.small.attack.owned { border-color: #FF5028; box-shadow: 0 0 8px rgba(255,80,40,0.4); }
+.sk-node.small.defense.owned { border-color: #00B4DC; box-shadow: 0 0 8px rgba(0,180,220,0.4); }
+.sk-node.small.resource.owned { border-color: #50C850; box-shadow: 0 0 8px rgba(80,200,80,0.4); }
+
+.sk-node.small.buyable {
+  animation: sk-pulse 1.5s ease-in-out infinite;
+}
+
+/* Big nodes (one-time, hexagonal-ish) */
+.sk-node.big {
+  width: 44px; height: 44px;
+  border-radius: 8px;
+  border: 2px solid;
+  background: rgba(20,24,32,0.9);
+  font-size: 16px;
+}
+
+.sk-node.big.attack { border-color: rgba(255,80,40,0.4); color: #FF5028; }
+.sk-node.big.defense { border-color: rgba(0,180,220,0.4); color: #00B4DC; }
+.sk-node.big.resource { border-color: rgba(80,200,80,0.4); color: #50C850; }
+
+.sk-node.big.owned {
+  background: rgba(20,24,32,0.6);
+}
+.sk-node.big.attack.owned { border-color: #FF5028; box-shadow: 0 0 12px rgba(255,80,40,0.5); }
+.sk-node.big.defense.owned { border-color: #00B4DC; box-shadow: 0 0 12px rgba(0,180,220,0.5); }
+.sk-node.big.resource.owned { border-color: #50C850; box-shadow: 0 0 12px rgba(80,200,80,0.5); }
+
+.sk-node.big.buyable {
+  animation: sk-pulse 1.5s ease-in-out infinite;
+}
+
+.sk-node.locked {
+  opacity: 0.2;
+  cursor: default;
+}
+.sk-node.locked:hover { transform: translate(-50%, -50%); }
+
+@keyframes sk-pulse {
+  0%, 100% { box-shadow: 0 0 4px rgba(255,189,85,0.2); }
+  50% { box-shadow: 0 0 14px rgba(255,189,85,0.5); }
+}
+
+/* Node tooltip on hover/click */
+.sk-tooltip {
+  position: absolute;
+  background: rgba(20,24,32,0.96);
+  border: 1px solid var(--amber-dim);
+  border-radius: 6px;
+  padding: 10px 14px;
+  width: 200px;
+  z-index: 20;
+  pointer-events: auto;
+  transform: translate(-50%, 8px);
+  display: none;
+}
+
+.sk-tooltip.visible { display: block; }
+
+.sk-tooltip-name {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.sk-tooltip-desc {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.sk-tooltip-level {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--amber);
+  margin-bottom: 4px;
+}
+
+.sk-tooltip-btn {
+  width: 100%;
+  padding: 6px 0;
+  border: 1px solid var(--amber-dim);
+  border-radius: 3px;
+  background: rgba(44,52,64,0.8);
+  color: var(--amber);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.1s;
+}
+
+.sk-tooltip-btn:hover { background: rgba(212,130,10,0.15); border-color: var(--amber); }
+.sk-tooltip-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* -- Settings Screen -- */
+#settingsScreen {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  z-index: 160;
+  background: var(--steel);
+}
+
+.settings-content {
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-group-title {
+  font-family: var(--font-ui);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--amber-bright);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--amber-dim);
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.settings-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.settings-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 120px;
+  height: 4px;
+  background: var(--steel-light);
+  border-radius: 2px;
+  outline: none;
+}
+
+.settings-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--amber);
+  cursor: pointer;
+  border: 2px solid var(--steel);
+}
+
+.settings-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--amber);
+  cursor: pointer;
+  border: 2px solid var(--steel);
+}
+
+.settings-val {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--amber-bright);
+  width: 36px;
+  text-align: right;
+}
+
+/* -- Dev Tool Overlay (F9) -- */
+#devTool {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,12,16,0.96);
+  z-index: 9999;
+  display: none;
+  flex-direction: column;
+  font-family: var(--font-mono);
+  color: var(--text);
+}
+
+#devTool.visible { display: flex; }
+
+.dev-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: rgba(20,24,32,0.98);
+  border-bottom: 1px solid var(--amber-dim);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.dev-toolbar label {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.dev-toolbar select, .dev-toolbar button {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--steel-light);
+  color: var(--amber-bright);
+  border: 1px solid var(--amber-dim);
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.dev-toolbar button:hover {
+  background: rgba(212,130,10,0.15);
+  border-color: var(--amber);
+}
+
+.dev-canvas-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+#devCanvas {
+  background: var(--steel);
+  border: 1px solid var(--steel-light);
+}
+
+.dev-coords {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: rgba(20,24,32,0.9);
+  border: 1px solid var(--amber-dim);
+  padding: 8px 12px;
+  font-size: 11px;
+  line-height: 1.6;
+  white-space: pre;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.dev-coords .slot-line { color: var(--amber-bright); }
+.dev-coords .slot-line.active { color: var(--amber-glow); font-weight: bold; }
 </style>
 </head>
 <body>
+<div id="crtOverlay"></div>
 <div id="gameContainer">
   <canvas id="gameCanvas"></canvas>
 
@@ -491,6 +1268,14 @@ canvas {
     <div class="hud-item"><span class="hud-label">HP</span><span class="hud-value red" id="hudHP">800</span></div>
     <div class="hud-item"><span class="hud-label">Schild</span><span class="hud-value cyan" id="hudShield">200</span></div>
     <div class="hud-item"><span class="hud-label">Kills</span><span class="hud-value" id="hudKills">0</span></div>
+    <button id="btnPauseMenu">☰</button>
+  </div>
+
+  <div id="pauseMenu">
+    <div class="pause-title">Pausiert</div>
+    <button class="pause-btn" id="btnResume">Fortsetzen</button>
+    <button class="pause-btn" id="btnPauseSettings">Einstellungen</button>
+    <button class="pause-btn danger" id="btnPauseQuit">Beenden</button>
   </div>
 
   <!-- MAIN MENU -->
@@ -498,7 +1283,7 @@ canvas {
     <div class="mm-bg" id="mmBg"></div>
     <div class="mm-overlay"></div>
     <div class="mm-content">
-      <h1 class="mm-title">Ilzarah's<br>Guardian</h1>
+      <h1 class="mm-title"><span style="margin-bottom:-14px;display:block;">Guardian</span><span class="mm-title-of">of</span><br>Ilzarah</h1>
       <div class="mm-subtitle">// PROTOTYPE //</div>
       <div class="mm-buttons">
         <button class="mm-btn mm-btn-primary" id="btnRunStart">Run Starten</button>
@@ -510,13 +1295,53 @@ canvas {
   </div>
 
   <div id="stationSelect">
-    <h1>Ilzarah's Guardian</h1>
+    <h1>Guardian of Ilzarah</h1>
     <div class="subtitle">// STATION AUSWAHL //</div>
     <div class="station-grid" id="stationGrid"></div>
   </div>
 
+  <div id="upgradeSidebar">
+    <button class="upg-cat-btn attack" id="btnUpgAttack" title="Angriff">⚔<span class="upg-lvl" id="upgLvlAttack">0</span></button>
+    <button class="upg-cat-btn defense" id="btnUpgDefense" title="Verteidigung">🛡<span class="upg-lvl" id="upgLvlDefense">0</span></button>
+    <button class="upg-cat-btn resource" id="btnUpgResource" title="Ressourcen">⚙<span class="upg-lvl" id="upgLvlResource">0</span></button>
+    <hr style="border:none;border-top:1px solid var(--steel-light);margin:2px 0;">
+    <button class="upg-cat-btn repair" id="btnRepair" title="Reparatur">🔧</button>
+  </div>
+
+  <div class="upg-panel attack" id="upgPanelAttack">
+    <div class="upg-panel-title">Angriff</div>
+    <div class="upg-row"><div class="upg-info"><div class="upg-name">Basisschaden</div><div class="upg-val" id="upgValDmg">+0%</div></div><button class="upg-buy" id="upgBuyDmg">-- VSU</button></div>
+    <div class="upg-row"><div class="upg-info"><div class="upg-name">Feuerrate</div><div class="upg-val" id="upgValRof">+0%</div></div><button class="upg-buy" id="upgBuyRof">-- VSU</button></div>
+    <div class="upg-row"><div class="upg-info"><div class="upg-name">Reichweite</div><div class="upg-val" id="upgValRange">+0%</div></div><button class="upg-buy" id="upgBuyRange">-- VSU</button></div>
+    <div class="upg-row"><div class="upg-info"><div class="upg-name">Durchschuss</div><div class="upg-val" id="upgValPierce">+0%</div></div><button class="upg-buy" id="upgBuyPierce">-- VSU</button></div>
+    <div class="upg-row"><div class="upg-info"><div class="upg-name">Systemtreffer</div><div class="upg-val" id="upgValSyshit">+0%</div></div><button class="upg-buy" id="upgBuySyshit">-- VSU</button></div>
+  </div>
+
+  <div class="upg-panel defense" id="upgPanelDefense">
+    <div class="upg-panel-title">Verteidigung</div>
+    <div class="upg-row"><div class="upg-info"><div class="upg-name">Hülle verstärken</div><div class="upg-val" id="upgValHull">+0%</div></div><button class="upg-buy" id="upgBuyHull">-- VSU</button></div>
+    <div class="upg-row"><div class="upg-info"><div class="upg-name">Schild verstärken</div><div class="upg-val" id="upgValShield">+0%</div></div><button class="upg-buy" id="upgBuyShield">-- VSU</button></div>
+    <div class="upg-row"><div class="upg-info"><div class="upg-name">Energie erhöhen</div><div class="upg-val" id="upgValEnergy">+0%</div></div><button class="upg-buy" id="upgBuyEnergy">-- VSU</button></div>
+    <div class="upg-row"><div class="upg-info"><div class="upg-name">Notreserve</div><div class="upg-val" id="upgValReserve">+0%</div></div><button class="upg-buy" id="upgBuyReserve">-- VSU</button></div>
+  </div>
+
+  <div class="upg-panel resource" id="upgPanelResource">
+    <div class="upg-panel-title">Ressourcen</div>
+    <div class="upg-row"><div class="upg-info"><div class="upg-name">VSU bei Abschuss</div><div class="upg-val" id="upgValVsuKill">+0%</div></div><button class="upg-buy" id="upgBuyVsuKill">-- VSU</button></div>
+    <div class="upg-row"><div class="upg-info"><div class="upg-name">VSU bei Wellenende</div><div class="upg-val" id="upgValVsuWave">+0%</div></div><button class="upg-buy" id="upgBuyVsuWave">-- VSU</button></div>
+    <div class="upg-row"><div class="upg-info"><div class="upg-name">EP bei Abschuss</div><div class="upg-val" id="upgValEpKill">+0%</div></div><button class="upg-buy" id="upgBuyEpKill">-- VSU</button></div>
+    <div class="upg-row"><div class="upg-info"><div class="upg-name">EP bei Welle</div><div class="upg-val" id="upgValEpWave">+0%</div></div><button class="upg-buy" id="upgBuyEpWave">-- VSU</button></div>
+    <div class="upg-row"><div class="upg-info"><div class="upg-name">Reparatureffizienz</div><div class="upg-val" id="upgValRepairEff">+0%</div></div><button class="upg-buy" id="upgBuyRepairEff">-- VSU</button></div>
+    <div class="upg-row"><div class="upg-info"><div class="upg-name">Reparaturkosten</div><div class="upg-val" id="upgValRepairCost">+0%</div></div><button class="upg-buy" id="upgBuyRepairCost">-- VSU</button></div>
+  </div>
+
   <div id="buildUI">
     <div class="build-row" id="buildRow"></div>
+  </div>
+
+  <div id="combatControls">
+    <button class="build-btn start-combat" id="btnStartCombat">KAMPF!</button>
+    <button class="build-btn" id="btnAutoCombat" style="font-size:9px;padding:2px 10px;min-height:0;letter-spacing:1px;font-family:var(--font-ui);">AUTO AUS</button>
   </div>
 
   <div id="waveBanner"></div>
@@ -533,6 +1358,68 @@ canvas {
   </div>
 
   <div id="tooltip"></div>
+
+  <!-- TECH SCREEN -->
+  <div id="techScreen">
+    <div class="tech-header">
+      <span class="tech-title">Technologie</span>
+      <span class="tech-ep" id="techEP">EP: 0</span>
+      <button class="tech-back" id="btnTechBack">Zurueck</button>
+    </div>
+    <div class="sk-viewport" id="skViewport">
+      <div class="sk-canvas" id="skCanvas">
+        <svg id="skLines"></svg>
+      </div>
+      <div class="sk-tooltip" id="skTooltip">
+        <div class="sk-tooltip-name" id="skTTName"></div>
+        <div class="sk-tooltip-desc" id="skTTDesc"></div>
+        <div class="sk-tooltip-level" id="skTTLevel"></div>
+        <button class="sk-tooltip-btn" id="skTTBuy">Kaufen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS SCREEN -->
+  <div id="settingsScreen">
+    <div class="tech-header">
+      <span class="tech-title">Einstellungen</span>
+      <span></span>
+      <button class="tech-back" id="btnSettingsBack">Zurueck</button>
+    </div>
+    <div class="settings-content">
+      <div class="settings-group">
+        <div class="settings-group-title">Audio</div>
+        <div class="settings-row">
+          <span class="settings-label">Master</span>
+          <input type="range" class="settings-slider" id="sliderMaster" min="0" max="100" value="80">
+          <span class="settings-val" id="valMaster">80%</span>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Effekte</span>
+          <input type="range" class="settings-slider" id="sliderSFX" min="0" max="100" value="80">
+          <span class="settings-val" id="valSFX">80%</span>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Musik</span>
+          <input type="range" class="settings-slider" id="sliderMusic" min="0" max="100" value="50">
+          <span class="settings-val" id="valMusic">50%</span>
+        </div>
+      </div>
+      <div class="settings-group">
+        <div class="settings-group-title">Anzeige</div>
+        <div class="settings-row">
+          <span class="settings-label">Partikel</span>
+          <input type="range" class="settings-slider" id="sliderParticles" min="0" max="100" value="100">
+          <span class="settings-val" id="valParticles">100%</span>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Schadenszahlen</span>
+          <input type="range" class="settings-slider" id="sliderDmgNums" min="0" max="100" value="100">
+          <span class="settings-val" id="valDmgNums">100%</span>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -566,6 +1453,17 @@ const ASSET_PATHS = {
   },
   ui: {
     menuBg: 'assets/ui/menu_background.jpg',
+  },
+  wrecks: [
+    'assets/sprites/enemies/wreck1.png',
+    'assets/sprites/enemies/wreck2.png',
+    'assets/sprites/enemies/wreck3.png',
+    'assets/sprites/enemies/wreck4.png',
+    'assets/sprites/enemies/wreck5.png',
+  ],
+  fx: {
+    explosion: 'assets/fx/explosion (1).gif',
+    muzzleSheet: 'assets/fx/muzzle.png',
   },
   sfx: {
     click: 'assets/audio/sfx/ui_click.mp3',
@@ -631,6 +1529,28 @@ function loadAssets() {
     IMAGES.menuBg.onerror = onLoad;
     IMAGES.menuBg.src = ASSET_PATHS.ui.menuBg;
 
+    // Wreck sprites
+    IMAGES.wrecks = [];
+    ASSET_PATHS.wrecks.forEach((path, i) => {
+      total++;
+      const img = new Image();
+      img.onload = onLoad;
+      img.onerror = onLoad;
+      img.src = path;
+      IMAGES.wrecks[i] = img;
+    });
+
+    // FX sprites
+    IMAGES.fx = {};
+    for (const [key, path] of Object.entries(ASSET_PATHS.fx)) {
+      total++;
+      const img = new Image();
+      img.onload = onLoad;
+      img.onerror = onLoad;
+      img.src = path;
+      IMAGES.fx[key] = img;
+    }
+
     // Audio
     for (const [key, path] of Object.entries(ASSET_PATHS.sfx)) {
       SOUNDS[key] = new Audio(path);
@@ -650,48 +1570,145 @@ function playSound(name) {
 
 // -- Station Data --
 const STATIONS = [
-  { id: 0, name: "Kreuzstation", hp: 800, shield: 200, dmgBonus: 0.15, crit: 0.05, slotCount: 5, locked: false, desc: "Offensiv", sprite: 0 },
-  { id: 1, name: "Sternstation", hp: 1200, shield: 400, dmgBonus: 0.0, crit: 0.02, slotCount: 4, locked: false, desc: "Defensiv", sprite: 1 },
-  { id: 2, name: "Kreuz Mk.II", hp: 900, shield: 250, dmgBonus: 0.30, crit: 0.12, slotCount: 7, locked: true, desc: "Offensiv+", sprite: 2 },
-  { id: 3, name: "Stern Mk.II", hp: 1600, shield: 600, dmgBonus: 0.0, crit: 0.02, slotCount: 6, locked: true, desc: "Defensiv+", sprite: 3 },
-  { id: 4, name: "Nexus", hp: 1400, shield: 500, dmgBonus: 0.20, crit: 0.08, slotCount: 8, locked: true, desc: "Hybrid", sprite: 4 },
+  { id: 0, name: "Crusader", hp: 800, shield: 200, energyCore: 8, dmgBonus: 0.15, crit: 0.05, slotCount: 4, locked: false, desc: "Offensiv", sprite: 0 },
+  { id: 1, name: "Starshield", hp: 1200, shield: 400, energyCore: 15, dmgBonus: 0.0, crit: 0.02, slotCount: 4, locked: false, desc: "Defensiv", sprite: 1 },
+  { id: 2, name: "Crusader Mk.II", hp: 900, shield: 250, energyCore: 10, dmgBonus: 0.30, crit: 0.12, slotCount: 6, locked: true, desc: "Offensiv+", sprite: 2 },
+  { id: 3, name: "Starshield Mk.II", hp: 1600, shield: 600, energyCore: 22, dmgBonus: 0.0, crit: 0.02, slotCount: 6, locked: true, desc: "Defensiv+", sprite: 3 },
+  { id: 4, name: "Nexus", hp: 1400, shield: 500, energyCore: 16, dmgBonus: 0.20, crit: 0.08, slotCount: 8, locked: true, desc: "Hybrid", sprite: 4 },
 ];
 
 // -- Weapon Definitions (all 10 RoF, damage adjusted for similar DPS) --
 const WEAPONS = {
-  rocket_t1: {
-    name: "Rocket T1", cost: 60, range: 200, fireRate: 10, damage: 2, projSpeed: 450,
-    color: "#FF6633", desc: "Schnellfeuer-Raketen", sprite: 'rocket_t1',
-    projSize: 5, projColor: '#FF6633', splashRadius: 0,
-  },
-  rocket_t2: {
-    name: "Rocket T2", cost: 90, range: 220, fireRate: 10, damage: 2.4, projSpeed: 500,
-    color: "#FF8844", desc: "Verbesserte Raketen", sprite: 'rocket_t2',
-    projSize: 4, projColor: '#FF8844', splashRadius: 0,
-  },
   gun_t1: {
     name: "Gun T1", cost: 35, range: 150, fireRate: 10, damage: 1.6, projSpeed: 700,
     color: "#44AAFF", desc: "Basis-Geschuetz", sprite: 'gun_t1',
     projSize: 2, projColor: '#44AAFF', splashRadius: 0,
+    unlock: null, // immer verfuegbar
   },
   gun_t2: {
     name: "Gun T2", cost: 55, range: 170, fireRate: 10, damage: 2.8, projSpeed: 750,
     color: "#33CCFF", desc: "Mittleres Geschuetz", sprite: 'gun_t2',
     projSize: 2.5, projColor: '#33CCFF', splashRadius: 0,
+    unlock: 'gun_t2', // Tech-Tree Node
   },
   gun_t3: {
     name: "Gun T3", cost: 100, range: 190, fireRate: 10, damage: 4.9, projSpeed: 800,
     color: "#00EEFF", desc: "Schweres Geschuetz", sprite: 'gun_t3',
     projSize: 3, projColor: '#00EEFF', splashRadius: 0,
+    unlock: 'gun_t3',
+  },
+  rocket_t1: {
+    name: "Rocket T1", cost: 60, range: 200, fireRate: 10, damage: 2, projSpeed: 450,
+    color: "#FF6633", desc: "Schnellfeuer-Raketen", sprite: 'rocket_t1',
+    projSize: 5, projColor: '#FF6633', splashRadius: 0,
+    unlock: 'rocket_t1',
+  },
+  rocket_t2: {
+    name: "Rocket T2", cost: 90, range: 220, fireRate: 10, damage: 2.4, projSpeed: 500,
+    color: "#FF8844", desc: "Verbesserte Raketen", sprite: 'rocket_t2',
+    projSize: 4, projColor: '#FF8844', splashRadius: 0,
+    unlock: 'rocket_t2',
   },
 };
 
+// -- Turret Fire Arc (180° = each turret covers its outward half) --
+const TURRET_FIRE_ARC = Math.PI; // radians (180°)
+
+// -- Skill Tree Definitions --
+// Small nodes: infinite, scaling cost. Big nodes: one-time unlock.
+const SKILL_TREE = {
+  // --- ATTACK ---
+  sk_dmg:      { name: 'Basisschaden',   desc: '+5% Waffenschaden pro Stufe',     cat: 'attack',   type: 'small', perLevel: 5,  baseCost: 10, costStep: 5,  requires: [], x: 160, y: 100 },
+  sk_rof:      { name: 'Feuerrate',      desc: '+4% Angriffsgeschwindigkeit',      cat: 'attack',   type: 'small', perLevel: 4,  baseCost: 10, costStep: 5,  requires: [], x: 240, y: 160 },
+  sk_pierce:   { name: 'Durchschuss',    desc: '+3% Chance auf Durchschlag',       cat: 'attack',   type: 'small', perLevel: 3,  baseCost: 15, costStep: 8,  requires: ['sk_dmg'], x: 80, y: 160 },
+  sk_range:    { name: 'Reichweite',     desc: '+3% Waffenreichweite',             cat: 'attack',   type: 'small', perLevel: 3,  baseCost: 10, costStep: 5,  requires: [], x: 160, y: 220 },
+  sk_syshit:   { name: 'Systemtreffer', desc: '+2% Systemtreffer-Chance',          cat: 'attack',   type: 'small', perLevel: 2,  baseCost: 15, costStep: 8,  requires: ['sk_pierce'], x: 80, y: 240 },
+  sk_rocket_t1:{ name: 'Rocket T1',     desc: 'Schnellfeuer-Raketen freischalten', cat: 'attack',   type: 'big',   cost: 40,  unlocks: 'rocket_t1', requires: [], x: 60, y: 60 },
+  sk_gun_t2:   { name: 'Gun T2',        desc: 'Mittleres Geschuetz freischalten',  cat: 'attack',   type: 'big',   cost: 25,  unlocks: 'gun_t2', requires: [], x: 260, y: 60 },
+  sk_gun_t3:   { name: 'Gun T3',        desc: 'Schweres Geschuetz freischalten',   cat: 'attack',   type: 'big',   cost: 50,  unlocks: 'gun_t3', requires: ['sk_gun_t2'], x: 320, y: 140 },
+  sk_rocket_t2:{ name: 'Rocket T2',     desc: 'Verbesserte Raketen freischalten',  cat: 'attack',   type: 'big',   cost: 70,  unlocks: 'rocket_t2', requires: ['sk_rocket_t1', 'sk_gun_t3'], x: 200, y: 290 },
+  sk_arc1:     { name: 'Angriffsradius I',  desc: '180° → 200° Feuerwinkel',       cat: 'attack',   type: 'big',   cost: 40,  unlocks: 'arc1', requires: ['sk_gun_t2'], x: 320, y: 240 },
+  sk_arc2:     { name: 'Angriffsradius II', desc: '200° → 225° Feuerwinkel',       cat: 'attack',   type: 'big',   cost: 60,  unlocks: 'arc2', requires: ['sk_arc1'], x: 340, y: 310 },
+  sk_hangar:   { name: 'Hangar',         desc: 'Kampfschiff bekaempft Gegner',      cat: 'attack',   type: 'big',   cost: 80,  unlocks: 'hangar', requires: ['sk_rocket_t2'], x: 100, y: 310 },
+
+  // --- DEFENSE ---
+  sk_hull:     { name: 'Huelle',         desc: '+5% Station HP pro Stufe',          cat: 'defense',  type: 'small', perLevel: 5,  baseCost: 10, costStep: 5,  requires: [], x: 520, y: 100 },
+  sk_shield:   { name: 'Schild',         desc: '+5% Schildkapazitaet pro Stufe',    cat: 'defense',  type: 'small', perLevel: 5,  baseCost: 10, costStep: 5,  requires: [], x: 600, y: 160 },
+  sk_energy:   { name: 'Energie',        desc: '+4% Schildregeneration pro Stufe',  cat: 'defense',  type: 'small', perLevel: 4,  baseCost: 10, costStep: 5,  requires: [], x: 440, y: 160 },
+  sk_reserve:  { name: 'Notreserve',     desc: '+2% Ueberlebens-Chance bei Tod',    cat: 'defense',  type: 'small', perLevel: 2,  baseCost: 20, costStep: 10, requires: ['sk_hull'], x: 520, y: 230 },
+  sk_missile_def:{ name: 'Raketenabwehr',desc: 'Tuerme schiessen Raketen ab',       cat: 'defense',  type: 'big',   cost: 60,  unlocks: 'missile_def', requires: ['sk_hull'], x: 420, y: 60 },
+  sk_core_t2:  { name: 'Energy Core T2', desc: '+50% Energiekern-Leistung',         cat: 'defense',  type: 'big',   cost: 80,  unlocks: 'core_t2', requires: ['sk_energy'], x: 440, y: 280 },
+  sk_shield_t2:{ name: 'Schild T2',     desc: '+30% Schildkapazitaet',              cat: 'defense',  type: 'big',   cost: 100, unlocks: 'shield_t2', requires: ['sk_core_t2'], x: 560, y: 310 },
+
+  // --- RESOURCES ---
+  sk_vsu_kill: { name: 'VSU (Abschuss)', desc: '+8% VSU pro Gegner',                cat: 'resource', type: 'small', perLevel: 8,  baseCost: 10, costStep: 5,  requires: [], x: 740, y: 100 },
+  sk_vsu_wave: { name: 'VSU (Welle)',    desc: '+6% VSU bei Wellenende',             cat: 'resource', type: 'small', perLevel: 6,  baseCost: 10, costStep: 5,  requires: [], x: 820, y: 160 },
+  sk_ep_kill:  { name: 'EP (Abschuss)',  desc: '+5% EP pro Gegner',                  cat: 'resource', type: 'small', perLevel: 5,  baseCost: 15, costStep: 8,  requires: ['sk_vsu_kill'], x: 660, y: 160 },
+  sk_ep_wave:  { name: 'EP (Welle)',     desc: '+6% EP bei Meilenstein',             cat: 'resource', type: 'small', perLevel: 6,  baseCost: 15, costStep: 8,  requires: ['sk_vsu_wave'], x: 820, y: 240 },
+  sk_repair_eff:{ name: 'Reparatureffizienz', desc: '+1% Reparatur-Menge',          cat: 'resource', type: 'small', perLevel: 1,  baseCost: 10, costStep: 5,  requires: [], x: 740, y: 240 },
+  sk_repair_cost:{ name: 'Reparaturkosten', desc: '-2 VSU Reparaturkosten',         cat: 'resource', type: 'small', perLevel: 2,  baseCost: 10, costStep: 5,  requires: ['sk_repair_eff'], x: 660, y: 300 },
+  sk_drone:    { name: 'Sammeldrohne',   desc: 'Drohne sammelt Wrack-VSU',           cat: 'resource', type: 'big',   cost: 60,  unlocks: 'drone', requires: ['sk_vsu_kill', 'sk_vsu_wave'], x: 820, y: 320 },
+};
+
+function normalizeAngle(a) {
+  while (a > Math.PI) a -= Math.PI * 2;
+  while (a < -Math.PI) a += Math.PI * 2;
+  return a;
+}
+
+// -- Damage Calculator (ported from Song of Ilzarah) --
+// Pipeline: Penetration Check → Shield → Armor → Hull → System Hit
+const DAMAGE_SCALE = 15;
+
+function calculateDamage(baseDmg, isCrit, target, sysHitBonus = 0) {
+  // target = { shield, maxShield, hp, maxHP, armor (0-1), tier }
+  // Returns { totalDmg, shieldDmg, hullDmg, penetrated, systemHit }
+  const result = { totalDmg: 0, shieldDmg: 0, hullDmg: 0, penetrated: false, systemHit: null };
+
+  // Penetration check: crits always penetrate, else chance based on tier
+  const penChance = isCrit ? 1.0 : (target.tier || 0) * 0.05;
+  result.penetrated = Math.random() < penChance;
+
+  let dmg = baseDmg;
+
+  // If not penetrated, armor reduces damage
+  if (!result.penetrated) {
+    const hullPct = target.hp / target.maxHP;
+    const armorEff = (target.armor || 0) * hullPct; // armor degrades with hull damage
+    dmg *= (1 - armorEff);
+  }
+
+  // Shield absorbs first
+  if (target.shield > 0) {
+    const absorbed = Math.min(target.shield, dmg);
+    result.shieldDmg = absorbed;
+    dmg -= absorbed;
+  }
+
+  // Remaining goes to hull
+  result.hullDmg = dmg;
+  result.totalDmg = result.shieldDmg + result.hullDmg;
+
+  // System hit on penetration: chance scales with hull damage
+  if (result.penetrated && result.hullDmg > 0) {
+    const hullPct = Math.max(0, target.hp - result.hullDmg) / target.maxHP;
+    const sysChance = 0.02 + sysHitBonus / 100 + 0.25 * Math.pow(1 - hullPct, 1.5);
+    if (Math.random() < sysChance) {
+      const systems = ['DRIVE', 'WEAPON', 'SHIELD'];
+      result.systemHit = systems[Math.floor(Math.random() * systems.length)];
+    }
+  }
+
+  return result;
+}
+
 // -- Enemy AI States --
+// Normal: APPROACH → FIRING → STRAFE → TURN → APPROACH (repeat)
 const ENEMY_STATE = {
-  APPROACH: 'approach',
-  FIRING: 'firing',
-  BREAK_OFF: 'breakoff',
-  CIRCLING: 'circling',
+  APPROACH: 'approach',   // fly straight toward station
+  FIRING: 'firing',       // shoot while still approaching
+  STRAFE: 'strafe',       // fly past/through, no shooting
+  TURN: 'turn',           // curve back for next pass
 };
 
 // -- Game --
@@ -706,9 +1723,14 @@ class Game {
     this.stationMaxHP = 0;
     this.stationShield = 0;
     this.stationMaxShield = 0;
-    this.vsu = 100;
+    this.vsu = 1;
     this.ep = 0;
     this.totalEP = 0;
+    // Persistent skill tree state (survives across runs)
+    this.skillLevels = {}; // small nodes: { sk_dmg: 3, sk_rof: 1, ... }
+    for (const key of Object.keys(SKILL_TREE)) {
+      if (SKILL_TREE[key].type === 'small') this.skillLevels[key] = 0;
+    }
     this.wave = 1;
     this.kills = 0;
     this.slots = [];
@@ -720,6 +1742,7 @@ class Game {
     this.lastTime = 0;
     this.stationCenter = { x: 0, y: 0 };
     this.hoveredSlot = null;
+    this.hoveredCore = false;
     this.shakeTimer = 0;
     this.shakeIntensity = 0;
     this.bannerTimer = 0;
@@ -729,8 +1752,17 @@ class Game {
     this.waveEnemiesSpawned = 0;
     this.waveEnemiesDefeated = 0;
     this.damageNumbers = [];
+    this.shieldHits = [];
+    this.wrecks = [];     // {x, y, rotation, tier, life, maxLife}
+    this.explosions = []; // {x, y, life, maxLife}
     this.gridPulse = 0;
     this.ambientParticles = [];
+    this.stationRotation = 0; // radians, 360° per 60s
+    this.autoCombat = false;
+    this.autoCombatTimer = 0;
+    this.paused = false;
+    this.stateBeforePause = null;
+    this.unlockedTech = new Set(); // tech tree unlocks, weapons need e.g. 'gun_t2', 'rocket_t1'
     this.isMobile = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 
     this.resize();
@@ -751,10 +1783,72 @@ class Game {
     // Main Menu buttons
     document.getElementById('btnRunStart').addEventListener('click', () => this.startFromMenu());
     document.getElementById('btnRunStart').addEventListener('touchend', (e) => { e.preventDefault(); this.startFromMenu(); });
-    document.getElementById('btnTech').addEventListener('click', () => this.showPlaceholder('Technologie'));
-    document.getElementById('btnTech').addEventListener('touchend', (e) => { e.preventDefault(); this.showPlaceholder('Technologie'); });
-    document.getElementById('btnSettings').addEventListener('click', () => this.showPlaceholder('Einstellungen'));
-    document.getElementById('btnSettings').addEventListener('touchend', (e) => { e.preventDefault(); this.showPlaceholder('Einstellungen'); });
+    document.getElementById('btnTech').addEventListener('click', () => this.showTechScreen());
+    document.getElementById('btnTech').addEventListener('touchend', (e) => { e.preventDefault(); this.showTechScreen(); });
+    document.getElementById('btnSettings').addEventListener('click', () => this.showSettingsScreen());
+    document.getElementById('btnSettings').addEventListener('touchend', (e) => { e.preventDefault(); this.showSettingsScreen(); });
+    document.getElementById('btnTechBack').addEventListener('click', () => this.backToMenu());
+    document.getElementById('btnTechBack').addEventListener('touchend', (e) => { e.preventDefault(); this.backToMenu(); });
+    document.getElementById('btnSettingsBack').addEventListener('click', () => this.backToMenu());
+    document.getElementById('btnSettingsBack').addEventListener('touchend', (e) => { e.preventDefault(); this.backToMenu(); });
+    // Pause menu
+    const pauseToggle = () => { playSound('click'); this.togglePause(); };
+    document.getElementById('btnPauseMenu').addEventListener('click', pauseToggle);
+    document.getElementById('btnPauseMenu').addEventListener('touchend', (e) => { e.preventDefault(); pauseToggle(); });
+    const resumeFn = () => { playSound('click'); this.resumeGame(); };
+    document.getElementById('btnResume').addEventListener('click', resumeFn);
+    document.getElementById('btnResume').addEventListener('touchend', (e) => { e.preventDefault(); resumeFn(); });
+    const pauseSettingsFn = () => { playSound('click'); this.pauseSettings(); };
+    document.getElementById('btnPauseSettings').addEventListener('click', pauseSettingsFn);
+    document.getElementById('btnPauseSettings').addEventListener('touchend', (e) => { e.preventDefault(); pauseSettingsFn(); });
+    const pauseQuitFn = () => { playSound('click'); this.quitRun(); };
+    document.getElementById('btnPauseQuit').addEventListener('click', pauseQuitFn);
+    document.getElementById('btnPauseQuit').addEventListener('touchend', (e) => { e.preventDefault(); pauseQuitFn(); });
+
+    // Combat controls (bottom-right)
+    const startFn = () => { playSound('confirm'); this.startCombat(); };
+    document.getElementById('btnStartCombat').addEventListener('click', startFn);
+    document.getElementById('btnStartCombat').addEventListener('touchend', (e) => { e.preventDefault(); startFn(); });
+    const autoBtn = document.getElementById('btnAutoCombat');
+    const autoFn = () => {
+      playSound('click');
+      this.autoCombat = !this.autoCombat;
+      autoBtn.classList.toggle('selected', this.autoCombat);
+      autoBtn.innerHTML = `AUTO ${this.autoCombat ? 'AN' : 'AUS'}`;
+    };
+    autoBtn.addEventListener('click', autoFn);
+    autoBtn.addEventListener('touchend', (e) => { e.preventDefault(); autoFn(); });
+
+    // Upgrade sidebar buttons
+    const upgCats = ['Attack', 'Defense', 'Resource'];
+    for (const cat of upgCats) {
+      const btn = document.getElementById(`btnUpg${cat}`);
+      const fn = () => this.toggleUpgPanel(cat.toLowerCase());
+      btn.addEventListener('click', fn);
+      btn.addEventListener('touchend', (e) => { e.preventDefault(); fn(); });
+    }
+    // Upgrade buy buttons
+    const upgBuys = { Dmg: 'dmg', Rof: 'rof', Range: 'range', Pierce: 'pierce', Syshit: 'syshit', Hull: 'hull', Shield: 'shield', Energy: 'energy', Reserve: 'reserve', VsuKill: 'vsuKill', VsuWave: 'vsuWave', EpKill: 'epKill', EpWave: 'epWave', RepairEff: 'repairEff', RepairCost: 'repairCost' };
+    for (const [suffix, key] of Object.entries(upgBuys)) {
+      const btn = document.getElementById(`upgBuy${suffix}`);
+      const fn = () => this.buyUpgrade(key);
+      btn.addEventListener('click', fn);
+      btn.addEventListener('touchend', (e) => { e.preventDefault(); fn(); });
+    }
+    // Repair button
+    const repairBtn = document.getElementById('btnRepair');
+    const repairFn = () => this.doRepair();
+    repairBtn.addEventListener('click', repairFn);
+    repairBtn.addEventListener('touchend', (e) => { e.preventDefault(); repairFn(); });
+
+    // Settings sliders — update value display
+    for (const id of ['Master', 'SFX', 'Music', 'Particles', 'DmgNums']) {
+      const slider = document.getElementById('slider' + id);
+      const val = document.getElementById('val' + id);
+      if (slider && val) {
+        slider.addEventListener('input', () => { val.textContent = slider.value + '%'; });
+      }
+    }
 
     this.init();
   }
@@ -780,9 +1874,394 @@ class Game {
     this.renderStationSelect();
   }
 
-  showPlaceholder(name) {
+  showTechScreen() {
     playSound('click');
-    this.showBanner(`${name} — Kommt bald!`);
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('techScreen').style.display = 'flex';
+    document.getElementById('techEP').textContent = 'EP: ' + this.totalEP;
+    this.state = 'tech';
+    this.renderSkillTree();
+  }
+
+  // -- Skill Tree Rendering --
+  getSkillCost(key) {
+    const def = SKILL_TREE[key];
+    if (def.type === 'big') return def.cost;
+    return def.baseCost + this.skillLevels[key] * def.costStep;
+  }
+
+  getSkillBonus(key) {
+    const def = SKILL_TREE[key];
+    if (def.type === 'big') return this.unlockedTech.has(def.unlocks) ? 1 : 0;
+    return (this.skillLevels[key] || 0) * def.perLevel;
+  }
+
+  isSkillUnlocked(key) {
+    const def = SKILL_TREE[key];
+    if (def.type === 'big') return this.unlockedTech.has(def.unlocks);
+    return (this.skillLevels[key] || 0) > 0;
+  }
+
+  isSkillAvailable(key) {
+    const def = SKILL_TREE[key];
+    // Big node already owned
+    if (def.type === 'big' && this.unlockedTech.has(def.unlocks)) return false;
+    // Check prerequisites
+    for (const req of def.requires) {
+      if (!this.isSkillUnlocked(req)) return false;
+    }
+    return true;
+  }
+
+  buySkill(key) {
+    if (!this.isSkillAvailable(key)) return;
+    const def = SKILL_TREE[key];
+    const cost = this.getSkillCost(key);
+    if (this.totalEP < cost) return;
+    this.totalEP -= cost;
+
+    if (def.type === 'big') {
+      this.unlockedTech.add(def.unlocks);
+    } else {
+      this.skillLevels[key] = (this.skillLevels[key] || 0) + 1;
+    }
+
+    document.getElementById('techEP').textContent = 'EP: ' + this.totalEP;
+    playSound('confirm');
+    this.renderSkillTree();
+    this._showSkillTooltip(key); // refresh tooltip
+  }
+
+  renderSkillTree() {
+    const canvas = document.getElementById('skCanvas');
+    const svg = document.getElementById('skLines');
+
+    // Remove old nodes (keep svg)
+    canvas.querySelectorAll('.sk-node, .sk-cat-label').forEach(el => el.remove());
+    svg.innerHTML = '';
+
+    // Category labels
+    const labels = [
+      { text: 'ANGRIFF', cat: 'attack', x: 160, y: 30 },
+      { text: 'VERTEIDIGUNG', cat: 'defense', x: 520, y: 30 },
+      { text: 'RESSOURCEN', cat: 'resource', x: 740, y: 30 },
+    ];
+    for (const lb of labels) {
+      const el = document.createElement('div');
+      el.className = `sk-cat-label ${lb.cat}`;
+      el.textContent = lb.text;
+      el.style.left = lb.x + 'px';
+      el.style.top = lb.y + 'px';
+      canvas.appendChild(el);
+    }
+
+    // Draw connection lines first
+    for (const [key, def] of Object.entries(SKILL_TREE)) {
+      for (const req of def.requires) {
+        const from = SKILL_TREE[req];
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', from.x);
+        line.setAttribute('y1', from.y);
+        line.setAttribute('x2', def.x);
+        line.setAttribute('y2', def.y);
+
+        const fromOwned = this.isSkillUnlocked(req);
+        const toOwned = this.isSkillUnlocked(key);
+        const colors = { attack: '#FF5028', defense: '#00B4DC', resource: '#50C850' };
+        line.setAttribute('stroke', colors[def.cat]);
+        line.className.baseVal = (fromOwned && toOwned) ? 'active' : (fromOwned ? 'active' : 'locked');
+        svg.appendChild(line);
+      }
+    }
+
+    // Draw nodes
+    for (const [key, def] of Object.entries(SKILL_TREE)) {
+      const el = document.createElement('div');
+      const owned = this.isSkillUnlocked(key);
+      const available = this.isSkillAvailable(key);
+      const canAfford = this.totalEP >= this.getSkillCost(key);
+      const buyable = available && canAfford && !(def.type === 'big' && owned);
+
+      el.className = `sk-node ${def.type} ${def.cat}`;
+      if (owned) el.classList.add('owned');
+      if (buyable) el.classList.add('buyable');
+      if (!available && !owned) el.classList.add('locked');
+
+      el.style.left = def.x + 'px';
+      el.style.top = def.y + 'px';
+
+      if (def.type === 'small') {
+        el.textContent = this.skillLevels[key] || 0;
+      } else {
+        el.textContent = owned ? '✓' : '★';
+      }
+
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this._showSkillTooltip(key);
+      });
+      el.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this._showSkillTooltip(key);
+      });
+
+      canvas.appendChild(el);
+    }
+  }
+
+  _showSkillTooltip(key) {
+    const def = SKILL_TREE[key];
+    const tt = document.getElementById('skTooltip');
+    const owned = def.type === 'big' && this.unlockedTech.has(def.unlocks);
+    const available = this.isSkillAvailable(key);
+    const cost = this.getSkillCost(key);
+
+    document.getElementById('skTTName').textContent = def.name;
+    document.getElementById('skTTDesc').textContent = def.desc;
+
+    if (def.type === 'small') {
+      const lvl = this.skillLevels[key] || 0;
+      document.getElementById('skTTLevel').textContent = `Stufe ${lvl} — Bonus: +${lvl * def.perLevel}%`;
+    } else {
+      document.getElementById('skTTLevel').textContent = owned ? 'Freigeschaltet' : 'Nicht freigeschaltet';
+    }
+
+    const btn = document.getElementById('skTTBuy');
+    if (owned) {
+      btn.textContent = 'Bereits freigeschaltet';
+      btn.disabled = true;
+    } else if (!available) {
+      btn.textContent = 'Voraussetzung fehlt';
+      btn.disabled = true;
+    } else {
+      btn.textContent = `Kaufen: ${cost} EP`;
+      btn.disabled = this.totalEP < cost;
+    }
+
+    btn.onclick = () => this.buySkill(key);
+
+    // Position near node
+    tt.style.left = def.x + 'px';
+    tt.style.top = (def.y + (def.type === 'big' ? 30 : 24)) + 'px';
+    tt.classList.add('visible');
+
+    // Close on outside click
+    const close = (e) => {
+      if (!tt.contains(e.target)) {
+        tt.classList.remove('visible');
+        document.removeEventListener('click', close);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', close), 10);
+  }
+
+  showSettingsScreen() {
+    playSound('click');
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('settingsScreen').style.display = 'flex';
+    this.state = 'settings';
+  }
+
+  backToMenu() {
+    playSound('click');
+    document.getElementById('techScreen').style.display = 'none';
+    document.getElementById('settingsScreen').style.display = 'none';
+
+    // If settings were opened from pause menu, return to pause menu
+    if (this._settingsBackOverride) {
+      this._settingsBackOverride = false;
+      document.getElementById('pauseMenu').classList.add('visible');
+      return;
+    }
+
+    document.getElementById('mainMenu').style.display = 'flex';
+    this.state = 'mainmenu';
+  }
+
+  // -- Upgrade System --
+  static UPG_DEFS = {
+    // key: { label, category, perLevel (% bonus per level) }
+    dmg:       { label: 'Basisschaden',       cat: 'attack',   perLevel: 5 },
+    rof:       { label: 'Feuerrate',          cat: 'attack',   perLevel: 4 },
+    range:     { label: 'Reichweite',         cat: 'attack',   perLevel: 3 },
+    pierce:    { label: 'Durchschuss',        cat: 'attack',   perLevel: 3 },
+    syshit:    { label: 'Systemtreffer',      cat: 'attack',   perLevel: 2 },
+    hull:      { label: 'Hülle verstärken',   cat: 'defense',  perLevel: 5 },
+    shield:    { label: 'Schild verstärken',  cat: 'defense',  perLevel: 5 },
+    energy:    { label: 'Energie erhöhen',    cat: 'defense',  perLevel: 4 },
+    reserve:   { label: 'Notreserve',         cat: 'defense',  perLevel: 2 },
+    vsuKill:   { label: 'VSU bei Abschuss',   cat: 'resource', perLevel: 8 },
+    vsuWave:   { label: 'VSU bei Wellenende', cat: 'resource', perLevel: 6 },
+    epKill:    { label: 'EP bei Abschuss',    cat: 'resource', perLevel: 5 },
+    epWave:    { label: 'EP bei Welle',       cat: 'resource', perLevel: 6 },
+    repairEff: { label: 'Reparatureffizienz', cat: 'resource', perLevel: 1 },
+    repairCost:{ label: 'Reparaturkosten',    cat: 'resource', perLevel: 2 },
+  };
+
+  getUpgCost(key) {
+    const lvl = this.runUpgrades[key];
+    return 15 + lvl * 5; // 15, 20, 25, 30 ...
+  }
+
+  getUpgBonus(key) {
+    return this.runUpgrades[key] * Game.UPG_DEFS[key].perLevel;
+  }
+
+  // Combined bonus: permanent skill tree + in-run VSU upgrades
+  getTotalBonus(key) {
+    const runBonus = this.getUpgBonus(key);
+    // Map in-run upgrade keys to skill tree keys
+    const skMap = { dmg: 'sk_dmg', rof: 'sk_rof', range: 'sk_range', pierce: 'sk_pierce', syshit: 'sk_syshit', hull: 'sk_hull', shield: 'sk_shield', energy: 'sk_energy', reserve: 'sk_reserve', vsuKill: 'sk_vsu_kill', vsuWave: 'sk_vsu_wave', epKill: 'sk_ep_kill', epWave: 'sk_ep_wave', repairEff: 'sk_repair_eff', repairCost: 'sk_repair_cost' };
+    const skKey = skMap[key];
+    const skBonus = skKey ? this.getSkillBonus(skKey) : 0;
+    return runBonus + skBonus;
+  }
+
+  buyUpgrade(key) {
+    const cost = this.getUpgCost(key);
+    if (this.vsu < cost || this.state !== 'build') return;
+    this.vsu -= cost;
+    this.runUpgrades[key]++;
+    this.applyDefenseUpgrades(key);
+    this.updateUpgradeUI();
+    this.updateHUD();
+    playSound('click');
+  }
+
+  applyDefenseUpgrades(key) {
+    if (key === 'hull') {
+      const bonus = 1 + this.getTotalBonus('hull') / 100;
+      const newMax = Math.round(this.station.hp * bonus);
+      const hpGain = newMax - this.stationMaxHP;
+      this.stationMaxHP = newMax;
+      this.stationHP += hpGain;
+    } else if (key === 'shield') {
+      const bonus = 1 + this.getTotalBonus('shield') / 100;
+      const shieldT2 = this.unlockedTech.has('shield_t2') ? 1.3 : 1;
+      const newMax = Math.round(this.station.shield * bonus * shieldT2);
+      this.stationMaxShield = newMax;
+      this.stationShield = Math.min(this.stationShield, newMax);
+    } else if (key === 'energy') {
+      const bonus = 1 + this.getTotalBonus('energy') / 100;
+      const coreT2 = this.unlockedTech.has('core_t2') ? 1.5 : 1;
+      this.shieldRegenRate = this.station.energyCore * bonus * coreT2;
+    }
+  }
+
+  getFireArc() {
+    let arc = Math.PI; // 180° base
+    if (this.unlockedTech.has('arc1')) arc = 200 * Math.PI / 180; // 200°
+    if (this.unlockedTech.has('arc2')) arc = 225 * Math.PI / 180; // 225°
+    return arc;
+  }
+
+  getPierceChance() {
+    return (this.getSkillBonus('sk_pierce') || 0) / 100;
+  }
+
+  getTotalPierceChance() {
+    return this.getTotalBonus('pierce') / 100;
+  }
+
+  // Apply permanent skill tree bonuses when a new run starts
+  applySkillTreeBonuses() {
+    // Hull
+    const hullBonus = 1 + this.getSkillBonus('sk_hull') / 100;
+    this.stationHP = Math.round(this.station.hp * hullBonus);
+    this.stationMaxHP = this.stationHP;
+    // Shield
+    const shieldBonus = 1 + this.getSkillBonus('sk_shield') / 100;
+    const shieldT2 = this.unlockedTech.has('shield_t2') ? 1.3 : 1;
+    this.stationShield = Math.round(this.station.shield * shieldBonus * shieldT2);
+    this.stationMaxShield = this.stationShield;
+    // Energy / Shield regen
+    const energyBonus = 1 + this.getSkillBonus('sk_energy') / 100;
+    const coreT2 = this.unlockedTech.has('core_t2') ? 1.5 : 1;
+    this.shieldRegenRate = this.station.energyCore * energyBonus * coreT2;
+  }
+
+  getRepairCost() {
+    const totalReduction = this.getTotalBonus('repairCost') || 0;
+    return Math.max(5, 25 - totalReduction);
+  }
+
+  getRepairAmount() {
+    const totalBonus = this.getTotalBonus('repairEff') || 0;
+    return 0.05 + totalBonus / 100;
+  }
+
+  doRepair() {
+    if (this.repairUsed || this.state !== 'build') return;
+    const cost = this.getRepairCost();
+    if (this.vsu < cost) return;
+    if (this.stationHP >= this.stationMaxHP) return;
+    this.vsu -= cost;
+    this.repairUsed = true;
+    const heal = Math.round(this.stationMaxHP * this.getRepairAmount());
+    this.stationHP = Math.min(this.stationMaxHP, this.stationHP + heal);
+    this.updateUpgradeUI();
+    this.updateHUD();
+    playSound('confirm');
+  }
+
+  toggleUpgPanel(cat) {
+    if (this.activeUpgPanel === cat) {
+      this.closeUpgPanel();
+      return;
+    }
+    this.closeUpgPanel();
+    this.activeUpgPanel = cat;
+    document.getElementById(`upgPanel${cat.charAt(0).toUpperCase() + cat.slice(1)}`).classList.add('visible');
+    document.getElementById(`btnUpg${cat.charAt(0).toUpperCase() + cat.slice(1)}`).classList.add('active');
+  }
+
+  closeUpgPanel() {
+    if (this.activeUpgPanel) {
+      const cap = this.activeUpgPanel.charAt(0).toUpperCase() + this.activeUpgPanel.slice(1);
+      document.getElementById(`upgPanel${cap}`).classList.remove('visible');
+      document.getElementById(`btnUpg${cap}`).classList.remove('active');
+    }
+    this.activeUpgPanel = null;
+  }
+
+  updateUpgradeUI() {
+    // Update values + costs for each upgrade row
+    const ids = {
+      dmg: 'Dmg', rof: 'Rof', range: 'Range', pierce: 'Pierce', syshit: 'Syshit',
+      hull: 'Hull', shield: 'Shield', energy: 'Energy', reserve: 'Reserve',
+      vsuKill: 'VsuKill', vsuWave: 'VsuWave', epKill: 'EpKill', epWave: 'EpWave',
+      repairEff: 'RepairEff', repairCost: 'RepairCost',
+    };
+    for (const [key, suffix] of Object.entries(ids)) {
+      const val = document.getElementById(`upgVal${suffix}`);
+      const btn = document.getElementById(`upgBuy${suffix}`);
+      if (val) val.textContent = `+${this.getUpgBonus(key)}% (Lv.${this.runUpgrades[key]})`;
+      if (btn) {
+        const cost = this.getUpgCost(key);
+        btn.textContent = `${cost} VSU`;
+        btn.disabled = this.vsu < cost;
+      }
+    }
+
+    // Category level badges
+    document.getElementById('upgLvlAttack').textContent = this.runUpgrades.dmg + this.runUpgrades.rof + this.runUpgrades.range + this.runUpgrades.pierce + this.runUpgrades.syshit;
+    document.getElementById('upgLvlDefense').textContent = this.runUpgrades.hull + this.runUpgrades.shield + this.runUpgrades.energy + this.runUpgrades.reserve;
+    document.getElementById('upgLvlResource').textContent = this.runUpgrades.vsuKill + this.runUpgrades.vsuWave + this.runUpgrades.epKill + this.runUpgrades.epWave + this.runUpgrades.repairEff + this.runUpgrades.repairCost;
+
+    // Repair button
+    const repBtn = document.getElementById('btnRepair');
+    const cost = this.getRepairCost();
+    if (this.repairUsed) {
+      repBtn.disabled = true;
+      repBtn.title = 'Bereits repariert';
+    } else if (this.stationHP >= this.stationMaxHP) {
+      repBtn.disabled = true;
+      repBtn.title = 'Hülle voll';
+    } else {
+      repBtn.disabled = this.vsu < cost;
+      repBtn.title = `Reparatur: ${Math.round(this.getRepairAmount() * 100)}% Hülle für ${cost} VSU`;
+    }
   }
 
   resize() {
@@ -802,26 +2281,78 @@ class Game {
     }
   }
 
-  // -- Turret slots mounted ON the station (small ring) --
+  // -- Station size + hardpoints --
   getStationSpriteSize() {
-    const base = Math.min(this.W, this.H) * 0.18;
-    return Math.max(70, Math.min(150, base));
+    const base = Math.min(this.W, this.H) * 0.30;
+    return Math.max(120, Math.min(260, base));
   }
 
-  getRingRadius() {
-    // Turrets sit on the station body
-    return this.getStationSpriteSize() * 0.45;
-  }
+  // Per-station hardpoint positions as [x, y] fractions of sprite size (-0.5 to 0.5)
+  // Manually placed on the actual structural hardpoints of each sprite
+  static HARDPOINTS = {
+    // Crusader — 4 hardpoints
+    0: [
+      [0.002, -0.395],
+      [0.373, -0.047],
+      [-0.002, 0.356],
+      [-0.369, -0.043],
+    ],
+    // Starshield — 4 hardpoints
+    1: [
+      [0.002, -0.313],
+      [0.288, -0.027],
+      [0.003, 0.264],
+      [-0.286, -0.026],
+    ],
+    // Crusader Mk.II — 6 hardpoints
+    2: [
+      [0.000, -0.313],
+      [0.351, -0.184],
+      [0.350, 0.149],
+      [0.003, 0.251],
+      [-0.354, 0.148],
+      [-0.357, -0.189],
+    ],
+    // Starshield Mk.II — 6 hardpoints
+    3: [
+      [0.002, -0.358],
+      [0.227, -0.262],
+      [0.238, 0.213],
+      [-0.001, 0.293],
+      [-0.231, 0.216],
+      [-0.231, -0.265],
+    ],
+    // Nexus — 8 hardpoints
+    4: [
+      [-0.001, -0.409],
+      [0.305, -0.315],
+      [0.394, -0.035],
+      [0.308, 0.264],
+      [0.002, 0.359],
+      [-0.307, 0.269],
+      [-0.391, -0.032],
+      [-0.298, -0.309],
+    ],
+  };
 
   regenerateSlotPositions() {
-    if (!this.slots.length) return;
-    const total = this.slots.length;
-    const ringRadius = this.getRingRadius();
-    for (let i = 0; i < total; i++) {
-      const angle = (i / total) * Math.PI * 2 - Math.PI / 2;
-      this.slots[i].x = this.stationCenter.x + Math.cos(angle) * ringRadius;
-      this.slots[i].y = this.stationCenter.y + Math.sin(angle) * ringRadius;
-      this.slots[i].angle = angle;
+    if (!this.slots.length || !this.station) return;
+    const s = this.getStationSpriteSize();
+    const cos = Math.cos(this.stationRotation);
+    const sin = Math.sin(this.stationRotation);
+
+    for (let i = 0; i < this.slots.length; i++) {
+      const hp = this.slots[i].hardpoint; // [x, y] fraction
+      // Local position scaled by sprite size
+      const lx = hp[0] * s;
+      const ly = hp[1] * s;
+      // Rotate with station
+      const rx = lx * cos - ly * sin;
+      const ry = lx * sin + ly * cos;
+      this.slots[i].x = this.stationCenter.x + rx;
+      this.slots[i].y = this.stationCenter.y + ry;
+      // Outward-facing angle for fire arc
+      this.slots[i].angle = Math.atan2(ry, rx);
     }
   }
 
@@ -841,6 +2372,7 @@ class Game {
         <div class="station-name">${s.name}</div>
         <div class="station-stat"><span class="label">HP</span><span class="val def">${s.hp}</span></div>
         <div class="station-stat"><span class="label">Schild</span><span class="val def">${s.shield}</span></div>
+        <div class="station-stat"><span class="label">Energiekern</span><span class="val cyan">${s.energyCore}/s</span></div>
         <div class="station-stat"><span class="label">Damage</span><span class="val dmg">+${Math.round(s.dmgBonus*100)}%</span></div>
         <div class="station-stat"><span class="label">Crit</span><span class="val dmg">${Math.round(s.crit*100)}%</span></div>
         <div class="station-slots">${s.slotCount} WAFFEN-SLOTS</div>
@@ -858,11 +2390,25 @@ class Game {
     this.station = station;
     this.stationHP = station.hp;
     this.stationMaxHP = station.hp;
+    this.stationHP = station.hp;
+    this.stationMaxHP = station.hp;
     this.stationShield = station.shield;
     this.stationMaxShield = station.shield;
-    this.vsu = 100;
+    this.shieldRegenRate = station.energyCore;
+    this.applySkillTreeBonuses(); // overrides HP/Shield/Regen with permanent bonuses
+    this.vsu = 1;
     this.wave = 1;
     this.kills = 0;
+    this.repairUsed = false;
+    this._reserveUsed = false;
+
+    // In-Run upgrades (VSU, temporary per run)
+    this.runUpgrades = {
+      dmg: 0, rof: 0, range: 0, pierce: 0, syshit: 0,          // attack
+      hull: 0, shield: 0, energy: 0, reserve: 0,                // defense
+      vsuKill: 0, vsuWave: 0, epKill: 0, epWave: 0, repairEff: 0, repairCost: 0, // resources
+    };
+    this.activeUpgPanel = null;
     this.ep = 0;
     this.enemies = [];
     this.projectiles = [];
@@ -876,28 +2422,46 @@ class Game {
     document.getElementById('stationSelect').style.display = 'none';
     document.getElementById('hud').style.display = 'flex';
     document.getElementById('buildUI').style.display = 'flex';
+    document.getElementById('combatControls').style.display = 'flex';
+    document.getElementById('upgradeSidebar').style.display = 'flex';
     this.state = 'build';
     this.renderBuildButtons();
-    this.showBanner(`WELLE ${this.wave} — BAUEN`);
+    this.updateUpgradeUI();
+    this.showBanner(`WELLE ${this.wave} — VORBEREITEN`);
     this.updateHUD();
     playSound('confirm');
   }
 
   generateSlots() {
     this.slots = [];
-    const total = this.station.slotCount;
-    const ringRadius = this.getRingRadius();
+    this.stationRotation = 0;
+    const hardpoints = Game.HARDPOINTS[this.station.sprite] || [];
+    const total = Math.min(this.station.slotCount, hardpoints.length);
 
     for (let i = 0; i < total; i++) {
-      const angle = (i / total) * Math.PI * 2 - Math.PI / 2;
+      const hp = hardpoints[i];
+      const s = this.getStationSpriteSize();
       this.slots.push({
-        x: this.stationCenter.x + Math.cos(angle) * ringRadius,
-        y: this.stationCenter.y + Math.sin(angle) * ringRadius,
+        x: this.stationCenter.x + hp[0] * s,
+        y: this.stationCenter.y + hp[1] * s,
         building: null,
-        angle: angle,
-        radius: this.isMobile ? 22 : 18,
+        hardpoint: hp,
+        angle: Math.atan2(hp[1], hp[0]),
+        radius: this.isMobile ? 18 : 14,
         pulsePhase: Math.random() * Math.PI * 2,
       });
+    }
+
+    // Pre-mount a Gun T1 on the first slot
+    if (this.slots.length > 0) {
+      const wDef = WEAPONS.gun_t1;
+      this.slots[0].building = {
+        weaponKey: 'gun_t1',
+        ...wDef,
+        cooldown: 0,
+        targetEnemy: null,
+        barrelAngle: this.slots[0].angle,
+      };
     }
   }
 
@@ -907,11 +2471,14 @@ class Game {
     row.innerHTML = '';
 
     for (const [key, wep] of Object.entries(WEAPONS)) {
+      // Only show weapons that are unlocked (unlock === null or in unlockedTech)
+      if (wep.unlock && !this.unlockedTech.has(wep.unlock)) continue;
+
       const btn = document.createElement('button');
       btn.className = 'build-btn';
       btn.id = 'btn_' + key;
       const weaponImg = IMAGES.weapons[wep.sprite];
-      btn.innerHTML = `<img src="${weaponImg ? weaponImg.src : ''}" alt="${wep.name}"><span>${wep.name}</span><span style="font-size:9px;color:rgba(200,184,138,0.5)">${wep.cost} VSU</span>`;
+      btn.innerHTML = `<img src="${weaponImg ? weaponImg.src : ''}" alt="${wep.name}"><span>${wep.name}</span><span style="font-size:9px;color:rgba(85,96,112,0.8)">${wep.cost} VSU</span>`;
 
       const selectFn = () => {
         playSound('click');
@@ -928,15 +2495,6 @@ class Game {
       row.appendChild(btn);
     }
 
-    // Start Combat button
-    const combatBtn = document.createElement('button');
-    combatBtn.className = 'build-btn start-combat';
-    combatBtn.id = 'btnStartCombat';
-    combatBtn.innerHTML = 'KAMPF!';
-    const startFn = () => { playSound('confirm'); this.startCombat(); };
-    combatBtn.addEventListener('click', startFn);
-    combatBtn.addEventListener('touchend', (e) => { e.preventDefault(); startFn(); });
-    row.appendChild(combatBtn);
   }
 
   highlightSelectedButton() {
@@ -994,9 +2552,12 @@ class Game {
     this.state = 'combat';
     this.selectedWeapon = null;
     document.getElementById('buildUI').style.display = 'none';
+    document.getElementById('combatControls').style.display = 'none';
+    document.getElementById('upgradeSidebar').style.display = 'none';
+    this.closeUpgPanel();
     document.getElementById('hudPhase').textContent = 'KAMPF';
 
-    this.waveEnemyCount = 3 + Math.floor(this.wave * 1.5);
+    this.waveEnemyCount = this.wave === 1 ? 1 : 1 + Math.floor(this.wave * 0.8);
     this.waveEnemiesSpawned = 0;
     this.waveEnemiesDefeated = 0;
     this.spawnTimer = 0;
@@ -1007,9 +2568,7 @@ class Game {
   spawnEnemy() {
     const angle = Math.random() * Math.PI * 2;
     const dist = Math.max(this.W, this.H) * 0.65;
-    const baseHP = 30 + this.wave * 5;
-    // FAST PIRATES: base speed 140-180
-    const speed = 140 + Math.random() * 40;
+    const baseHP = 12 + this.wave * 3;
 
     // Pirate tier based on wave
     let tier = 0;
@@ -1017,6 +2576,8 @@ class Game {
     else if (this.wave >= 5) tier = Math.min(3, Math.floor(Math.random() * 2) + 1);
     else if (this.wave >= 3) tier = Math.random() < 0.4 ? 1 : 0;
 
+    // FAST PIRATES: base speed 180-240, higher tiers even faster
+    const speed = (120 + Math.random() * 40) * (1 + tier * 0.1);
     const hpMultiplier = 1 + tier * 0.5;
     const dmgMultiplier = 1 + tier * 0.3;
     const sizeMultiplier = 1 + tier * 0.15;
@@ -1029,22 +2590,27 @@ class Game {
       hp: baseHP * hpMultiplier,
       maxHP: baseHP * hpMultiplier,
       speed: speed,
-      damage: (5 + Math.floor(this.wave * 1.0)) * dmgMultiplier,
+      damage: (1.5 + this.wave * 0.3) * dmgMultiplier,
       radius: (12 + tier * 2) * sizeMultiplier,
       tier: tier,
+      armor: 0.05 + tier * 0.08, // armor scales with tier
+      shield: 0,
+      maxShield: 0,
       vsuReward: Math.floor(vsuReward),
       hitFlash: 0,
+      driveDisabled: 0, // system hit timers
+      weaponDisabled: 0,
       aiState: ENEMY_STATE.APPROACH,
       firingRange: firingRange,
       fireTimer: 0,
-      fireRate: 0.8 + tier * 0.2,
+      fireRate: 3 + tier * 0.8,
       shotsInPass: 0,
-      maxShotsPerPass: 2 + Math.floor(tier * 0.5),
-      breakAngle: 0,
-      breakTimer: 0,
-      circleAngle: 0,
-      circleTimer: 0,
+      maxShotsPerPass: 5 + Math.floor(tier * 2),
+      flybyAngle: 0,
+      curveSide: 0,
+      turnTimer: 0,
       rotation: angle + Math.PI,
+      strafeOffset: (Math.random() - 0.5) * 0.8, // slight lateral variation on strafe
     });
     this.waveEnemiesSpawned++;
   }
@@ -1057,10 +2623,17 @@ class Game {
       this.spawnTimer = 0.8 - Math.min(0.45, this.wave * 0.02);
     }
 
-    // Update enemies with AI state machine
+    // Update enemies with AI state machine + system hit timers
     for (const enemy of this.enemies) {
+      if (enemy.driveDisabled > 0) enemy.driveDisabled -= dt;
+      if (enemy.weaponDisabled > 0) enemy.weaponDisabled -= dt;
       this.updateEnemyAI(enemy, dt);
       if (enemy.hitFlash > 0) enemy.hitFlash -= dt;
+    }
+
+    // Shield regeneration from energy core
+    if (this.stationShield < this.stationMaxShield && this.stationHP > 0) {
+      this.stationShield = Math.min(this.stationMaxShield, this.stationShield + this.shieldRegenRate * dt);
     }
 
     // Remove dead enemies
@@ -1075,96 +2648,189 @@ class Game {
       let nearestEnemy = null;
       let nearestDist = Infinity;
 
+      // Slot's outward-facing angle (rotates with station)
+      const slotFacingAngle = slot.angle;
+
       for (const enemy of this.enemies) {
         const dx = enemy.x - slot.x;
         const dy = enemy.y - slot.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < turret.range && dist < nearestDist) {
-          nearestDist = dist;
-          nearestEnemy = enemy;
-        }
+        const effectiveRange = turret.range * (1 + this.getTotalBonus('range') / 100);
+        if (dist >= effectiveRange || dist >= nearestDist) continue;
+
+        // Fire arc check: only shoot in outward 180° hemisphere
+        const targetAngle = Math.atan2(dy, dx);
+        const angleDiff = normalizeAngle(targetAngle - slotFacingAngle);
+        if (Math.abs(angleDiff) > this.getFireArc() / 2) continue;
+
+        nearestDist = dist;
+        nearestEnemy = enemy;
       }
 
       turret.targetEnemy = nearestEnemy;
 
-      // Smooth barrel rotation
+      // Barrel tracking — recalculate lead prediction every 0.5s
       if (nearestEnemy) {
-        const targetAngle = Math.atan2(nearestEnemy.y - slot.y, nearestEnemy.x - slot.x);
-        let diff = targetAngle - turret.barrelAngle;
+        turret.trackTimer = (turret.trackTimer || 0) - dt;
+        if (turret.trackTimer <= 0 || !turret.targetAngleCached) {
+          turret.trackTimer = 0.3;
+          const edx = nearestEnemy.x - slot.x;
+          const edy = nearestEnemy.y - slot.y;
+          const eDist = Math.sqrt(edx * edx + edy * edy);
+          const tFlight = eDist / turret.projSpeed;
+          const eSpd = nearestEnemy.speed * (nearestEnemy.driveDisabled > 0 ? 0 : 1);
+          let evx = 0, evy = 0;
+          if (nearestEnemy.aiState === ENEMY_STATE.APPROACH) {
+            const aToS = Math.atan2(this.stationCenter.y - nearestEnemy.y, this.stationCenter.x - nearestEnemy.x);
+            evx = Math.cos(aToS) * eSpd;
+            evy = Math.sin(aToS) * eSpd;
+          } else if (nearestEnemy.flybyAngle !== undefined) {
+            const m = nearestEnemy.aiState === ENEMY_STATE.FIRING ? 0.8 : 1.2;
+            evx = Math.cos(nearestEnemy.flybyAngle) * eSpd * m;
+            evy = Math.sin(nearestEnemy.flybyAngle) * eSpd * m;
+          }
+          const predX = nearestEnemy.x + evx * tFlight;
+          const predY = nearestEnemy.y + evy * tFlight;
+          turret.targetAngleCached = Math.atan2(predY - slot.y, predX - slot.x);
+        }
+        let diff = turret.targetAngleCached - turret.barrelAngle;
         while (diff > Math.PI) diff -= Math.PI * 2;
         while (diff < -Math.PI) diff += Math.PI * 2;
         turret.barrelAngle += diff * Math.min(1, dt * 8);
+      } else {
+        turret.targetAngleCached = null;
       }
 
       if (nearestEnemy && turret.cooldown <= 0) {
-        turret.cooldown = 1 / turret.fireRate;
-        const dmg = turret.damage * (1 + this.station.dmgBonus);
+        // Burst fire: 5 shots fast, then 0.3s pause
+        const rofMult = 1 + this.getTotalBonus('rof') / 100;
+        turret.burstCount = (turret.burstCount || 0) + 1;
+        if (turret.burstCount >= 5) {
+          turret.cooldown = 0.3 / rofMult;
+          turret.burstCount = 0;
+        } else {
+          turret.cooldown = 1 / (turret.fireRate * rofMult);
+        }
+        const dmg = turret.damage * (1 + this.station.dmgBonus) * (1 + this.getTotalBonus('dmg') / 100);
         const isCrit = Math.random() < this.station.crit;
         const finalDmg = isCrit ? dmg * 2 : dmg;
 
-        // Calculate direction for tracer angle
-        const pdx = nearestEnemy.x - slot.x;
-        const pdy = nearestEnemy.y - slot.y;
-        const pAngle = Math.atan2(pdy, pdx);
+        // Muzzle position: barrel points at target, muzzle at tip of weapon sprite
+        const muzzleDist = (this.isMobile ? 48 : 42) * 0.5;
+        const muzzleX = slot.x + Math.cos(turret.barrelAngle) * muzzleDist;
+        const muzzleY = slot.y + Math.sin(turret.barrelAngle) * muzzleDist;
+
+        // Projectile fires exactly along barrel direction
+        const pAngle = turret.barrelAngle;
 
         this.projectiles.push({
-          x: slot.x, y: slot.y,
+          x: muzzleX, y: muzzleY,
+          vx: Math.cos(pAngle) * turret.projSpeed,
+          vy: Math.sin(pAngle) * turret.projSpeed,
           targetEnemy: nearestEnemy,
           speed: turret.projSpeed,
           damage: finalDmg,
           isCrit: isCrit,
           trail: [],
           size: turret.projSize,
-          color: turret.projColor,
+          color: '#ffffff',
           angle: pAngle,
+          maxRange: turret.range * (1 + this.getTotalBonus('range') / 100) * 1.5,
+          traveled: 0,
         });
 
-        // Small muzzle flash
+        // Muzzle flash sprite (3x3 sheet: 3 types × 3 anim frames)
         this.particles.push({
-          x: slot.x + Math.cos(turret.barrelAngle) * 8,
-          y: slot.y + Math.sin(turret.barrelAngle) * 8,
+          x: muzzleX, y: muzzleY,
           vx: 0, vy: 0,
-          life: 0.06, maxLife: 0.06,
-          color: turret.color, size: 5,
+          life: 0.12, maxLife: 0.12,
+          isMuzzleFlash: true,
+          angle: turret.barrelAngle,
+          muzzleType: Math.floor(Math.random() * 3), // row = type
+          size: 16,
         });
       }
     }
 
     // Update turret projectiles
     this.projectiles = this.projectiles.filter(p => {
-      if (!p.targetEnemy || p.targetEnemy.hp <= 0) return false;
+      // Move in straight line
+      const step = p.speed * dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.traveled = (p.traveled || 0) + step;
 
-      const dx = p.targetEnemy.x - p.x;
-      const dy = p.targetEnemy.y - p.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-
-      // Update angle for tracer rendering
-      p.angle = Math.atan2(dy, dx);
-
-      p.trail.push({ x: p.x, y: p.y, life: 0.08, angle: p.angle });
+      p.trail.push({ x: p.x, y: p.y, life: 0.06, angle: p.angle });
       p.trail = p.trail.filter(t => { t.life -= dt; return t.life > 0; });
 
-      if (dist < 14) {
-        p.targetEnemy.hp -= p.damage;
-        p.targetEnemy.hitFlash = 0.1;
+      // Remove if out of range
+      if (p.traveled > (p.maxRange || 400)) return false;
+      // Remove if off screen
+      if (p.x < -50 || p.x > this.W + 50 || p.y < -50 || p.y > this.H + 50) return false;
 
+      // Check hit against all enemies
+      let hitEnemy = null;
+      for (const enemy of this.enemies) {
+        if (enemy.hp <= 0) continue;
+        const dx = enemy.x - p.x;
+        const dy = enemy.y - p.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 14) { hitEnemy = enemy; break; }
+      }
+
+      if (hitEnemy) {
+        const dmgResult = calculateDamage(p.damage, p.isCrit, hitEnemy, this.getTotalBonus('syshit'));
+        hitEnemy.shield -= dmgResult.shieldDmg;
+        hitEnemy.hp -= dmgResult.hullDmg;
+        hitEnemy.hitFlash = 0.1;
+
+        // Damage number
+        const label = dmgResult.penetrated ? 'PEN ' : '';
         this.damageNumbers.push({
-          x: p.targetEnemy.x, y: p.targetEnemy.y - 15,
-          value: Math.round(p.damage), life: 0.8, maxLife: 0.8, isCrit: p.isCrit,
+          x: hitEnemy.x, y: hitEnemy.y - 15,
+          value: label + Math.round(dmgResult.totalDmg),
+          life: 0.8, maxLife: 0.8, isCrit: p.isCrit || dmgResult.penetrated,
         });
 
-        if (p.targetEnemy.hp <= 0) {
+        // System hit effects
+        if (dmgResult.systemHit) {
+          this.damageNumbers.push({
+            x: hitEnemy.x, y: hitEnemy.y - 30,
+            value: dmgResult.systemHit + '!', life: 1.2, maxLife: 1.2, isCrit: true,
+          });
+          if (dmgResult.systemHit === 'DRIVE') hitEnemy.driveDisabled = 8;
+          else if (dmgResult.systemHit === 'WEAPON') hitEnemy.weaponDisabled = 6;
+          else if (dmgResult.systemHit === 'SHIELD') hitEnemy.maxShield = 0;
+        }
+
+        if (hitEnemy.hp <= 0) {
           this.kills++;
-          this.vsu += p.targetEnemy.vsuReward;
+          this.vsu += Math.floor(hitEnemy.vsuReward * (1 + this.getTotalBonus('vsuKill') / 100));
           this.waveEnemiesDefeated++;
 
-          for (let i = 0; i < 10; i++) {
+          // Explosion sprite
+          this.explosions.push({
+            x: hitEnemy.x, y: hitEnemy.y,
+            life: 1.5, maxLife: 1.5,
+            size: 40 + hitEnemy.tier * 8,
+          });
+
+          // Wreck — delayed spawn, appears near end of explosion, fades over 3s
+          this.wrecks.push({
+            x: hitEnemy.x, y: hitEnemy.y,
+            rotation: hitEnemy.rotation || Math.random() * Math.PI * 2,
+            tier: hitEnemy.tier,
+            delay: 1.2, // wait for explosion to almost finish
+            life: 3.0, maxLife: 3.0,
+          });
+
+          // Some debris particles
+          for (let i = 0; i < 5; i++) {
             this.particles.push({
-              x: p.targetEnemy.x, y: p.targetEnemy.y,
-              vx: (Math.random() - 0.5) * 200, vy: (Math.random() - 0.5) * 200,
-              life: 0.6, maxLife: 0.6,
-              color: p.targetEnemy.tier >= 3 ? '#FFD700' : '#FF6644',
-              size: p.targetEnemy.tier >= 3 ? 5 : 3,
+              x: hitEnemy.x, y: hitEnemy.y,
+              vx: (Math.random() - 0.5) * 150, vy: (Math.random() - 0.5) * 150,
+              life: 0.4, maxLife: 0.4,
+              color: '#FF6644', size: 2,
             });
           }
         }
@@ -1174,14 +2840,17 @@ class Game {
             x: p.x, y: p.y,
             vx: (Math.random() - 0.5) * 80, vy: (Math.random() - 0.5) * 80,
             life: 0.2, maxLife: 0.2,
-            color: p.isCrit ? '#FFD700' : p.color, size: 2,
+            color: '#ffffff', size: 1.5,
           });
+        }
+        // Pierce: projectile continues through enemy
+        if (Math.random() < this.getTotalPierceChance()) {
+          p.pierced = (p.pierced || 0) + 1;
+          if (p.pierced <= 3) return true; // max 3 pierces
         }
         return false;
       }
 
-      p.x += (dx / dist) * p.speed * dt;
-      p.y += (dy / dist) * p.speed * dt;
       return true;
     });
 
@@ -1199,7 +2868,7 @@ class Game {
       const dist = Math.sqrt(dx * dx + dy * dy);
 
       if (dist < 30) {
-        this.damageStation(p.damage);
+        this.damageStation(p.damage, p.x, p.y);
         for (let i = 0; i < 4; i++) {
           this.particles.push({
             x: p.x, y: p.y,
@@ -1228,14 +2897,20 @@ class Game {
     const dist = Math.sqrt(dx * dx + dy * dy);
     const angleToStation = Math.atan2(dy, dx);
 
+    // Drive disabled: no movement
+    const speedMult = enemy.driveDisabled > 0 ? 0 : 1;
+
     switch (enemy.aiState) {
       case ENEMY_STATE.APPROACH: {
-        enemy.x += Math.cos(angleToStation) * enemy.speed * dt;
-        enemy.y += Math.sin(angleToStation) * enemy.speed * dt;
+        // Fly straight toward station
+        enemy.x += Math.cos(angleToStation) * enemy.speed * speedMult * dt;
+        enemy.y += Math.sin(angleToStation) * enemy.speed * speedMult * dt;
         enemy.rotation = angleToStation;
 
+        // Enter firing range → start shooting
         if (dist <= enemy.firingRange) {
           enemy.aiState = ENEMY_STATE.FIRING;
+          enemy.flybyAngle = angleToStation;
           enemy.fireTimer = 0;
           enemy.shotsInPass = 0;
         }
@@ -1243,98 +2918,107 @@ class Game {
       }
 
       case ENEMY_STATE.FIRING: {
-        enemy.x += Math.cos(angleToStation) * enemy.speed * 0.3 * dt;
-        enemy.y += Math.sin(angleToStation) * enemy.speed * 0.3 * dt;
-        enemy.rotation = angleToStation;
+        // Keep flying toward station, shooting forward
+        enemy.x += Math.cos(enemy.flybyAngle) * enemy.speed * 0.8 * speedMult * dt;
+        enemy.y += Math.sin(enemy.flybyAngle) * enemy.speed * 0.8 * speedMult * dt;
+        enemy.rotation = enemy.flybyAngle;
 
-        enemy.fireTimer -= dt;
-        if (enemy.fireTimer <= 0 && enemy.shotsInPass < enemy.maxShotsPerPass) {
-          enemy.fireTimer = 1 / enemy.fireRate;
-          enemy.shotsInPass++;
+        this._enemyFireTick(enemy, angleToStation, dt);
 
-          const projAngle = angleToStation + (Math.random() - 0.5) * 0.15;
-          const projSpeed = 200 + enemy.tier * 30;
-          this.enemyProjectiles.push({
-            x: enemy.x, y: enemy.y,
-            vx: Math.cos(projAngle) * projSpeed,
-            vy: Math.sin(projAngle) * projSpeed,
-            damage: enemy.damage,
-            life: 3.0,
-            trail: [],
-            tier: enemy.tier,
-            angle: projAngle,
-          });
-
-          this.particles.push({
-            x: enemy.x + Math.cos(angleToStation) * enemy.radius,
-            y: enemy.y + Math.sin(angleToStation) * enemy.radius,
-            vx: 0, vy: 0,
-            life: 0.1, maxLife: 0.1,
-            color: '#FF4444', size: 6,
-          });
-        }
-
+        // After all shots → strafe through
         if (enemy.shotsInPass >= enemy.maxShotsPerPass) {
-          enemy.aiState = ENEMY_STATE.BREAK_OFF;
-          const side = Math.random() < 0.5 ? 1 : -1;
-          enemy.breakAngle = angleToStation + Math.PI + side * (0.6 + Math.random() * 0.8);
-          enemy.breakTimer = 1.2 + Math.random() * 0.6;
-        }
-
-        if (dist < 50) {
-          enemy.aiState = ENEMY_STATE.BREAK_OFF;
-          enemy.breakAngle = angleToStation + Math.PI + (Math.random() - 0.5) * 1.0;
-          enemy.breakTimer = 1.5;
+          enemy.aiState = ENEMY_STATE.STRAFE;
+          // Add lateral offset to strafe angle
+          enemy.flybyAngle += enemy.strafeOffset * 0.3;
         }
         break;
       }
 
-      case ENEMY_STATE.BREAK_OFF: {
-        enemy.x += Math.cos(enemy.breakAngle) * enemy.speed * 1.2 * dt;
-        enemy.y += Math.sin(enemy.breakAngle) * enemy.speed * 1.2 * dt;
-        enemy.rotation = enemy.breakAngle;
+      case ENEMY_STATE.STRAFE: {
+        // Fly past/through station without shooting
+        enemy.x += Math.cos(enemy.flybyAngle) * enemy.speed * 1.1 * speedMult * dt;
+        enemy.y += Math.sin(enemy.flybyAngle) * enemy.speed * 1.1 * speedMult * dt;
+        enemy.rotation = enemy.flybyAngle;
 
-        enemy.breakTimer -= dt;
-        if (enemy.breakTimer <= 0) {
-          enemy.aiState = ENEMY_STATE.CIRCLING;
-          enemy.circleAngle = Math.atan2(enemy.y - this.stationCenter.y, enemy.x - this.stationCenter.x);
-          enemy.circleTimer = 1.0 + Math.random() * 1.5;
+        // Once past station and far enough → start turn
+        if (dist > enemy.firingRange * 1.2) {
+          enemy.aiState = ENEMY_STATE.TURN;
+          enemy.curveSide = Math.random() < 0.5 ? 1 : -1;
+          enemy.turnTimer = 0;
+          // Vary turn tightness
+          enemy.turnRate = 0.8 + Math.random() * 1.0; // 0.8 - 1.8 rad/s
         }
         break;
       }
 
-      case ENEMY_STATE.CIRCLING: {
-        const circleRadius = dist;
-        const circleSpeed = enemy.speed * 0.6 / Math.max(circleRadius, 100);
-        enemy.circleAngle += circleSpeed * dt;
+      case ENEMY_STATE.TURN: {
+        // Curve back toward station — varied turn radius
+        enemy.turnTimer += dt;
+        enemy.flybyAngle += enemy.curveSide * enemy.turnRate * dt;
 
-        const targetX = this.stationCenter.x + Math.cos(enemy.circleAngle) * circleRadius;
-        const targetY = this.stationCenter.y + Math.sin(enemy.circleAngle) * circleRadius;
+        enemy.x += Math.cos(enemy.flybyAngle) * enemy.speed * 1.0 * speedMult * dt;
+        enemy.y += Math.sin(enemy.flybyAngle) * enemy.speed * 1.0 * speedMult * dt;
+        enemy.rotation = enemy.flybyAngle;
 
-        const moveAngle = Math.atan2(targetY - enemy.y, targetX - enemy.x);
-        enemy.x += Math.cos(moveAngle) * enemy.speed * 0.6 * dt;
-        enemy.y += Math.sin(moveAngle) * enemy.speed * 0.6 * dt;
-        enemy.rotation = moveAngle;
-
-        enemy.circleTimer -= dt;
-        if (enemy.circleTimer <= 0) {
+        // Once roughly facing station again → approach
+        const facingDiff = Math.abs(normalizeAngle(angleToStation - enemy.flybyAngle));
+        if (facingDiff < 0.4 && enemy.turnTimer > 0.8) {
           enemy.aiState = ENEMY_STATE.APPROACH;
+          // New strafe offset for next pass
+          enemy.strafeOffset = (Math.random() - 0.5) * 0.8;
         }
         break;
       }
     }
 
-    const maxDist = Math.max(this.W, this.H) * 0.8;
-    if (dist > maxDist && enemy.aiState !== ENEMY_STATE.APPROACH) {
+    // Safety: if enemy drifts too far out, reset to approach
+    const maxDist = Math.max(this.W, this.H) * 0.9;
+    if (dist > maxDist) {
       enemy.aiState = ENEMY_STATE.APPROACH;
     }
   }
 
-  damageStation(dmg) {
+  _enemyFireTick(enemy, angleToStation, dt) {
+    enemy.fireTimer -= dt;
+    if (enemy.fireTimer <= 0 && enemy.weaponDisabled <= 0) {
+      enemy.fireTimer = 1 / enemy.fireRate;
+      enemy.shotsInPass++;
+
+      const projAngle = enemy.rotation + (Math.random() - 0.5) * 0.12;
+      const projSpeed = 280 + enemy.tier * 40;
+      this.enemyProjectiles.push({
+        x: enemy.x + Math.cos(enemy.rotation) * enemy.radius,
+        y: enemy.y + Math.sin(enemy.rotation) * enemy.radius,
+        vx: Math.cos(projAngle) * projSpeed,
+        vy: Math.sin(projAngle) * projSpeed,
+        damage: enemy.damage,
+        life: 2.5,
+        trail: [],
+        tier: enemy.tier,
+        angle: projAngle,
+      });
+
+      // Small muzzle flash
+      this.particles.push({
+        x: enemy.x + Math.cos(enemy.rotation) * enemy.radius,
+        y: enemy.y + Math.sin(enemy.rotation) * enemy.radius,
+        vx: Math.cos(enemy.rotation) * 30, vy: Math.sin(enemy.rotation) * 30,
+        life: 0.06, maxLife: 0.06,
+        color: '#FF6633', size: 3,
+      });
+    }
+  }
+
+  damageStation(dmg, hitX, hitY) {
     if (this.stationShield > 0) {
       const absorbed = Math.min(this.stationShield, dmg);
       this.stationShield -= absorbed;
       dmg -= absorbed;
+      // Shield hit ripple at impact point
+      if (hitX !== undefined) {
+        const angle = Math.atan2(hitY - this.stationCenter.y, hitX - this.stationCenter.x);
+        this.shieldHits.push({ angle, life: 0.6, maxLife: 0.6, intensity: Math.min(absorbed / 5, 1) });
+      }
     }
     if (dmg > 0) {
       this.stationHP -= dmg;
@@ -1343,6 +3027,16 @@ class Game {
     }
 
     if (this.stationHP <= 0) {
+      // Notreserve: chance to survive with 1 HP (once per wave)
+      const reserveChance = this.getTotalBonus('reserve') / 100;
+      if (!this._reserveUsed && reserveChance > 0 && Math.random() < reserveChance) {
+        this._reserveUsed = true;
+        this.stationHP = 1;
+        this.showBanner('NOTRESERVE!');
+        this.shakeTimer = 0.5;
+        this.shakeIntensity = 8;
+        return;
+      }
       this.stationHP = 0;
       this.triggerGameOver();
     }
@@ -1350,7 +3044,10 @@ class Game {
 
   triggerGameOver() {
     this.state = 'gameover';
-    const epEarned = Math.floor(this.wave * 5 + this.kills * 0.5);
+    this.paused = false;
+    document.getElementById('pauseMenu').classList.remove('visible');
+    const epKillBonus = 1 + this.getTotalBonus('epKill') / 100;
+    const epEarned = Math.floor((this.wave * 5 + this.kills * 0.5) * epKillBonus);
     this.totalEP += epEarned;
 
     document.getElementById('goWaves').textContent = this.wave;
@@ -1358,15 +3055,20 @@ class Game {
     document.getElementById('goKills').textContent = this.kills;
     document.getElementById('gameOverScreen').style.display = 'flex';
     document.getElementById('buildUI').style.display = 'none';
+    document.getElementById('combatControls').style.display = 'none';
+    document.getElementById('upgradeSidebar').style.display = 'none';
+    this.closeUpgPanel();
     document.getElementById('hud').style.display = 'none';
   }
 
   waveCompleted() {
-    const vsuEarned = 20 + this.wave * 5;
+    const vsuBase = 20 + this.wave * 5;
+    const vsuEarned = Math.floor(vsuBase * (1 + this.getTotalBonus('vsuWave') / 100));
     this.vsu += vsuEarned;
 
     if (this.wave % 5 === 0) {
-      const epMilestone = this.wave * 3;
+      const epWaveBonus = 1 + this.getTotalBonus('epWave') / 100;
+      const epMilestone = Math.floor(this.wave * 3 * epWaveBonus);
       this.ep += epMilestone;
       this.totalEP += epMilestone;
       this.showBanner(`MEILENSTEIN! +${epMilestone} EP`);
@@ -1376,16 +3078,74 @@ class Game {
 
     this.wave++;
     this.state = 'build';
+    this.repairUsed = false;
+    this._reserveUsed = false;
     document.getElementById('buildUI').style.display = 'flex';
-    document.getElementById('hudPhase').textContent = 'BUILD';
+    document.getElementById('combatControls').style.display = 'flex';
+    document.getElementById('upgradeSidebar').style.display = 'flex';
+    document.getElementById('hudPhase').textContent = 'VORBEREITEN';
 
     this.stationShield = Math.min(this.stationMaxShield, this.stationShield + 15);
 
     this.renderBuildButtons();
+    this.updateUpgradeUI();
     this.updateHUD();
+
+    // Auto-combat: start 5 second countdown
+    if (this.autoCombat) {
+      this.autoCombatTimer = 5.0;
+    }
+  }
+
+  togglePause() {
+    if (this.paused) {
+      this.resumeGame();
+    } else if (this.state === 'build' || this.state === 'combat') {
+      this.paused = true;
+      this.stateBeforePause = this.state;
+      document.getElementById('pauseMenu').classList.add('visible');
+    }
+  }
+
+  resumeGame() {
+    this.paused = false;
+    document.getElementById('pauseMenu').classList.remove('visible');
+    document.getElementById('settingsScreen').style.display = 'none';
+  }
+
+  pauseSettings() {
+    document.getElementById('pauseMenu').classList.remove('visible');
+    document.getElementById('settingsScreen').style.display = 'flex';
+    // Override the back button to return to pause menu instead of main menu
+    this._settingsBackOverride = true;
+  }
+
+  quitRun() {
+    this.paused = false;
+    document.getElementById('pauseMenu').classList.remove('visible');
+    const epKillBonus2 = 1 + this.getTotalBonus('epKill') / 100;
+    const epEarned = Math.floor((this.wave * 3 + this.kills * 0.3) * epKillBonus2);
+    this.totalEP += epEarned;
+    document.getElementById('goWaves').textContent = this.wave;
+    document.getElementById('goEP').textContent = epEarned;
+    document.getElementById('goKills').textContent = this.kills;
+    document.getElementById('goTitle').textContent = 'Run Beendet';
+    document.getElementById('goSubtitle').textContent = '// FREIWILLIG BEENDET //';
+    document.getElementById('gameOverScreen').style.display = 'flex';
+    document.getElementById('buildUI').style.display = 'none';
+    document.getElementById('combatControls').style.display = 'none';
+    document.getElementById('upgradeSidebar').style.display = 'none';
+    this.closeUpgPanel();
+    document.getElementById('hud').style.display = 'none';
+    this.state = 'gameover';
+    this.enemies = [];
+    this.projectiles = [];
+    this.enemyProjectiles = [];
   }
 
   newRun() {
+    this.paused = false;
+    document.getElementById('pauseMenu').classList.remove('visible');
     document.getElementById('gameOverScreen').style.display = 'none';
     document.getElementById('stationSelect').style.display = 'none';
     document.getElementById('mainMenu').style.display = 'flex';
@@ -1401,6 +3161,26 @@ class Game {
   update(dt) {
     this.gridPulse += dt;
     this.updateAmbientParticles(dt);
+
+    // Skip game logic when paused
+    if (this.paused) return;
+
+    // Station rotates 360° per 60 seconds
+    if (this.state === 'build' || this.state === 'combat') {
+      this.stationRotation += (Math.PI * 2 / 60) * dt;
+      this.regenerateSlotPositions();
+    }
+
+    // Auto-combat countdown during build phase
+    if (this.state === 'build' && this.autoCombat && this.autoCombatTimer > 0) {
+      this.autoCombatTimer -= dt;
+      const sec = Math.ceil(this.autoCombatTimer);
+      document.getElementById('hudPhase').textContent = `AUTO ${sec}s`;
+      if (this.autoCombatTimer <= 0) {
+        this.autoCombatTimer = 0;
+        this.startCombat();
+      }
+    }
 
     if (this.state === 'combat') {
       this.updateCombat(dt);
@@ -1420,6 +3200,12 @@ class Game {
     });
 
     if (this.shakeTimer > 0) this.shakeTimer -= dt;
+    this.shieldHits = this.shieldHits.filter(h => { h.life -= dt; return h.life > 0; });
+    this.wrecks = this.wrecks.filter(w => {
+      if (w.delay > 0) { w.delay -= dt; return true; }
+      w.life -= dt; return w.life > 0;
+    });
+    this.explosions = this.explosions.filter(e => { e.life -= dt; return e.life > 0; });
 
     if (this.bannerTimer > 0) {
       this.bannerTimer -= dt;
@@ -1480,10 +3266,10 @@ class Game {
     ctx.save();
     ctx.translate(shakeX, shakeY);
 
-    ctx.fillStyle = '#0D0D0F';
+    ctx.fillStyle = '#141820';
     ctx.fillRect(-10, -10, W + 20, H + 20);
 
-    if (this.state === 'mainmenu' || this.state === 'menu' || this.state === 'loading') {
+    if (this.state === 'mainmenu' || this.state === 'menu' || this.state === 'loading' || this.state === 'tech' || this.state === 'settings') {
       this.renderMenuBackground(ctx, W, H);
       ctx.restore();
       return;
@@ -1494,7 +3280,7 @@ class Game {
     // Ambient particles
     for (const p of this.ambientParticles) {
       const alpha = (p.life / p.maxLife) * 0.15;
-      ctx.fillStyle = `rgba(200,184,138,${alpha})`;
+      ctx.fillStyle = `rgba(188,200,216,${alpha})`;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fill();
@@ -1502,6 +3288,9 @@ class Game {
 
     // Station sprite
     this.renderStation(ctx);
+
+    // Core hover point (center of station)
+    this.renderCorePoint(ctx);
 
     // Slots
     this.renderSlots(ctx);
@@ -1513,17 +3302,61 @@ class Game {
         if (!slot.building) {
           ctx.beginPath();
           ctx.arc(slot.x, slot.y, wDef.range, 0, Math.PI * 2);
-          ctx.strokeStyle = 'rgba(212,160,60,0.1)';
+          ctx.strokeStyle = 'rgba(212,130,10,0.1)';
           ctx.lineWidth = 1;
           ctx.stroke();
         }
       }
     }
 
+    // Wrecks (behind enemies, fade over 3s, skip if still delayed)
+    for (const w of this.wrecks) {
+      if (w.delay > 0) continue;
+      const alpha = w.life / w.maxLife;
+      const wreckImg = IMAGES.wrecks[w.tier % IMAGES.wrecks.length];
+      if (wreckImg && wreckImg.complete && wreckImg.naturalWidth > 0) {
+        const s = 28 + w.tier * 4;
+        ctx.save();
+        ctx.translate(w.x, w.y);
+        ctx.rotate(w.rotation);
+        ctx.globalAlpha = alpha * 0.8;
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(wreckImg, -s / 2, -s / 2, s, s);
+        ctx.imageSmoothingEnabled = true;
+        ctx.restore();
+      }
+    }
+    ctx.globalAlpha = 1;
+
     // Enemies
     for (const enemy of this.enemies) {
       this.renderEnemy(ctx, enemy);
     }
+
+    // Explosions (on top of enemies)
+    for (const e of this.explosions) {
+      const t = 1 - e.life / e.maxLife;
+      const alpha = t < 0.3 ? t / 0.3 : (1 - t) / 0.7; // fade in then out
+      const explosionImg = IMAGES.fx.explosion;
+      if (explosionImg && explosionImg.complete && explosionImg.naturalWidth > 0) {
+        const s = e.size * (0.6 + t * 0.8);
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.drawImage(explosionImg, e.x - s / 2, e.y - s / 2, s, s);
+        ctx.restore();
+      } else {
+        // Fallback: orange flash
+        const grad = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, e.size * (0.5 + t));
+        grad.addColorStop(0, `rgba(255,200,50,${alpha})`);
+        grad.addColorStop(0.5, `rgba(255,100,30,${alpha * 0.5})`);
+        grad.addColorStop(1, `rgba(255,50,20,0)`);
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, e.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
 
     // Enemy projectiles — TRACER style
     for (const ep of this.enemyProjectiles) {
@@ -1538,11 +3371,33 @@ class Game {
     // Particles
     for (const p of this.particles) {
       const alpha = p.life / p.maxLife;
-      ctx.globalAlpha = alpha;
-      ctx.fillStyle = p.color;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI * 2);
-      ctx.fill();
+      if (p.isMuzzleFlash) {
+        const img = IMAGES.fx.muzzleSheet;
+        if (img && img.complete && img.naturalWidth > 0) {
+          const t = 1 - (p.life / p.maxLife); // 0→1
+          const frameCol = Math.min(Math.floor(t * 3), 2); // 0,1,2
+          const frameRow = p.muzzleType;
+          const fw = img.naturalWidth / 3;
+          const fh = img.naturalHeight / 3;
+          const s = p.size;
+          // Aspect ratio of one frame
+          const aspect = fw / fh;
+          const drawW = s * aspect;
+          const drawH = s;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.angle); // sprites point right
+          ctx.globalAlpha = alpha;
+          ctx.drawImage(img, frameCol * fw, frameRow * fh, fw, fh, -drawW * 0.3, -drawH / 2, drawW, drawH);
+          ctx.restore();
+        }
+      } else {
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
     ctx.globalAlpha = 1;
 
@@ -1591,14 +3446,14 @@ class Game {
     }
 
     const grad = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W * 0.5);
-    grad.addColorStop(0, 'rgba(26,26,31,0.5)');
-    grad.addColorStop(1, 'rgba(13,13,15,0.9)');
+    grad.addColorStop(0, 'rgba(44,52,64,0.5)');
+    grad.addColorStop(1, 'rgba(20,24,32,0.9)');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
 
     for (const p of this.ambientParticles) {
       const alpha = (p.life / p.maxLife) * 0.1;
-      ctx.fillStyle = `rgba(212,160,60,${alpha})`;
+      ctx.fillStyle = `rgba(212,130,10,${alpha})`;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fill();
@@ -1606,7 +3461,7 @@ class Game {
   }
 
   renderBackgroundGrid(ctx, W, H) {
-    ctx.strokeStyle = 'rgba(212,160,60,0.04)';
+    ctx.strokeStyle = 'rgba(212,130,10,0.04)';
     ctx.lineWidth = 1;
     const gridSize = 40;
     for (let x = 0; x < W; x += gridSize) {
@@ -1624,19 +3479,23 @@ class Game {
     // Glow
     const glowAlpha = 0.08 + Math.sin(this.gridPulse * 1.5) * 0.03;
     const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 100);
-    grad.addColorStop(0, `rgba(212,160,60,${glowAlpha * 2})`);
-    grad.addColorStop(1, 'rgba(212,160,60,0)');
+    grad.addColorStop(0, `rgba(212,130,10,${glowAlpha * 2})`);
+    grad.addColorStop(1, 'rgba(212,130,10,0)');
     ctx.fillStyle = grad;
     ctx.fillRect(cx - 100, cy - 100, 200, 200);
 
-    // Draw station sprite — BIGGER
+    // Draw station sprite — BIGGER, with rotation
     if (this.station) {
       const spriteImg = IMAGES.stations[this.station.sprite];
       if (spriteImg && spriteImg.complete && spriteImg.naturalWidth > 0) {
         const s = this.getStationSpriteSize();
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(this.stationRotation);
         ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(spriteImg, cx - s/2, cy - s/2, s, s);
+        ctx.drawImage(spriteImg, -s/2, -s/2, s, s);
         ctx.imageSmoothingEnabled = true;
+        ctx.restore();
       } else {
         // Fallback hexagon
         ctx.beginPath();
@@ -1648,23 +3507,106 @@ class Game {
           if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
         }
         ctx.closePath();
-        ctx.fillStyle = '#1A1A1F';
+        ctx.fillStyle = '#141820';
         ctx.fill();
-        ctx.strokeStyle = '#D4A03C';
+        ctx.strokeStyle = '#d4820a';
         ctx.lineWidth = 2;
         ctx.stroke();
       }
     }
 
-    // Shield visual
+    // Shield bubble visual
     if (this.stationShield > 0) {
       const shieldRatio = this.stationShield / this.stationMaxShield;
-      const shieldR = this.getStationSpriteSize() * 0.55;
+      const shieldR = this.getStationSpriteSize() * 0.52;
+      const pulse = Math.sin(this.gridPulse * 2) * 0.02;
+      const baseAlpha = 0.03 + shieldRatio * 0.04 + pulse;
+
+      // Inner fill — very faint, transparent center, visible at edges
+      const bubbleGrad = ctx.createRadialGradient(cx, cy, shieldR * 0.3, cx, cy, shieldR);
+      bubbleGrad.addColorStop(0, `rgba(0,212,255,0)`);
+      bubbleGrad.addColorStop(0.7, `rgba(0,212,255,${baseAlpha * 0.5})`);
+      bubbleGrad.addColorStop(1, `rgba(0,212,255,${baseAlpha * 2})`);
       ctx.beginPath();
-      ctx.arc(cx, cy, shieldR, 0, Math.PI * 2 * shieldRatio);
-      ctx.strokeStyle = `rgba(0,212,255,${0.2 + shieldRatio * 0.3})`;
+      ctx.arc(cx, cy, shieldR, 0, Math.PI * 2);
+      ctx.fillStyle = bubbleGrad;
+      ctx.fill();
+
+      // Edge stroke — subtle rim
+      ctx.beginPath();
+      ctx.arc(cx, cy, shieldR, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(0,212,255,${0.08 + shieldRatio * 0.12})`;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Specular highlight — small bright arc at top-left
+      ctx.beginPath();
+      ctx.arc(cx, cy, shieldR * 0.97, -Math.PI * 0.85, -Math.PI * 0.55);
+      ctx.strokeStyle = `rgba(180,230,255,${0.06 + shieldRatio * 0.08})`;
       ctx.lineWidth = 2;
       ctx.stroke();
+    }
+
+    // Shield hit ripples
+    for (const hit of this.shieldHits) {
+      const shieldR = this.getStationSpriteSize() * 0.52;
+      const t = 1 - hit.life / hit.maxLife; // 0→1
+      const alpha = hit.intensity * (1 - t) * 0.8;
+      const spread = 0.4 + t * 0.6; // ripple widens over time
+      const hitX = cx + Math.cos(hit.angle) * shieldR;
+      const hitY = cy + Math.sin(hit.angle) * shieldR;
+
+      // Bright flash at impact
+      const flashR = 8 + t * 20;
+      const flashGrad = ctx.createRadialGradient(hitX, hitY, 0, hitX, hitY, flashR);
+      flashGrad.addColorStop(0, `rgba(180,240,255,${alpha})`);
+      flashGrad.addColorStop(0.5, `rgba(0,212,255,${alpha * 0.5})`);
+      flashGrad.addColorStop(1, `rgba(0,212,255,0)`);
+      ctx.beginPath();
+      ctx.arc(hitX, hitY, flashR, 0, Math.PI * 2);
+      ctx.fillStyle = flashGrad;
+      ctx.fill();
+
+      // Ripple arc spreading from impact point
+      const arcSpread = spread * 0.8;
+      ctx.beginPath();
+      ctx.arc(cx, cy, shieldR + 1, hit.angle - arcSpread, hit.angle + arcSpread);
+      ctx.strokeStyle = `rgba(0,212,255,${alpha * 0.6})`;
+      ctx.lineWidth = 2 + (1 - t) * 2;
+      ctx.stroke();
+    }
+  }
+
+  renderCorePoint(ctx) {
+    const cx = this.stationCenter.x;
+    const cy = this.stationCenter.y;
+    const isHovered = this.hoveredCore;
+    const pulse = Math.sin(this.gridPulse * 3) * 0.15;
+    const r = isHovered ? 7 : 5;
+    const alpha = isHovered ? 0.9 : 0.35 + pulse;
+
+    // Outer ring
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(0,212,255,${alpha})`;
+    ctx.lineWidth = isHovered ? 2 : 1.2;
+    ctx.stroke();
+
+    // Inner dot
+    ctx.beginPath();
+    ctx.arc(cx, cy, 2, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(0,212,255,${alpha * 0.8})`;
+    ctx.fill();
+
+    if (isHovered) {
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = 'rgba(0,212,255,0.5)';
+      ctx.beginPath();
+      ctx.arc(cx, cy, r + 2, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(0,212,255,0.2)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
     }
   }
 
@@ -1678,8 +3620,8 @@ class Game {
         const isHovered = this.hoveredSlot === slot;
         const baseAlpha = isHovered ? 0.6 : 0.25 + pulse;
         const fillAlpha = isHovered ? 0.12 : 0.04;
-        const strokeColor = `rgba(212,160,60,${baseAlpha})`;
-        const fillColor = `rgba(212,160,60,${fillAlpha})`;
+        const strokeColor = `rgba(212,130,10,${baseAlpha})`;
+        const fillColor = `rgba(212,130,10,${fillAlpha})`;
 
         ctx.beginPath();
         ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
@@ -1693,14 +3635,41 @@ class Game {
         ctx.font = `${this.isMobile ? 10 : 8}px "Share Tech Mono"`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillStyle = `rgba(212,160,60,${baseAlpha + 0.1})`;
+        ctx.fillStyle = `rgba(212,130,10,${baseAlpha + 0.1})`;
         ctx.fillText('W', slot.x, slot.y);
 
-        // Connection line to station center
+        // No connection lines — slots are on the station body
+      }
+
+      // Hover: show effective attack range (fire arc wedge)
+      if (this.hoveredSlot === slot && slot.building) {
+        const b = slot.building;
+        const range = b.range;
+        const facingAngle = slot.angle; // outward-facing
+        const halfArc = this.getFireArc() / 2;
+
+        // Filled arc area
         ctx.beginPath();
         ctx.moveTo(slot.x, slot.y);
-        ctx.lineTo(this.stationCenter.x, this.stationCenter.y);
-        ctx.strokeStyle = 'rgba(212,160,60,0.05)';
+        ctx.arc(slot.x, slot.y, range, facingAngle - halfArc, facingAngle + halfArc);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(212,130,10,0.06)';
+        ctx.fill();
+
+        // Arc border
+        ctx.beginPath();
+        ctx.arc(slot.x, slot.y, range, facingAngle - halfArc, facingAngle + halfArc);
+        ctx.strokeStyle = 'rgba(212,130,10,0.25)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Side lines of the arc
+        ctx.beginPath();
+        ctx.moveTo(slot.x, slot.y);
+        ctx.lineTo(slot.x + Math.cos(facingAngle - halfArc) * range, slot.y + Math.sin(facingAngle - halfArc) * range);
+        ctx.moveTo(slot.x, slot.y);
+        ctx.lineTo(slot.x + Math.cos(facingAngle + halfArc) * range, slot.y + Math.sin(facingAngle + halfArc) * range);
+        ctx.strokeStyle = 'rgba(212,130,10,0.15)';
         ctx.lineWidth = 1;
         ctx.stroke();
       }
@@ -1709,14 +3678,6 @@ class Game {
 
   renderBuilding(ctx, slot) {
     const b = slot.building;
-
-    // Connection line
-    ctx.beginPath();
-    ctx.moveTo(slot.x, slot.y);
-    ctx.lineTo(this.stationCenter.x, this.stationCenter.y);
-    ctx.strokeStyle = `${b.color}22`;
-    ctx.lineWidth = 1;
-    ctx.stroke();
 
     // Range circle during combat
     if (this.state === 'combat') {
@@ -1730,7 +3691,7 @@ class Game {
     // Draw weapon sprite with CORRECT ASPECT RATIO
     const spriteImg = IMAGES.weapons[b.sprite];
     if (spriteImg && spriteImg.complete && spriteImg.naturalWidth > 0) {
-      const baseSize = this.isMobile ? 32 : 26;
+      const baseSize = this.isMobile ? 48 : 42;
       const nw = spriteImg.naturalWidth;
       const nh = spriteImg.naturalHeight;
       const aspect = nw / nh;
@@ -1744,7 +3705,7 @@ class Game {
       }
       ctx.save();
       ctx.translate(slot.x, slot.y);
-      ctx.rotate(b.barrelAngle + Math.PI / 2);
+      ctx.rotate(b.barrelAngle + Math.PI);
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(spriteImg, -drawW/2, -drawH/2, drawW, drawH);
       ctx.imageSmoothingEnabled = true;
@@ -1753,7 +3714,7 @@ class Game {
       // Fallback circle
       ctx.beginPath();
       ctx.arc(slot.x, slot.y, 12, 0, Math.PI * 2);
-      ctx.fillStyle = '#1A1A1F';
+      ctx.fillStyle = '#141820';
       ctx.fill();
       ctx.strokeStyle = b.color;
       ctx.lineWidth = 2;
@@ -1822,7 +3783,7 @@ class Game {
     const barY = enemy.y - enemy.radius * 1.4 - 6;
     const hpRatio = enemy.hp / enemy.maxHP;
 
-    ctx.fillStyle = 'rgba(13,13,15,0.7)';
+    ctx.fillStyle = 'rgba(20,24,32,0.7)';
     ctx.fillRect(barX, barY, barW, barH);
     ctx.fillStyle = hpRatio > 0.5 ? '#88FF44' : (hpRatio > 0.25 ? '#FFD700' : '#FF3344');
     ctx.fillRect(barX, barY, barW * hpRatio, barH);
@@ -1839,22 +3800,22 @@ class Game {
   // TRACER-STYLE turret projectile rendering
   renderProjectile(ctx, proj) {
     const angle = proj.angle || 0;
-    const tracerLen = proj.isCrit ? 14 : 10;
-    const tracerWidth = proj.isCrit ? 3 : 2;
+    const tracerLen = proj.isCrit ? 5 : 3;
+    const tracerWidth = proj.isCrit ? 1 : 0.6;
 
     // Trail segments (fading tracer trail)
     for (const t of proj.trail) {
-      const alpha = t.life / 0.08;
+      const alpha = t.life / 0.06;
       const tAngle = t.angle || angle;
       ctx.save();
       ctx.translate(t.x, t.y);
       ctx.rotate(tAngle);
-      ctx.globalAlpha = alpha * 0.3;
+      ctx.globalAlpha = alpha * 0.25;
       ctx.beginPath();
-      ctx.moveTo(-tracerLen * 0.8, 0);
+      ctx.moveTo(-tracerLen * 0.6, 0);
       ctx.lineTo(0, 0);
-      ctx.strokeStyle = proj.isCrit ? '#FFD700' : proj.color;
-      ctx.lineWidth = tracerWidth * 0.6;
+      ctx.strokeStyle = proj.isCrit ? '#FFD700' : '#ffffff';
+      ctx.lineWidth = tracerWidth * 0.5;
       ctx.stroke();
       ctx.globalAlpha = 1;
       ctx.restore();
@@ -1865,77 +3826,74 @@ class Game {
     ctx.translate(proj.x, proj.y);
     ctx.rotate(angle);
 
-    // Outer glow
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = proj.isCrit ? '#FFD700' : proj.color;
+    // Subtle glow
+    ctx.shadowBlur = 4;
+    ctx.shadowColor = proj.isCrit ? '#FFD700' : 'rgba(255,255,255,0.6)';
 
-    // Colored tracer line
+    // White tracer line
     ctx.beginPath();
     ctx.moveTo(-tracerLen, 0);
-    ctx.lineTo(3, 0);
-    ctx.strokeStyle = proj.isCrit ? '#FFD700' : proj.color;
+    ctx.lineTo(2, 0);
+    ctx.strokeStyle = proj.isCrit ? '#FFD700' : 'rgba(255,255,255,0.9)';
     ctx.lineWidth = tracerWidth;
     ctx.stroke();
 
-    // Bright white core
+    // Bright tip
     ctx.beginPath();
-    ctx.moveTo(-tracerLen * 0.4, 0);
-    ctx.lineTo(2, 0);
-    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    ctx.arc(1, 0, tracerWidth * 0.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
 
     ctx.shadowBlur = 0;
     ctx.restore();
   }
 
-  // TRACER-STYLE enemy projectile rendering
+  // TRACER-STYLE enemy projectile rendering (gatling — small, fast)
   renderEnemyProjectile(ctx, ep) {
     const angle = ep.angle || Math.atan2(ep.vy, ep.vx);
-    const tracerLen = 8;
-    const tracerWidth = 2;
+    const tracerLen = 5;
+    const tracerWidth = 1.2;
 
-    // Trail
+    // Trail — short, faint
     for (const t of ep.trail) {
       const alpha = t.life / 0.08;
       const tAngle = t.angle || angle;
       ctx.save();
       ctx.translate(t.x, t.y);
       ctx.rotate(tAngle);
-      ctx.globalAlpha = alpha * 0.25;
+      ctx.globalAlpha = alpha * 0.15;
       ctx.beginPath();
-      ctx.moveTo(-tracerLen * 0.7, 0);
+      ctx.moveTo(-tracerLen * 0.5, 0);
       ctx.lineTo(0, 0);
-      ctx.strokeStyle = '#FF4444';
-      ctx.lineWidth = tracerWidth * 0.5;
+      ctx.strokeStyle = '#FF6633';
+      ctx.lineWidth = tracerWidth * 0.4;
       ctx.stroke();
       ctx.globalAlpha = 1;
       ctx.restore();
     }
 
-    // Main tracer body
+    // Main tracer body — small orange-red
     ctx.save();
     ctx.translate(ep.x, ep.y);
     ctx.rotate(angle);
 
-    // Outer glow
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = '#FF4444';
+    ctx.shadowBlur = 4;
+    ctx.shadowColor = '#FF4422';
 
-    // Red tracer line
+    // Outer tracer
     ctx.beginPath();
     ctx.moveTo(-tracerLen, 0);
-    ctx.lineTo(3, 0);
-    ctx.strokeStyle = '#FF4444';
+    ctx.lineTo(2, 0);
+    ctx.strokeStyle = '#FF5533';
     ctx.lineWidth = tracerWidth;
     ctx.stroke();
 
     // Bright core
     ctx.beginPath();
     ctx.moveTo(-tracerLen * 0.3, 0);
-    ctx.lineTo(2, 0);
-    ctx.strokeStyle = 'rgba(255,200,180,0.9)';
-    ctx.lineWidth = 1;
+    ctx.lineTo(1.5, 0);
+    ctx.strokeStyle = 'rgba(255,220,180,0.8)';
+    ctx.lineWidth = 0.6;
     ctx.stroke();
 
     ctx.shadowBlur = 0;
@@ -1946,16 +3904,24 @@ class Game {
     const cx = this.stationCenter.x;
     const cy = this.stationCenter.y;
     const stationSize = this.getStationSpriteSize();
+
+    // Wave indicator above station
+    const waveY = cy - stationSize * 0.55 - 14;
+    ctx.font = '11px "Share Tech Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(200,223,240,0.5)';
+    ctx.fillText(`WELLE ${this.wave}`, cx, waveY);
+
     const barW = this.isMobile ? 70 : 80;
     const barH = 6;
     const barX = cx - barW / 2;
     const barY = cy + stationSize * 0.55 + 8;
 
-    ctx.fillStyle = 'rgba(13,13,15,0.8)';
+    ctx.fillStyle = 'rgba(20,24,32,0.8)';
     ctx.fillRect(barX - 1, barY - 1, barW + 2, barH + 2);
 
     const hpRatio = this.stationHP / this.stationMaxHP;
-    ctx.fillStyle = hpRatio > 0.5 ? '#D4A03C' : (hpRatio > 0.25 ? '#FF6644' : '#FF3344');
+    ctx.fillStyle = hpRatio > 0.5 ? '#d4820a' : (hpRatio > 0.25 ? '#FF6644' : '#FF3344');
     ctx.fillRect(barX, barY, barW * hpRatio, barH);
 
     if (this.stationMaxShield > 0) {
@@ -1964,7 +3930,7 @@ class Game {
       ctx.fillRect(barX, barY, barW * shieldRatio, barH);
     }
 
-    ctx.strokeStyle = 'rgba(212,160,60,0.3)';
+    ctx.strokeStyle = 'rgba(212,130,10,0.3)';
     ctx.lineWidth = 1;
     ctx.strokeRect(barX, barY, barW, barH);
   }
@@ -1991,7 +3957,7 @@ class Game {
   }
 
   onPointerMove(e) {
-    if (this.state !== 'build' || this.isMobile) {
+    if ((this.state !== 'build' && this.state !== 'combat') || this.isMobile) {
       this.hoveredSlot = null;
       const tt = document.getElementById('tooltip');
       if (tt) tt.style.display = 'none';
@@ -1999,21 +3965,40 @@ class Game {
     }
 
     const rect = this.canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
+    const mx = (e.clientX - rect.left) * (this.canvas.width / rect.width / this.dpr);
+    const my = (e.clientY - rect.top) * (this.canvas.height / rect.height / this.dpr);
+
+    // Check core hover (center of station)
+    const coreDx = mx - this.stationCenter.x;
+    const coreDy = my - this.stationCenter.y;
+    this.hoveredCore = (coreDx * coreDx + coreDy * coreDy < 15 * 15);
 
     this.hoveredSlot = null;
-    for (const slot of this.slots) {
-      const dx = mx - slot.x;
-      const dy = my - slot.y;
-      if (dx * dx + dy * dy < slot.radius * slot.radius * 1.5) {
-        this.hoveredSlot = slot;
-        break;
+    if (!this.hoveredCore) {
+      for (const slot of this.slots) {
+        const dx = mx - slot.x;
+        const dy = my - slot.y;
+        if (dx * dx + dy * dy < 20 * 20) {
+          this.hoveredSlot = slot;
+          break;
+        }
       }
     }
 
     const tooltip = document.getElementById('tooltip');
-    if (this.hoveredSlot) {
+    if (this.hoveredCore && this.station) {
+      const s = this.station;
+      const shieldPct = this.stationMaxShield > 0 ? Math.round(this.stationShield / this.stationMaxShield * 100) : 0;
+      let text = `── ENERGIEKERN ──\nTier: ${s.energyCore <= 10 ? 'I' : s.energyCore <= 16 ? 'II' : 'III'}\nLeistung: ${s.energyCore} GW`;
+      text += `\n\n── SCHILDGENERATOR ──\nTier: ${s.shield <= 250 ? 'I' : s.shield <= 500 ? 'II' : 'III'}`;
+      text += `\nSchild: ${Math.round(this.stationShield)} / ${this.stationMaxShield} (${shieldPct}%)`;
+      text += `\nRegeneration: ${this.shieldRegenRate}/s`;
+      tooltip.innerHTML = text.replace(/\n/g, '<br>');
+      tooltip.style.display = 'block';
+      tooltip.style.whiteSpace = 'normal';
+      tooltip.style.left = (e.clientX + 15) + 'px';
+      tooltip.style.top = (e.clientY + 15) + 'px';
+    } else if (this.hoveredSlot) {
       let text = '';
       if (this.hoveredSlot.building) {
         const b = this.hoveredSlot.building;
@@ -2048,6 +4033,269 @@ class Game {
 
 // -- Start --
 const game = new Game();
+
+// =============================================
+// DEV TOOL — Hardpoint Positioner (F9)
+// =============================================
+(function() {
+  const overlay = document.createElement('div');
+  overlay.id = 'devTool';
+  overlay.innerHTML = `
+    <div class="dev-toolbar">
+      <label>Station:</label>
+      <select id="devStationSelect"></select>
+      <button id="devCopyBtn">COPY HARDPOINTS</button>
+      <button id="devApplyBtn">APPLY LIVE</button>
+      <button id="devCloseBtn">SCHLIESSEN (F9)</button>
+    </div>
+    <div class="dev-canvas-wrap">
+      <canvas id="devCanvas"></canvas>
+      <div class="dev-coords" id="devCoords"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  let devOpen = false;
+  let devStation = 0;
+  let devSlots = []; // [{x, y}] in fraction coords
+  let dragging = -1;
+  let devCanvasSize = 500;
+  let spriteSize = 400;
+  let offset = { x: 0, y: 0 }; // canvas center
+
+  const canvas = () => document.getElementById('devCanvas');
+  const ctx = () => canvas().getContext('2d');
+
+  function open() {
+    devOpen = true;
+    overlay.classList.add('visible');
+    populateSelect();
+    loadStation(devStation);
+    resizeCanvas();
+    renderDev();
+  }
+
+  function close() {
+    devOpen = false;
+    overlay.classList.remove('visible');
+  }
+
+  function populateSelect() {
+    const sel = document.getElementById('devStationSelect');
+    sel.innerHTML = '';
+    STATIONS.forEach((s, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `${i}: ${s.name} (${s.slotCount} slots)`;
+      sel.appendChild(opt);
+    });
+    sel.value = devStation;
+    sel.onchange = () => { devStation = parseInt(sel.value); loadStation(devStation); renderDev(); };
+  }
+
+  function loadStation(idx) {
+    const hp = Game.HARDPOINTS[idx] || [];
+    devSlots = hp.map(p => ({ x: p[0], y: p[1] }));
+    // If fewer slots than station expects, pad with defaults
+    const expected = STATIONS[idx].slotCount;
+    while (devSlots.length < expected) {
+      const angle = (devSlots.length / expected) * Math.PI * 2 - Math.PI / 2;
+      devSlots.push({ x: parseFloat((Math.cos(angle) * 0.35).toFixed(3)), y: parseFloat((Math.sin(angle) * 0.35).toFixed(3)) });
+    }
+  }
+
+  function resizeCanvas() {
+    const wrap = overlay.querySelector('.dev-canvas-wrap');
+    const size = Math.min(wrap.clientWidth - 40, wrap.clientHeight - 40, 700);
+    devCanvasSize = Math.max(size, 300);
+    spriteSize = devCanvasSize * 0.75;
+    const c = canvas();
+    c.width = devCanvasSize;
+    c.height = devCanvasSize;
+    offset.x = devCanvasSize / 2;
+    offset.y = devCanvasSize / 2;
+  }
+
+  function fracToCanvas(fx, fy) {
+    return {
+      cx: offset.x + fx * spriteSize,
+      cy: offset.y + fy * spriteSize,
+    };
+  }
+
+  function canvasToFrac(cx, cy) {
+    return {
+      fx: (cx - offset.x) / spriteSize,
+      fy: (cy - offset.y) / spriteSize,
+    };
+  }
+
+  function renderDev() {
+    const c = canvas();
+    const g = ctx();
+    g.clearRect(0, 0, c.width, c.height);
+
+    // Draw station sprite
+    const img = IMAGES.stations[devStation];
+    if (img && img.complete && img.naturalWidth > 0) {
+      g.drawImage(img, offset.x - spriteSize / 2, offset.y - spriteSize / 2, spriteSize, spriteSize);
+    } else {
+      // Fallback circle
+      g.strokeStyle = '#2c3440';
+      g.lineWidth = 2;
+      g.beginPath();
+      g.arc(offset.x, offset.y, spriteSize / 2, 0, Math.PI * 2);
+      g.stroke();
+    }
+
+    // Draw crosshair
+    g.strokeStyle = 'rgba(85,96,112,0.3)';
+    g.lineWidth = 1;
+    g.beginPath();
+    g.moveTo(0, offset.y); g.lineTo(c.width, offset.y);
+    g.moveTo(offset.x, 0); g.lineTo(offset.x, c.height);
+    g.stroke();
+
+    // Draw slots
+    devSlots.forEach((slot, i) => {
+      const { cx, cy } = fracToCanvas(slot.x, slot.y);
+      const r = 10;
+
+      // Line from center to slot
+      g.strokeStyle = 'rgba(212,130,10,0.3)';
+      g.lineWidth = 1;
+      g.beginPath();
+      g.moveTo(offset.x, offset.y);
+      g.lineTo(cx, cy);
+      g.stroke();
+
+      // Slot circle
+      g.fillStyle = dragging === i ? 'rgba(255,189,85,0.8)' : 'rgba(212,130,10,0.6)';
+      g.strokeStyle = dragging === i ? '#ffbd55' : '#d4820a';
+      g.lineWidth = 2;
+      g.beginPath();
+      g.arc(cx, cy, r, 0, Math.PI * 2);
+      g.fill();
+      g.stroke();
+
+      // Slot number
+      g.fillStyle = '#141820';
+      g.font = 'bold 11px Share Tech Mono, monospace';
+      g.textAlign = 'center';
+      g.textBaseline = 'middle';
+      g.fillText(i, cx, cy);
+    });
+
+    // Update coords panel
+    updateCoords();
+  }
+
+  function updateCoords() {
+    const el = document.getElementById('devCoords');
+    let html = `<div style="color:var(--text-dim);margin-bottom:4px;">STATION ${devStation}: ${STATIONS[devStation].name}</div>`;
+    devSlots.forEach((slot, i) => {
+      const cls = dragging === i ? 'slot-line active' : 'slot-line';
+      html += `<div class="${cls}">[${i}] x: ${slot.x.toFixed(3)}  y: ${slot.y.toFixed(3)}</div>`;
+    });
+    el.innerHTML = html;
+  }
+
+  function getSlotAt(cx, cy) {
+    for (let i = devSlots.length - 1; i >= 0; i--) {
+      const { cx: sx, cy: sy } = fracToCanvas(devSlots[i].x, devSlots[i].y);
+      const dx = cx - sx, dy = cy - sy;
+      if (dx * dx + dy * dy < 15 * 15) return i;
+    }
+    return -1;
+  }
+
+  function getCanvasCoords(e) {
+    const c = canvas();
+    const rect = c.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      cx: (clientX - rect.left) * (c.width / rect.width),
+      cy: (clientY - rect.top) * (c.height / rect.height),
+    };
+  }
+
+  // Mouse/touch drag handling
+  function onDown(e) {
+    const { cx, cy } = getCanvasCoords(e);
+    dragging = getSlotAt(cx, cy);
+    if (dragging >= 0) renderDev();
+  }
+
+  function onMove(e) {
+    if (dragging < 0) return;
+    e.preventDefault();
+    const { cx, cy } = getCanvasCoords(e);
+    const { fx, fy } = canvasToFrac(cx, cy);
+    devSlots[dragging].x = parseFloat(fx.toFixed(3));
+    devSlots[dragging].y = parseFloat(fy.toFixed(3));
+    renderDev();
+  }
+
+  function onUp() {
+    if (dragging >= 0) {
+      dragging = -1;
+      renderDev();
+    }
+  }
+
+  // Event listeners (deferred until canvas exists)
+  function attachCanvasEvents() {
+    const c = canvas();
+    c.addEventListener('mousedown', onDown);
+    c.addEventListener('mousemove', onMove);
+    c.addEventListener('mouseup', onUp);
+    c.addEventListener('mouseleave', onUp);
+    c.addEventListener('touchstart', onDown, { passive: true });
+    c.addEventListener('touchmove', onMove, { passive: false });
+    c.addEventListener('touchend', onUp);
+  }
+
+  // Copy hardpoints to clipboard
+  document.getElementById('devCopyBtn').addEventListener('click', () => {
+    let out = `// Station ${devStation}: ${STATIONS[devStation].name}\n${devStation}: [\n`;
+    devSlots.forEach((s, i) => {
+      out += `  [${s.x.toFixed(3)}, ${s.y.toFixed(3)}],${i < devSlots.length - 1 ? '' : ''}\n`;
+    });
+    out += '],';
+    navigator.clipboard.writeText(out).then(() => {
+      document.getElementById('devCopyBtn').textContent = 'COPIED!';
+      setTimeout(() => { document.getElementById('devCopyBtn').textContent = 'COPY HARDPOINTS'; }, 1500);
+    });
+  });
+
+  // Apply live — update Game.HARDPOINTS and regenerate slots
+  document.getElementById('devApplyBtn').addEventListener('click', () => {
+    Game.HARDPOINTS[devStation] = devSlots.map(s => [s.x, s.y]);
+    if (game.station && game.station.sprite === devStation) {
+      game.generateSlots();
+      game.regenerateSlotPositions();
+    }
+    document.getElementById('devApplyBtn').textContent = 'APPLIED!';
+    setTimeout(() => { document.getElementById('devApplyBtn').textContent = 'APPLY LIVE'; }, 1500);
+  });
+
+  // Close button
+  document.getElementById('devCloseBtn').addEventListener('click', close);
+
+  // F9 toggle
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'F9') {
+      e.preventDefault();
+      if (devOpen) { close(); } else { open(); attachCanvasEvents(); }
+    }
+  });
+
+  // Resize handler
+  window.addEventListener('resize', () => {
+    if (devOpen) { resizeCanvas(); renderDev(); }
+  });
+})();
 </script>
 </body>
 </html>
