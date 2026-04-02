@@ -398,6 +398,122 @@ canvas {
 
 .build-btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
 
+/* -- Slot Weapon Dropdown -- */
+#slotMenu {
+  position: absolute;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  background: rgba(20,24,32,0.96);
+  border: 1px solid var(--amber-dim);
+  border-radius: 6px;
+  padding: 6px;
+  z-index: 25;
+  min-width: 150px;
+  max-width: 200px;
+  pointer-events: auto;
+  transform: translate(-50%, 8px);
+}
+
+#slotMenu.visible { display: flex; }
+
+.slot-menu-title {
+  font-family: var(--font-ui);
+  font-size: 9px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 2px 6px 4px;
+  border-bottom: 1px solid var(--steel-light);
+  margin-bottom: 2px;
+}
+
+.slot-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+  transition: all 0.1s;
+  text-align: left;
+  font-family: var(--font-mono);
+  color: var(--text);
+}
+
+.slot-menu-item:hover {
+  border-color: var(--amber-dim);
+  background: rgba(212,130,10,0.08);
+}
+
+.slot-menu-item:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.slot-menu-item img {
+  width: 22px; height: 22px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.slot-menu-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.slot-menu-item-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.slot-menu-item-cost {
+  font-size: 9px;
+  color: var(--amber);
+}
+
+.slot-menu-item.current {
+  border-color: var(--amber-dim);
+  background: rgba(212,130,10,0.05);
+}
+
+.slot-menu-item.remove {
+  color: #FF3344;
+  font-size: 10px;
+  justify-content: center;
+  border-top: 1px solid var(--steel-light);
+  margin-top: 2px;
+  padding-top: 6px;
+}
+
+.slot-menu-item.remove:hover {
+  background: rgba(255,51,68,0.1);
+  border-color: rgba(255,51,68,0.3);
+}
+
+@media (max-width: 600px) {
+  #slotMenu {
+    position: fixed;
+    left: 8px !important;
+    right: 8px;
+    bottom: 8px !important;
+    top: auto !important;
+    transform: none;
+    min-width: 0;
+    max-width: none;
+    border-radius: 8px;
+    padding: 8px;
+  }
+
+  .slot-menu-item { padding: 8px 10px; min-height: 40px; }
+  .slot-menu-item-name { font-size: 12px; }
+  .slot-menu-item-cost { font-size: 10px; }
+  .slot-menu-item img { width: 28px; height: 28px; }
+}
+
 /* -- Combat Controls (bottom-right, KAMPF + AUTO) -- */
 #combatControls {
   position: absolute;
@@ -494,48 +610,12 @@ canvas {
   .build-btn img { width: 28px; height: 28px; }
 }
 
-/* -- Upgrade Sidebar (left side during build phase) -- */
-#upgradeSidebar {
-  position: absolute;
-  left: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: none;
-  flex-direction: column;
-  gap: 6px;
-  z-index: 15;
-  pointer-events: auto;
-}
 
-.upg-cat-btn {
-  width: 40px; height: 40px;
-  border-radius: 6px;
-  border: 1px solid;
-  background: rgba(20,24,32,0.9);
-  cursor: pointer;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s;
-  position: relative;
-}
-
-.upg-cat-btn.attack { border-color: rgba(255,80,40,0.5); color: #FF5028; }
-.upg-cat-btn.attack:hover, .upg-cat-btn.attack.active { background: rgba(255,80,40,0.15); border-color: #FF5028; box-shadow: 0 0 10px rgba(255,80,40,0.3); }
-.upg-cat-btn.defense { border-color: rgba(0,180,220,0.5); color: #00B4DC; }
-.upg-cat-btn.defense:hover, .upg-cat-btn.defense.active { background: rgba(0,180,220,0.15); border-color: #00B4DC; box-shadow: 0 0 10px rgba(0,180,220,0.3); }
-.upg-cat-btn.resource { border-color: rgba(80,200,80,0.5); color: #50C850; }
-.upg-cat-btn.resource:hover, .upg-cat-btn.resource.active { background: rgba(80,200,80,0.15); border-color: #50C850; box-shadow: 0 0 10px rgba(80,200,80,0.3); }
-.upg-cat-btn.repair { border-color: rgba(212,130,10,0.5); color: var(--amber); }
-.upg-cat-btn.repair:hover { background: rgba(212,130,10,0.15); border-color: var(--amber); box-shadow: 0 0 10px rgba(212,130,10,0.3); }
-.upg-cat-btn.repair:disabled { opacity: 0.3; cursor: not-allowed; box-shadow: none; }
-
-.upg-cat-btn .upg-lvl {
+.bar-badge {
   position: absolute;
   top: -4px; right: -4px;
   background: var(--steel);
-  border: 1px solid;
+  border: 1px solid currentColor;
   border-radius: 50%;
   width: 16px; height: 16px;
   font-size: 8px;
@@ -543,22 +623,22 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-color: inherit;
-  color: inherit;
+  pointer-events: none;
 }
+.bar-badge:empty, .bar-badge[data-val="0"] { display: none; }
 
 /* -- Upgrade Overlay Panel -- */
 .upg-panel {
-  position: absolute;
-  left: 56px;
-  top: 50%;
-  transform: translateY(-50%);
+  position: fixed;
+  left: 50%;
+  bottom: 72px;
+  transform: translateX(-50%);
   background: rgba(20,24,32,0.96);
   border: 1px solid var(--amber-dim);
   border-radius: 6px;
   padding: 10px 12px;
-  min-width: 220px;
-  max-width: 260px;
+  min-width: 260px;
+  max-width: 340px;
   display: none;
   flex-direction: column;
   gap: 6px;
@@ -730,22 +810,6 @@ canvas {
 
 /* -- Mobile: Upgrade Sidebar + Panels + Skill Tree -- */
 @media (max-width: 600px) {
-  /* Upgrade sidebar: horizontal row above build bar */
-  #upgradeSidebar {
-    flex-direction: row;
-    left: 0; right: auto;
-    top: auto;
-    bottom: 64px;
-    transform: none;
-    padding: 0 6px;
-    gap: 5px;
-    width: auto;
-    background: linear-gradient(0deg, rgba(20,24,32,0.9) 0%, rgba(20,24,32,0.6) 100%);
-    border-radius: 0 6px 0 0;
-    padding: 5px 8px;
-  }
-
-  #upgradeSidebar hr { display: none; }
 
   .upg-cat-btn {
     width: 36px; height: 36px;
@@ -758,11 +822,11 @@ canvas {
     top: -3px; right: -3px;
   }
 
-  /* Upgrade panels: anchored above sidebar, full-width */
+  /* Upgrade panels: anchored above build bar, full-width */
   .upg-panel {
     position: fixed;
     left: 4px; right: 4px;
-    bottom: 108px;
+    bottom: 64px;
     top: auto;
     transform: none;
     min-width: 0;
@@ -1300,13 +1364,6 @@ canvas {
     <div class="station-grid" id="stationGrid"></div>
   </div>
 
-  <div id="upgradeSidebar">
-    <button class="upg-cat-btn attack" id="btnUpgAttack" title="Angriff">⚔<span class="upg-lvl" id="upgLvlAttack">0</span></button>
-    <button class="upg-cat-btn defense" id="btnUpgDefense" title="Verteidigung">🛡<span class="upg-lvl" id="upgLvlDefense">0</span></button>
-    <button class="upg-cat-btn resource" id="btnUpgResource" title="Ressourcen">⚙<span class="upg-lvl" id="upgLvlResource">0</span></button>
-    <hr style="border:none;border-top:1px solid var(--steel-light);margin:2px 0;">
-    <button class="upg-cat-btn repair" id="btnRepair" title="Reparatur">🔧</button>
-  </div>
 
   <div class="upg-panel attack" id="upgPanelAttack">
     <div class="upg-panel-title">Angriff</div>
@@ -1335,12 +1392,16 @@ canvas {
     <div class="upg-row"><div class="upg-info"><div class="upg-name">Reparaturkosten</div><div class="upg-val" id="upgValRepairCost">+0%</div></div><button class="upg-buy" id="upgBuyRepairCost">-- VSU</button></div>
   </div>
 
+  <div id="slotMenu">
+    <div class="slot-menu-title" id="slotMenuTitle">Waffe wählen</div>
+    <div id="slotMenuItems"></div>
+  </div>
+
   <div id="buildUI">
     <div class="build-row" id="buildRow"></div>
   </div>
 
   <div id="combatControls">
-    <button class="build-btn start-combat" id="btnStartCombat">KAMPF!</button>
     <button class="build-btn" id="btnAutoCombat" style="font-size:9px;padding:2px 10px;min-height:0;letter-spacing:1px;font-family:var(--font-ui);">AUTO AUS</button>
   </div>
 
@@ -1805,10 +1866,7 @@ class Game {
     document.getElementById('btnPauseQuit').addEventListener('click', pauseQuitFn);
     document.getElementById('btnPauseQuit').addEventListener('touchend', (e) => { e.preventDefault(); pauseQuitFn(); });
 
-    // Combat controls (bottom-right)
-    const startFn = () => { playSound('confirm'); this.startCombat(); };
-    document.getElementById('btnStartCombat').addEventListener('click', startFn);
-    document.getElementById('btnStartCombat').addEventListener('touchend', (e) => { e.preventDefault(); startFn(); });
+    // Auto-combat toggle
     const autoBtn = document.getElementById('btnAutoCombat');
     const autoFn = () => {
       playSound('click');
@@ -1819,14 +1877,6 @@ class Game {
     autoBtn.addEventListener('click', autoFn);
     autoBtn.addEventListener('touchend', (e) => { e.preventDefault(); autoFn(); });
 
-    // Upgrade sidebar buttons
-    const upgCats = ['Attack', 'Defense', 'Resource'];
-    for (const cat of upgCats) {
-      const btn = document.getElementById(`btnUpg${cat}`);
-      const fn = () => this.toggleUpgPanel(cat.toLowerCase());
-      btn.addEventListener('click', fn);
-      btn.addEventListener('touchend', (e) => { e.preventDefault(); fn(); });
-    }
     // Upgrade buy buttons
     const upgBuys = { Dmg: 'dmg', Rof: 'rof', Range: 'range', Pierce: 'pierce', Syshit: 'syshit', Hull: 'hull', Shield: 'shield', Energy: 'energy', Reserve: 'reserve', VsuKill: 'vsuKill', VsuWave: 'vsuWave', EpKill: 'epKill', EpWave: 'epWave', RepairEff: 'repairEff', RepairCost: 'repairCost' };
     for (const [suffix, key] of Object.entries(upgBuys)) {
@@ -1835,12 +1885,6 @@ class Game {
       btn.addEventListener('click', fn);
       btn.addEventListener('touchend', (e) => { e.preventDefault(); fn(); });
     }
-    // Repair button
-    const repairBtn = document.getElementById('btnRepair');
-    const repairFn = () => this.doRepair();
-    repairBtn.addEventListener('click', repairFn);
-    repairBtn.addEventListener('touchend', (e) => { e.preventDefault(); repairFn(); });
-
     // Settings sliders — update value display
     for (const id of ['Master', 'SFX', 'Music', 'Particles', 'DmgNums']) {
       const slider = document.getElementById('slider' + id);
@@ -2213,14 +2257,12 @@ class Game {
     this.closeUpgPanel();
     this.activeUpgPanel = cat;
     document.getElementById(`upgPanel${cat.charAt(0).toUpperCase() + cat.slice(1)}`).classList.add('visible');
-    document.getElementById(`btnUpg${cat.charAt(0).toUpperCase() + cat.slice(1)}`).classList.add('active');
   }
 
   closeUpgPanel() {
     if (this.activeUpgPanel) {
       const cap = this.activeUpgPanel.charAt(0).toUpperCase() + this.activeUpgPanel.slice(1);
       document.getElementById(`upgPanel${cap}`).classList.remove('visible');
-      document.getElementById(`btnUpg${cap}`).classList.remove('active');
     }
     this.activeUpgPanel = null;
   }
@@ -2244,24 +2286,8 @@ class Game {
       }
     }
 
-    // Category level badges
-    document.getElementById('upgLvlAttack').textContent = this.runUpgrades.dmg + this.runUpgrades.rof + this.runUpgrades.range + this.runUpgrades.pierce + this.runUpgrades.syshit;
-    document.getElementById('upgLvlDefense').textContent = this.runUpgrades.hull + this.runUpgrades.shield + this.runUpgrades.energy + this.runUpgrades.reserve;
-    document.getElementById('upgLvlResource').textContent = this.runUpgrades.vsuKill + this.runUpgrades.vsuWave + this.runUpgrades.epKill + this.runUpgrades.epWave + this.runUpgrades.repairEff + this.runUpgrades.repairCost;
-
-    // Repair button
-    const repBtn = document.getElementById('btnRepair');
-    const cost = this.getRepairCost();
-    if (this.repairUsed) {
-      repBtn.disabled = true;
-      repBtn.title = 'Bereits repariert';
-    } else if (this.stationHP >= this.stationMaxHP) {
-      repBtn.disabled = true;
-      repBtn.title = 'Hülle voll';
-    } else {
-      repBtn.disabled = this.vsu < cost;
-      repBtn.title = `Reparatur: ${Math.round(this.getRepairAmount() * 100)}% Hülle für ${cost} VSU`;
-    }
+    // Repair + build bar
+    this.updateBuildBar();
   }
 
   resize() {
@@ -2422,8 +2448,7 @@ class Game {
     document.getElementById('stationSelect').style.display = 'none';
     document.getElementById('hud').style.display = 'flex';
     document.getElementById('buildUI').style.display = 'flex';
-    document.getElementById('combatControls').style.display = 'flex';
-    document.getElementById('upgradeSidebar').style.display = 'flex';
+    document.getElementById('combatControls').style.display = 'none';
     this.state = 'build';
     this.renderBuildButtons();
     this.updateUpgradeUI();
@@ -2470,69 +2495,174 @@ class Game {
     const row = document.getElementById('buildRow');
     row.innerHTML = '';
 
-    for (const [key, wep] of Object.entries(WEAPONS)) {
-      // Only show weapons that are unlocked (unlock === null or in unlockedTech)
-      if (wep.unlock && !this.unlockedTech.has(wep.unlock)) continue;
-
+    // Upgrade category buttons in bottom bar
+    const cats = [
+      { key: 'attack', icon: '⚔', label: 'Angriff', cls: 'attack' },
+      { key: 'defense', icon: '🛡', label: 'Verteidigung', cls: 'defense' },
+      { key: 'resource', icon: '⚙', label: 'Ressourcen', cls: 'resource' },
+    ];
+    for (const cat of cats) {
       const btn = document.createElement('button');
-      btn.className = 'build-btn';
-      btn.id = 'btn_' + key;
-      const weaponImg = IMAGES.weapons[wep.sprite];
-      btn.innerHTML = `<img src="${weaponImg ? weaponImg.src : ''}" alt="${wep.name}"><span>${wep.name}</span><span style="font-size:9px;color:rgba(85,96,112,0.8)">${wep.cost} VSU</span>`;
-
-      const selectFn = () => {
-        playSound('click');
-        if (this.selectedWeapon === key) {
-          this.selectedWeapon = null;
-        } else {
-          this.selectedWeapon = key;
-        }
-        this.highlightSelectedButton();
-      };
-      btn.addEventListener('click', selectFn);
-      btn.addEventListener('touchend', (e) => { e.preventDefault(); selectFn(); });
-      if (this.vsu < wep.cost) btn.disabled = true;
+      btn.className = `build-btn`;
+      btn.id = `btnBar${cat.cls.charAt(0).toUpperCase() + cat.cls.slice(1)}`;
+      btn.style.borderColor = cat.cls === 'attack' ? 'rgba(255,80,40,0.5)' : cat.cls === 'defense' ? 'rgba(0,180,220,0.5)' : 'rgba(80,200,80,0.5)';
+      btn.style.color = cat.cls === 'attack' ? '#FF5028' : cat.cls === 'defense' ? '#00B4DC' : '#50C850';
+      btn.style.position = 'relative';
+      btn.innerHTML = `<span style="font-size:16px">${cat.icon}</span><span style="font-size:9px">${cat.label}</span><span class="bar-badge" id="barBadge${cat.cls.charAt(0).toUpperCase() + cat.cls.slice(1)}">0</span>`;
+      const fn = () => this.toggleUpgPanel(cat.key);
+      btn.addEventListener('click', fn);
+      btn.addEventListener('touchend', (e) => { e.preventDefault(); fn(); });
       row.appendChild(btn);
     }
 
+    // Repair button
+    const repBtn = document.createElement('button');
+    repBtn.className = 'build-btn';
+    repBtn.id = 'btnRepairBar';
+    repBtn.style.borderColor = 'rgba(212,130,10,0.5)';
+    repBtn.innerHTML = `<span style="font-size:16px">🔧</span><span style="font-size:9px">Reparatur</span>`;
+    const repFn = () => this.doRepair();
+    repBtn.addEventListener('click', repFn);
+    repBtn.addEventListener('touchend', (e) => { e.preventDefault(); repFn(); });
+    row.appendChild(repBtn);
+
+    // KAMPF + AUTO buttons
+    const startBtn = document.createElement('button');
+    startBtn.className = 'build-btn start-combat';
+    startBtn.textContent = 'KAMPF!';
+    const startFn = () => { playSound('confirm'); this.startCombat(); };
+    startBtn.addEventListener('click', startFn);
+    startBtn.addEventListener('touchend', (e) => { e.preventDefault(); startFn(); });
+    row.appendChild(startBtn);
+
+    this.updateBuildBar();
   }
 
-  highlightSelectedButton() {
-    for (const key of Object.keys(WEAPONS)) {
-      const btn = document.getElementById('btn_' + key);
-      if (btn) {
-        btn.classList.toggle('selected', this.selectedWeapon === key);
+  updateBuildBar() {
+    const repBtn = document.getElementById('btnRepairBar');
+    if (repBtn) {
+      const cost = this.getRepairCost();
+      if (this.repairUsed || this.stationHP >= this.stationMaxHP) {
+        repBtn.disabled = true;
+      } else {
+        repBtn.disabled = this.vsu < cost;
+      }
+    }
+    // Update category badges
+    const u = this.runUpgrades;
+    const badges = {
+      Attack: u.dmg + u.rof + u.range + u.pierce + u.syshit,
+      Defense: u.hull + u.shield + u.energy + u.reserve,
+      Resource: u.vsuKill + u.vsuWave + u.epKill + u.epWave + u.repairEff + u.repairCost,
+    };
+    for (const [cat, val] of Object.entries(badges)) {
+      const el = document.getElementById(`barBadge${cat}`);
+      if (el) {
+        el.textContent = val;
+        el.setAttribute('data-val', val);
+        el.style.display = val > 0 ? 'flex' : 'none';
       }
     }
   }
 
-  updateBuildButtons() {
+  // -- Slot Menu (click on hardpoint to build/replace weapon) --
+  openSlotMenu(slot) {
+    if (this.state !== 'build') return;
+    this._menuSlot = slot;
+
+    const menu = document.getElementById('slotMenu');
+    const items = document.getElementById('slotMenuItems');
+    items.innerHTML = '';
+
+    const title = document.getElementById('slotMenuTitle');
+    title.textContent = slot.building ? `${slot.building.name} — Ersetzen` : 'Waffe wählen';
+
+    // Available weapons
     for (const [key, wep] of Object.entries(WEAPONS)) {
-      const btn = document.getElementById('btn_' + key);
-      if (btn) btn.disabled = this.vsu < wep.cost;
+      if (wep.unlock && !this.unlockedTech.has(wep.unlock)) continue;
+      // Skip if same weapon already installed
+      if (slot.building && slot.building.weaponKey === key) continue;
+
+      const item = document.createElement('button');
+      item.className = 'slot-menu-item';
+      const weaponImg = IMAGES.weapons[wep.sprite];
+      const cost = slot.building ? Math.floor(wep.cost * 0.6) : wep.cost;
+      item.innerHTML = `
+        <img src="${weaponImg ? weaponImg.src : ''}" alt="${wep.name}">
+        <div class="slot-menu-item-info">
+          <div class="slot-menu-item-name">${wep.name}</div>
+          <div class="slot-menu-item-cost">${cost} VSU</div>
+        </div>`;
+      item.disabled = this.vsu < cost;
+
+      const fn = () => {
+        this.buildWeaponOnSlot(slot, key, cost);
+        this.closeSlotMenu();
+      };
+      item.addEventListener('click', fn);
+      item.addEventListener('touchend', (e) => { e.preventDefault(); fn(); });
+      items.appendChild(item);
     }
+
+    // Remove option if turret exists
+    if (slot.building) {
+      const refund = Math.floor(WEAPONS[slot.building.weaponKey].cost * 0.3);
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'slot-menu-item remove';
+      removeBtn.textContent = `Entfernen (+${refund} VSU)`;
+      const rmFn = () => {
+        this.vsu += refund;
+        slot.building = null;
+        this.closeSlotMenu();
+        this.updateHUD();
+        this.updateBuildBar();
+        playSound('click');
+      };
+      removeBtn.addEventListener('click', rmFn);
+      removeBtn.addEventListener('touchend', (e) => { e.preventDefault(); rmFn(); });
+      items.appendChild(removeBtn);
+    }
+
+    // Position menu near slot (desktop) or fixed bottom (mobile handled by CSS)
+    const rect = this.canvas.getBoundingClientRect();
+    const sx = slot.x * (rect.width / this.W) + rect.left;
+    const sy = slot.y * (rect.height / this.H) + rect.top;
+    menu.style.left = sx + 'px';
+    menu.style.top = (sy + 20) + 'px';
+    menu.classList.add('visible');
+
+    // Close on outside click
+    const close = (e) => {
+      if (!menu.contains(e.target)) {
+        this.closeSlotMenu();
+        document.removeEventListener('pointerdown', close);
+      }
+    };
+    setTimeout(() => document.addEventListener('pointerdown', close), 10);
   }
 
-  placeBuilding(slot) {
-    if (!this.selectedWeapon || slot.building) return;
-    const wDef = WEAPONS[this.selectedWeapon];
-    if (this.vsu < wDef.cost) {
+  closeSlotMenu() {
+    document.getElementById('slotMenu').classList.remove('visible');
+    this._menuSlot = null;
+  }
+
+  buildWeaponOnSlot(slot, weaponKey, cost) {
+    if (this.vsu < cost) {
       this.showBanner("NICHT GENUG VSU!");
       return;
     }
 
-    this.vsu -= wDef.cost;
+    this.vsu -= cost;
+    const wDef = WEAPONS[weaponKey];
     slot.building = {
-      weaponKey: this.selectedWeapon,
+      weaponKey: weaponKey,
       ...wDef,
       cooldown: 0,
       targetEnemy: null,
       barrelAngle: slot.angle,
     };
-    this.selectedWeapon = null;
-    this.highlightSelectedButton();
     this.updateHUD();
-    this.updateBuildButtons();
+    this.updateBuildBar();
     playSound('confirm');
 
     for (let i = 0; i < 8; i++) {
@@ -2550,11 +2680,10 @@ class Game {
   startCombat() {
     if (this.state !== 'build') return;
     this.state = 'combat';
-    this.selectedWeapon = null;
-    document.getElementById('buildUI').style.display = 'none';
-    document.getElementById('combatControls').style.display = 'none';
-    document.getElementById('upgradeSidebar').style.display = 'none';
+    this.closeSlotMenu();
     this.closeUpgPanel();
+    document.getElementById('buildUI').style.display = 'none';
+    document.getElementById('combatControls').style.display = 'flex';
     document.getElementById('hudPhase').textContent = 'KAMPF';
 
     this.waveEnemyCount = this.wave === 1 ? 1 : 1 + Math.floor(this.wave * 0.8);
@@ -3056,7 +3185,6 @@ class Game {
     document.getElementById('gameOverScreen').style.display = 'flex';
     document.getElementById('buildUI').style.display = 'none';
     document.getElementById('combatControls').style.display = 'none';
-    document.getElementById('upgradeSidebar').style.display = 'none';
     this.closeUpgPanel();
     document.getElementById('hud').style.display = 'none';
   }
@@ -3081,8 +3209,7 @@ class Game {
     this.repairUsed = false;
     this._reserveUsed = false;
     document.getElementById('buildUI').style.display = 'flex';
-    document.getElementById('combatControls').style.display = 'flex';
-    document.getElementById('upgradeSidebar').style.display = 'flex';
+    document.getElementById('combatControls').style.display = 'none';
     document.getElementById('hudPhase').textContent = 'VORBEREITEN';
 
     this.stationShield = Math.min(this.stationMaxShield, this.stationShield + 15);
@@ -3134,7 +3261,6 @@ class Game {
     document.getElementById('gameOverScreen').style.display = 'flex';
     document.getElementById('buildUI').style.display = 'none';
     document.getElementById('combatControls').style.display = 'none';
-    document.getElementById('upgradeSidebar').style.display = 'none';
     this.closeUpgPanel();
     document.getElementById('hud').style.display = 'none';
     this.state = 'gameover';
@@ -3165,8 +3291,8 @@ class Game {
     // Skip game logic when paused
     if (this.paused) return;
 
-    // Station rotates 360° per 60 seconds
-    if (this.state === 'build' || this.state === 'combat') {
+    // Station rotates only during combat (static in build phase)
+    if (this.state === 'combat') {
       this.stationRotation += (Math.PI * 2 / 60) * dt;
       this.regenerateSlotPositions();
     }
@@ -3295,17 +3421,16 @@ class Game {
     // Slots
     this.renderSlots(ctx);
 
-    // Range preview during build
-    if (this.state === 'build' && this.selectedWeapon) {
-      const wDef = WEAPONS[this.selectedWeapon];
-      for (const slot of this.slots) {
-        if (!slot.building) {
-          ctx.beginPath();
-          ctx.arc(slot.x, slot.y, wDef.range, 0, Math.PI * 2);
-          ctx.strokeStyle = 'rgba(212,130,10,0.1)';
-          ctx.lineWidth = 1;
-          ctx.stroke();
-        }
+    // Range preview: show range for highlighted slot in menu
+    if (this.state === 'build' && this._menuSlot) {
+      const slot = this._menuSlot;
+      if (slot.building) {
+        const range = slot.building.range * (1 + this.getTotalBonus('range') / 100);
+        ctx.beginPath();
+        ctx.arc(slot.x, slot.y, range, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(212,130,10,0.15)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
       }
     }
 
@@ -3948,9 +4073,7 @@ class Game {
       const dy = my - slot.y;
       const touchRadius = this.isMobile ? slot.radius * 2 : slot.radius * 1.5;
       if (dx * dx + dy * dy < touchRadius * touchRadius) {
-        if (this.selectedWeapon) {
-          this.placeBuilding(slot);
-        }
+        this.openSlotMenu(slot);
         return;
       }
     }
@@ -4004,10 +4127,7 @@ class Game {
         const b = this.hoveredSlot.building;
         text = `${b.name}\nDMG: ${b.damage} | Rate: ${b.fireRate}/s\nRange: ${b.range}`;
       } else {
-        text = 'Waffen-Slot (leer)';
-        if (this.selectedWeapon) {
-          text += '\nKlicken zum Platzieren';
-        }
+        text = 'Waffen-Slot (leer)\nKlicken zum Bauen';
       }
       tooltip.textContent = text;
       tooltip.style.display = 'block';
