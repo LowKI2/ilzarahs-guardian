@@ -1952,8 +1952,8 @@ class Game {
     this.stationMaxShield = 0;
     this.vsu = 1;
     this.ep = 0;
-    this.totalEP = 0;
-    this.totalEPSpent = 0;
+    this.totalEP = parseInt(localStorage.getItem('ilzarah_totalEP') || '0', 10);
+    this.totalEPSpent = parseInt(localStorage.getItem('ilzarah_totalEPSpent') || '0', 10);
     this.bestWave = 0;
     // Persistent skill tree state (survives across runs)
     this.skillLevels = {}; // small nodes: { sk_dmg: 3, sk_rof: 1, ... }
@@ -2173,6 +2173,7 @@ class Game {
     if (this.totalEP < cost) return;
     this.totalEP -= cost;
     this.totalEPSpent += cost;
+    this.saveEP();
 
     if (def.type === 'big') {
       this.unlockedTech.add(def.unlocks);
@@ -3249,13 +3250,15 @@ class Game {
             size: 70 + hitEnemy.tier * 12,
           });
 
-          // Wreck — delayed spawn, appears near end of explosion, fades over 3s
+          // Wreck — delayed spawn, appears near end of explosion, fades over 5s
           this.wrecks.push({
             x: hitEnemy.x, y: hitEnemy.y,
             rotation: hitEnemy.rotation || Math.random() * Math.PI * 2,
             tier: hitEnemy.tier,
             delay: 2.0, // wait for explosion to almost finish
-            life: 3.0, maxLife: 3.0,
+            life: 5.0, maxLife: 5.0,
+            looted: false,
+            vsuReward: hitEnemy.tier >= 3 ? 10 : 5 + Math.floor(Math.random() * 6),
           });
 
           // Some debris particles
@@ -3483,6 +3486,7 @@ class Game {
     const epKillBonus = 1 + this.getTotalBonus('epKill') / 100;
     const epEarned = Math.floor((this.wave * 5 + this.kills * 0.5) * epKillBonus);
     this.totalEP += epEarned;
+    this.saveEP();
 
     document.getElementById('goWaves').textContent = this.wave;
     document.getElementById('goEP').textContent = epEarned;
@@ -3505,6 +3509,7 @@ class Game {
       const epMilestone = Math.floor(this.wave * 3 * epWaveBonus);
       this.ep += epMilestone;
       this.totalEP += epMilestone;
+      this.saveEP();
       this.showBanner(`MEILENSTEIN! +${epMilestone} EP`);
     } else {
       this.showBanner(`WELLE ${this.wave} GESCHAFFT! +${vsuEarned} VSU`);
@@ -3561,6 +3566,7 @@ class Game {
     const epKillBonus2 = 1 + this.getTotalBonus('epKill') / 100;
     const epEarned = Math.floor((this.wave * 3 + this.kills * 0.3) * epKillBonus2);
     this.totalEP += epEarned;
+    this.saveEP();
     document.getElementById('goWaves').textContent = this.wave;
     document.getElementById('goEP').textContent = epEarned;
     document.getElementById('goKills').textContent = this.kills;
@@ -3679,6 +3685,11 @@ class Game {
     document.getElementById('hudKills').textContent = this.kills;
   }
 
+  saveEP() {
+    localStorage.setItem('ilzarah_totalEP', this.totalEP);
+    localStorage.setItem('ilzarah_totalEPSpent', this.totalEPSpent);
+  }
+
   showBanner(text) {
     this.bannerText = text;
     this.bannerTimer = 2.0;
@@ -3744,7 +3755,7 @@ class Game {
       }
     }
 
-    // Wrecks (behind enemies, fade over 3s, skip if still delayed)
+    // Wrecks (behind enemies, fade over 5s, skip if still delayed)
     for (const w of this.wrecks) {
       if (w.delay > 0) continue;
       const alpha = w.life / w.maxLife;
@@ -3759,6 +3770,16 @@ class Game {
         ctx.drawImage(wreckImg, -s / 2, -s / 2, s, s);
         ctx.imageSmoothingEnabled = true;
         ctx.restore();
+
+        // Loot glow for unlootted wrecks
+        if (!w.looted) {
+          const pulse = 0.3 + Math.sin(this.gridPulse * 4) * 0.15;
+          ctx.beginPath();
+          ctx.arc(w.x, w.y, s * 0.7, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(212,160,60,${pulse * alpha})`;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
       }
     }
     ctx.globalAlpha = 1;
@@ -3841,7 +3862,7 @@ class Game {
       const alpha = d.life / d.maxLife;
       ctx.globalAlpha = alpha;
       ctx.font = d.isCrit ? 'bold 18px "Share Tech Mono"' : '14px "Share Tech Mono"';
-      ctx.fillStyle = d.isCrit ? '#FFD700' : '#FF3344';
+      ctx.fillStyle = d.isLoot ? '#D4A03C' : d.isCrit ? '#FFD700' : '#FF3344';
       ctx.textAlign = 'center';
       ctx.fillText(d.value, d.x, d.y);
     }
@@ -4076,7 +4097,42 @@ class Game {
         // No connection lines — slots are on the station body
       }
 
-      // Hover: show effective attack range (fire arc wedge)
+      // Build phase: always show fire arc for placed weapons
+      if (this.state === 'build' && slot.building && slot.building.range && this.hoveredSlot !== slot) {
+        const b = slot.building;
+        const range = b.range * (1 + this.getTotalBonus('range') / 100);
+        const facingAngle = slot.angle;
+        const halfArc = this.getFireArc() / 2;
+
+        // Subtle filled arc area
+        ctx.beginPath();
+        ctx.moveTo(slot.x, slot.y);
+        ctx.arc(slot.x, slot.y, range, facingAngle - halfArc, facingAngle + halfArc);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(255,51,68,0.03)';
+        ctx.fill();
+
+        // Dashed arc border
+        ctx.beginPath();
+        ctx.arc(slot.x, slot.y, range, facingAngle - halfArc, facingAngle + halfArc);
+        ctx.strokeStyle = 'rgba(255,51,68,0.12)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Side lines
+        ctx.beginPath();
+        ctx.moveTo(slot.x, slot.y);
+        ctx.lineTo(slot.x + Math.cos(facingAngle - halfArc) * range, slot.y + Math.sin(facingAngle - halfArc) * range);
+        ctx.moveTo(slot.x, slot.y);
+        ctx.lineTo(slot.x + Math.cos(facingAngle + halfArc) * range, slot.y + Math.sin(facingAngle + halfArc) * range);
+        ctx.strokeStyle = 'rgba(255,51,68,0.08)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      // Hover: show effective attack range (fire arc wedge, brighter)
       if (this.hoveredSlot === slot && slot.building) {
         const b = slot.building;
         const range = b.range;
@@ -4372,11 +4428,52 @@ class Game {
 
   // -- Input --
   onPointerDown(e) {
-    if (this.state !== 'build') return;
-
     const rect = this.canvas.getBoundingClientRect();
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
+
+    // Wreck looting (works in build and combat)
+    if (this.state === 'combat' || this.state === 'build') {
+      for (const w of this.wrecks) {
+        if (w.looted || w.delay > 0) continue;
+        const dx = mx - w.x;
+        const dy = my - w.y;
+        const hitRadius = this.isMobile ? 25 : 18;
+        if (dx * dx + dy * dy < hitRadius * hitRadius) {
+          w.looted = true;
+          const epGain = 1;
+          const vsuGain = w.vsuReward;
+          this.ep += epGain;
+          this.totalEP += epGain;
+          this.vsu += vsuGain;
+          this.saveEP();
+
+          // Loot pickup particles
+          for (let i = 0; i < 6; i++) {
+            this.particles.push({
+              x: w.x, y: w.y,
+              vx: (Math.random() - 0.5) * 80,
+              vy: (Math.random() - 0.5) * 80 - 30,
+              life: 0.5, maxLife: 0.5,
+              color: '#D4A03C', size: 3,
+            });
+          }
+
+          // Floating loot text
+          this.damageNumbers.push({
+            x: w.x, y: w.y - 15,
+            value: `+${vsuGain} VSU  +${epGain} EP`,
+            life: 1.2, maxLife: 1.2,
+            isCrit: false, isLoot: true,
+          });
+
+          this.updateHUD();
+          return;
+        }
+      }
+    }
+
+    if (this.state !== 'build') return;
 
     for (const slot of this.slots) {
       const dx = mx - slot.x;
