@@ -65,7 +65,7 @@ canvas {
   display: none;
   align-items: center;
   justify-content: space-around;
-  padding: 0 40px 0 6px;
+  padding: 0 78px 0 6px;
   font-family: var(--font-mono);
   font-size: 11px;
   z-index: 10;
@@ -81,7 +81,7 @@ canvas {
 .hud-value.red { color: #FF3344; }
 
 @media (min-width: 600px) {
-  #hud { height: 48px; padding: 0 48px 0 20px; font-size: 14px; gap: 4px; }
+  #hud { height: 48px; padding: 0 96px 0 20px; font-size: 14px; gap: 4px; }
   .hud-item { gap: 4px; }
   .hud-label { font-size: 11px; letter-spacing: 1px; }
   .hud-value { font-size: 16px; }
@@ -562,6 +562,39 @@ canvas {
 
 @media (min-width: 600px) {
   #btnPauseMenu { top: 8px; right: 16px; width: 36px; height: 36px; font-size: 18px; }
+  #btnFullscreen { top: 8px; right: 58px; }
+}
+
+#btnFullscreen {
+  position: absolute;
+  top: 6px; right: 44px;
+  width: 32px; height: 32px;
+  background: rgba(44,52,64,0.7);
+  border: 1px solid var(--amber-dim);
+  color: var(--amber);
+  cursor: pointer;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 11;
+  transition: background 0.15s, border-color 0.15s;
+  padding: 0;
+}
+#btnFullscreen:hover { background: rgba(212,130,10,0.15); border-color: var(--amber); }
+
+#btnFullscreen::before {
+  content: '';
+  width: 14px; height: 14px;
+  border: 2px solid var(--amber);
+  border-radius: 1px;
+  display: block;
+}
+
+.is-fullscreen #btnFullscreen::before {
+  width: 10px; height: 10px;
+  border-width: 2px;
+  box-shadow: 3px -3px 0 -1px var(--steel), 3px -3px 0 0 var(--amber);
 }
 
 /* -- Pause Menu Overlay -- */
@@ -857,17 +890,13 @@ canvas {
   .upg-val { font-size: 10px; }
   .upg-buy { font-size: 10px; padding: 5px 12px; min-height: 32px; }
 
-  /* Skill tree: responsive canvas */
+  /* Skill tree: no scroll needed with percentage positions */
   .sk-viewport {
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: hidden;
   }
 
   .sk-canvas {
-    min-width: 480px;
-    min-height: 420px;
-    transform: scale(0.9);
-    transform-origin: top left;
+    min-height: 280px;
   }
 
   .sk-tab { font-size: 10px; padding: 8px 4px; letter-spacing: 1px; }
@@ -884,16 +913,10 @@ canvas {
     font-size: 18px;
   }
 
-  /* Tooltip: fixed center overlay on mobile */
+  /* Tooltip: centered, slightly wider on mobile */
   .sk-tooltip {
-    position: fixed;
-    left: 12px !important;
-    right: 12px;
-    top: 50% !important;
-    transform: translateY(-50%);
-    width: auto;
-    border-radius: 8px;
-    padding: 14px 18px;
+    width: calc(100% - 32px);
+    max-width: 280px;
   }
 
   .sk-tooltip-name { font-size: 14px; }
@@ -1043,10 +1066,9 @@ canvas {
 
 .sk-canvas {
   position: relative;
-  min-width: 520px;
-  min-height: 440px;
   width: 100%;
   height: 100%;
+  min-height: 300px;
 }
 
 .sk-canvas svg {
@@ -1402,6 +1424,7 @@ canvas {
     <div class="hud-item"><span class="hud-label">HP</span><span class="hud-value red" id="hudHP">800</span></div>
     <div class="hud-item"><span class="hud-label">Schild</span><span class="hud-value cyan" id="hudShield">200</span></div>
     <div class="hud-item"><span class="hud-label">Kills</span><span class="hud-value" id="hudKills">0</span></div>
+    <button id="btnFullscreen"></button>
     <button id="btnPauseMenu">☰</button>
   </div>
 
@@ -1506,13 +1529,13 @@ canvas {
       <div class="sk-canvas" id="skCanvas">
         <svg id="skLines"></svg>
       </div>
-      <div class="sk-tooltip" id="skTooltip">
-        <div class="sk-tooltip-name" id="skTTName"></div>
-        <div class="sk-tooltip-desc" id="skTTDesc"></div>
-        <div class="sk-tooltip-level" id="skTTLevel"></div>
-        <div class="sk-tooltip-req" id="skTTReq"></div>
-        <button class="sk-tooltip-btn" id="skTTBuy">Kaufen</button>
-      </div>
+    </div>
+    <div class="sk-tooltip" id="skTooltip">
+      <div class="sk-tooltip-name" id="skTTName"></div>
+      <div class="sk-tooltip-desc" id="skTTDesc"></div>
+      <div class="sk-tooltip-level" id="skTTLevel"></div>
+      <div class="sk-tooltip-req" id="skTTReq"></div>
+      <button class="sk-tooltip-btn" id="skTTBuy">Kaufen</button>
     </div>
   </div>
 
@@ -2016,6 +2039,21 @@ class Game {
     const pauseToggle = () => { playSound('click'); this.togglePause(); };
     document.getElementById('btnPauseMenu').addEventListener('click', pauseToggle);
     document.getElementById('btnPauseMenu').addEventListener('touchend', (e) => { e.preventDefault(); pauseToggle(); });
+
+    // Fullscreen toggle
+    const fsBtn = document.getElementById('btnFullscreen');
+    const fsFn = () => {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+    };
+    fsBtn.addEventListener('click', fsFn);
+    fsBtn.addEventListener('touchend', (e) => { e.preventDefault(); fsFn(); });
+    document.addEventListener('fullscreenchange', () => {
+      document.body.classList.toggle('is-fullscreen', !!document.fullscreenElement);
+    });
     const resumeFn = () => { playSound('click'); this.resumeGame(); };
     document.getElementById('btnResume').addEventListener('click', resumeFn);
     document.getElementById('btnResume').addEventListener('touchend', (e) => { e.preventDefault(); resumeFn(); });
@@ -2149,26 +2187,27 @@ class Game {
   }
 
   // Per-tab node positions (each tree fills its own canvas)
+  // Positions as percentages (0-100) — responsive, no scrolling needed
   static TAB_POSITIONS = {
     attack: {
-      sk_dmg: { x: 220, y: 120 }, sk_rof: { x: 340, y: 180 }, sk_pierce: { x: 100, y: 180 },
-      sk_range: { x: 220, y: 260 }, sk_syshit: { x: 100, y: 280 },
-      sk_rocket_t1: { x: 80, y: 70 }, sk_gun_t2: { x: 360, y: 70 },
-      sk_gun_t3: { x: 420, y: 180 }, sk_rocket_t2: { x: 260, y: 350 },
-      sk_arc1: { x: 420, y: 280 }, sk_arc2: { x: 440, y: 370 },
-      sk_hangar: { x: 120, y: 370 },
+      sk_dmg:       { x: 45, y: 22 }, sk_rof:       { x: 72, y: 35 }, sk_pierce:    { x: 18, y: 35 },
+      sk_range:     { x: 45, y: 52 }, sk_syshit:    { x: 18, y: 58 },
+      sk_rocket_t1: { x: 14, y: 12 }, sk_gun_t2:    { x: 76, y: 12 },
+      sk_gun_t3:    { x: 86, y: 35 }, sk_rocket_t2: { x: 50, y: 75 },
+      sk_arc1:      { x: 86, y: 58 }, sk_arc2:      { x: 88, y: 80 },
+      sk_hangar:    { x: 22, y: 80 },
     },
     defense: {
-      sk_hull: { x: 220, y: 120 }, sk_shield: { x: 360, y: 180 },
-      sk_energy: { x: 100, y: 180 }, sk_reserve: { x: 220, y: 270 },
-      sk_missile_def: { x: 140, y: 70 }, sk_core_t2: { x: 140, y: 330 },
-      sk_shield_t2: { x: 340, y: 370 },
+      sk_hull:       { x: 45, y: 22 }, sk_shield:     { x: 75, y: 38 },
+      sk_energy:     { x: 18, y: 38 }, sk_reserve:    { x: 45, y: 55 },
+      sk_missile_def:{ x: 28, y: 12 }, sk_core_t2:    { x: 28, y: 72 },
+      sk_shield_t2:  { x: 70, y: 80 },
     },
     resource: {
-      sk_vsu_kill: { x: 160, y: 120 }, sk_vsu_wave: { x: 360, y: 120 },
-      sk_ep_kill: { x: 100, y: 220 }, sk_ep_wave: { x: 420, y: 220 },
-      sk_repair_eff: { x: 260, y: 260 }, sk_repair_cost: { x: 200, y: 350 },
-      sk_drone: { x: 360, y: 350 },
+      sk_vsu_kill:   { x: 30, y: 22 }, sk_vsu_wave:   { x: 70, y: 22 },
+      sk_ep_kill:    { x: 18, y: 45 }, sk_ep_wave:    { x: 82, y: 45 },
+      sk_repair_eff: { x: 50, y: 55 }, sk_repair_cost:{ x: 35, y: 75 },
+      sk_drone:      { x: 70, y: 75 },
     },
   };
 
@@ -2183,6 +2222,10 @@ class Game {
 
     const positions = Game.TAB_POSITIONS[cat] || {};
     const colors = { attack: '#FF5028', defense: '#00B4DC', resource: '#50C850' };
+
+    // SVG needs viewBox for percentage-based lines
+    svg.setAttribute('viewBox', '0 0 100 100');
+    svg.setAttribute('preserveAspectRatio', 'none');
 
     // Draw connection lines first
     for (const [key, def] of Object.entries(SKILL_TREE)) {
@@ -2224,8 +2267,8 @@ class Game {
       if (buyable) el.classList.add('buyable');
       if (!available && !owned) el.classList.add('locked');
 
-      el.style.left = pos.x + 'px';
-      el.style.top = pos.y + 'px';
+      el.style.left = pos.x + '%';
+      el.style.top = pos.y + '%';
 
       if (def.type === 'small') {
         el.textContent = this.skillLevels[key] || 0;
