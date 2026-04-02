@@ -1825,15 +1825,15 @@ const WEAPONS = {
     unlock: 'gun_t3',
   },
   rocket_t1: {
-    name: "Rocket T1", cost: 60, range: 200, fireRate: 10, damage: 2, projSpeed: 450,
-    color: "#FF6633", desc: "Schnellfeuer-Raketen", sprite: 'rocket_t1',
-    projSize: 5, projColor: '#FF6633', splashRadius: 0,
+    name: "Rocket T1", cost: 60, range: 200, fireRate: 2, damage: 10, projSpeed: 450,
+    color: "#4488FF", desc: "Lenkraketen", sprite: 'rocket_t1',
+    projSize: 6, projColor: '#4488FF', splashRadius: 0,
     unlock: 'rocket_t1',
   },
   rocket_t2: {
-    name: "Rocket T2", cost: 90, range: 220, fireRate: 10, damage: 2.4, projSpeed: 500,
-    color: "#FF8844", desc: "Verbesserte Raketen", sprite: 'rocket_t2',
-    projSize: 4, projColor: '#FF8844', splashRadius: 0,
+    name: "Rocket T2", cost: 90, range: 220, fireRate: 2, damage: 12, projSpeed: 500,
+    color: "#66AAFF", desc: "Verbesserte Lenkraketen", sprite: 'rocket_t2',
+    projSize: 6, projColor: '#66AAFF', splashRadius: 0,
     unlock: 'rocket_t2',
   },
 };
@@ -1874,6 +1874,7 @@ const SKILL_TREE = {
   sk_ep_wave:  { name: 'EP (Welle)',     desc: '+6% EP bei Meilenstein',             cat: 'resource', type: 'small', perLevel: 6,  baseCost: 15, costStep: 8,  requires: ['sk_vsu_wave'], x: 820, y: 240 },
   sk_repair_eff:{ name: 'Reparatureffizienz', desc: '+1% Reparatur-Menge',          cat: 'resource', type: 'small', perLevel: 1,  baseCost: 10, costStep: 5,  requires: [], x: 740, y: 240 },
   sk_repair_cost:{ name: 'Reparaturkosten', desc: '-2 VSU Reparaturkosten',         cat: 'resource', type: 'small', perLevel: 2,  baseCost: 10, costStep: 5,  requires: ['sk_repair_eff'], x: 660, y: 300 },
+  sk_start_vsu:{ name: 'Startkapital',   desc: '+25 Start-VSU pro Stufe',            cat: 'resource', type: 'small', perLevel: 25, baseCost: 10, costStep: 5,  requires: [], x: 660, y: 100 },
   sk_drone:    { name: 'Sammeldrohne',   desc: 'Drohne sammelt Wrack-VSU',           cat: 'resource', type: 'big',   cost: 60,  unlocks: 'drone', requires: ['sk_vsu_kill', 'sk_vsu_wave'], waveReq: 20, x: 820, y: 320 },
 };
 
@@ -2411,7 +2412,7 @@ class Game {
 
   getUpgCost(key) {
     const lvl = this.runUpgrades[key];
-    return 15 + lvl * 5; // 15, 20, 25, 30 ...
+    return 10 + lvl * 5; // 10, 15, 20, 25 ...
   }
 
   getUpgBonus(key) {
@@ -2712,7 +2713,7 @@ class Game {
     this.stationMaxShield = station.shield;
     this.shieldRegenRate = station.energyCore;
     this.applySkillTreeBonuses(); // overrides HP/Shield/Regen with permanent bonuses
-    this.vsu = 1;
+    this.vsu = 1 + this.getSkillBonus('sk_start_vsu');
     this.wave = 1;
     this.kills = 0;
     this.repairUsed = false;
@@ -3123,14 +3124,20 @@ class Game {
       }
 
       if (nearestEnemy && turret.cooldown <= 0) {
-        // Burst fire: 5 shots fast, then 0.3s pause
+        // Burst fire: 5 shots fast, then 0.3s pause (rockets fire individually)
         const rofMult = 1 + this.getTotalBonus('rof') / 100;
-        turret.burstCount = (turret.burstCount || 0) + 1;
-        if (turret.burstCount >= 5) {
-          turret.cooldown = 0.3 / rofMult;
+        const isRocket = turret.weaponKey && turret.weaponKey.startsWith('rocket');
+        if (isRocket) {
+          turret.cooldown = 1 / (turret.fireRate * rofMult);
           turret.burstCount = 0;
         } else {
-          turret.cooldown = 1 / (turret.fireRate * rofMult);
+          turret.burstCount = (turret.burstCount || 0) + 1;
+          if (turret.burstCount >= 5) {
+            turret.cooldown = 0.3 / rofMult;
+            turret.burstCount = 0;
+          } else {
+            turret.cooldown = 1 / (turret.fireRate * rofMult);
+          }
         }
         const dmg = turret.damage * (1 + this.station.dmgBonus) * (1 + this.getTotalBonus('dmg') / 100);
         const isCrit = Math.random() < this.station.crit;
@@ -3183,7 +3190,22 @@ class Game {
 
     // Update turret projectiles
     this.projectiles = this.projectiles.filter(p => {
-      // Move in straight line
+      // Homing for rocket projectiles
+      if (p.weaponKey && p.weaponKey.startsWith('rocket') && p.targetEnemy && p.targetEnemy.hp > 0) {
+        const hdx = p.targetEnemy.x - p.x;
+        const hdy = p.targetEnemy.y - p.y;
+        const desiredAngle = Math.atan2(hdy, hdx);
+        let angleDiff = desiredAngle - p.angle;
+        while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+        while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+        const turnRate = 4.0;
+        const maxTurn = turnRate * dt;
+        p.angle += Math.max(-maxTurn, Math.min(maxTurn, angleDiff));
+        p.vx = Math.cos(p.angle) * p.speed;
+        p.vy = Math.sin(p.angle) * p.speed;
+      }
+
+      // Move
       const step = p.speed * dt;
       p.x += p.vx * dt;
       p.y += p.vy * dt;
@@ -4197,6 +4219,10 @@ class Game {
       ctx.save();
       ctx.translate(slot.x, slot.y);
       ctx.rotate(b.barrelAngle + Math.PI);
+      if (this.state === 'build') {
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = 'rgba(80,160,255,0.35)';
+      }
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(spriteImg, -drawW/2, -drawH/2, drawW, drawH);
       ctx.imageSmoothingEnabled = true;
@@ -4291,8 +4317,9 @@ class Game {
   // TRACER-STYLE turret projectile rendering
   renderProjectile(ctx, proj) {
     const angle = proj.angle || 0;
-    const tracerLen = proj.isCrit ? 5 : 3;
-    const tracerWidth = proj.isCrit ? 1 : 0.6;
+    const isRocket = proj.weaponKey && proj.weaponKey.startsWith('rocket');
+    const tracerLen = proj.isCrit ? 5 : (isRocket ? 6 : 3);
+    const tracerWidth = proj.isCrit ? 1 : (isRocket ? 2.5 : 0.6);
 
     // Trail segments (fading tracer trail)
     for (const t of proj.trail) {
@@ -4305,7 +4332,7 @@ class Game {
       ctx.beginPath();
       ctx.moveTo(-tracerLen * 0.6, 0);
       ctx.lineTo(0, 0);
-      ctx.strokeStyle = proj.isCrit ? '#FFD700' : '#ffffff';
+      ctx.strokeStyle = proj.isCrit ? '#FFD700' : (isRocket ? '#4488FF' : '#ffffff');
       ctx.lineWidth = tracerWidth * 0.5;
       ctx.stroke();
       ctx.globalAlpha = 1;
@@ -4318,21 +4345,21 @@ class Game {
     ctx.rotate(angle);
 
     // Subtle glow
-    ctx.shadowBlur = 4;
-    ctx.shadowColor = proj.isCrit ? '#FFD700' : 'rgba(255,255,255,0.6)';
+    ctx.shadowBlur = isRocket ? 6 : 4;
+    ctx.shadowColor = proj.isCrit ? '#FFD700' : (isRocket ? 'rgba(68,136,255,0.8)' : 'rgba(255,255,255,0.6)');
 
-    // White tracer line
+    // Tracer line
     ctx.beginPath();
     ctx.moveTo(-tracerLen, 0);
     ctx.lineTo(2, 0);
-    ctx.strokeStyle = proj.isCrit ? '#FFD700' : 'rgba(255,255,255,0.9)';
+    ctx.strokeStyle = proj.isCrit ? '#FFD700' : (isRocket ? 'rgba(68,136,255,0.95)' : 'rgba(255,255,255,0.9)');
     ctx.lineWidth = tracerWidth;
     ctx.stroke();
 
     // Bright tip
     ctx.beginPath();
     ctx.arc(1, 0, tracerWidth * 0.5, 0, Math.PI * 2);
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = isRocket ? '#88BBFF' : '#ffffff';
     ctx.fill();
 
     ctx.shadowBlur = 0;
