@@ -437,7 +437,7 @@ canvas {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 8px;
+  padding: 8px 10px;
   border: 1px solid transparent;
   border-radius: 4px;
   background: none;
@@ -446,6 +446,15 @@ canvas {
   text-align: left;
   font-family: var(--font-mono);
   color: var(--text);
+  width: 100%;
+  min-height: 44px;
+}
+
+.slot-menu-item img,
+.slot-menu-item-info,
+.slot-menu-item-name,
+.slot-menu-item-cost {
+  pointer-events: none;
 }
 
 .slot-menu-item:hover {
@@ -2036,12 +2045,19 @@ class Game {
       btn.addEventListener('click', fn);
       btn.addEventListener('touchend', (e) => { e.preventDefault(); fn(); });
     }
-    // Settings sliders — update value display
+    // Settings sliders — update value display + apply volume
+    this.volumeMaster = 0.8;
+    this.volumeSFX = 0.8;
+    this.volumeMusic = 0.5;
+
     for (const id of ['Master', 'SFX', 'Music', 'Particles', 'DmgNums']) {
       const slider = document.getElementById('slider' + id);
       const val = document.getElementById('val' + id);
       if (slider && val) {
-        slider.addEventListener('input', () => { val.textContent = slider.value + '%'; });
+        slider.addEventListener('input', () => {
+          val.textContent = slider.value + '%';
+          this.applyVolume();
+        });
       }
     }
 
@@ -2050,6 +2066,7 @@ class Game {
 
   async init() {
     await loadAssets();
+    this.applyVolume();
     // Set menu background image
     const bgEl = document.getElementById('mmBg');
     if (IMAGES.menuBg && IMAGES.menuBg.src) {
@@ -2493,6 +2510,30 @@ class Game {
 
     // Repair + build bar
     this.updateBuildBar();
+  }
+
+  applyVolume() {
+    const master = (parseInt(document.getElementById('sliderMaster').value) || 0) / 100;
+    const sfx = (parseInt(document.getElementById('sliderSFX').value) || 0) / 100;
+    const music = (parseInt(document.getElementById('sliderMusic').value) || 0) / 100;
+
+    this.volumeMaster = master;
+    this.volumeSFX = sfx;
+    this.volumeMusic = music;
+
+    // Apply to all SFX
+    const sfxVol = master * sfx;
+    for (const audio of Object.values(SOUNDS)) {
+      audio.volume = sfxVol * 0.3;
+    }
+
+    // Apply to all music tracks
+    const musicVol = master * music;
+    for (const tracks of Object.values(MUSIC_TRACKS)) {
+      for (const audio of tracks) {
+        audio.volume = musicVol * 0.3;
+      }
+    }
   }
 
   resize() {
