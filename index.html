@@ -855,13 +855,14 @@ canvas {
   }
 
   .sk-canvas {
-    min-width: 700px;
-    min-height: 450px;
-    transform: scale(0.85);
+    min-width: 480px;
+    min-height: 420px;
+    transform: scale(0.9);
     transform-origin: top left;
   }
 
-  .sk-cat-label { font-size: 10px; }
+  .sk-tab { font-size: 10px; padding: 8px 4px; letter-spacing: 1px; }
+  .sk-tab-info { font-size: 7px; }
 
   /* Bigger touch targets for nodes */
   .sk-node.small {
@@ -874,22 +875,22 @@ canvas {
     font-size: 18px;
   }
 
-  /* Tooltip: fixed bottom overlay */
+  /* Tooltip: fixed center overlay on mobile */
   .sk-tooltip {
     position: fixed;
-    left: 8px !important;
-    right: 8px;
-    bottom: 12px !important;
-    top: auto !important;
-    transform: none;
+    left: 12px !important;
+    right: 12px;
+    top: 50% !important;
+    transform: translateY(-50%);
     width: auto;
     border-radius: 8px;
-    padding: 12px 16px;
+    padding: 14px 18px;
   }
 
   .sk-tooltip-name { font-size: 14px; }
   .sk-tooltip-desc { font-size: 10px; }
   .sk-tooltip-level { font-size: 11px; }
+  .sk-tooltip-req { font-size: 10px; }
   .sk-tooltip-btn { padding: 10px 0; font-size: 12px; min-height: 40px; }
 }
 
@@ -981,6 +982,48 @@ canvas {
   background: rgba(212,130,10,0.1);
 }
 
+/* -- Skill Tree Tabs -- */
+.sk-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--amber-dim);
+  background: rgba(20,24,32,0.9);
+  flex-shrink: 0;
+}
+
+.sk-tab {
+  flex: 1;
+  padding: 10px 8px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+
+.sk-tab:hover { color: var(--text); background: rgba(212,130,10,0.05); }
+.sk-tab.active { border-bottom-color: currentColor; }
+.sk-tab.attack { color: rgba(255,80,40,0.5); }
+.sk-tab.attack.active { color: #FF5028; }
+.sk-tab.defense { color: rgba(0,180,220,0.5); }
+.sk-tab.defense.active { color: #00B4DC; }
+.sk-tab.resource { color: rgba(80,200,80,0.5); }
+.sk-tab.resource.active { color: #50C850; }
+
+.sk-tab-info {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  display: block;
+  margin-top: 2px;
+  opacity: 0.6;
+}
+
 /* -- Skill Tree Constellation Layout -- */
 .sk-viewport {
   flex: 1;
@@ -991,8 +1034,8 @@ canvas {
 
 .sk-canvas {
   position: relative;
-  min-width: 900px;
-  min-height: 600px;
+  min-width: 520px;
+  min-height: 440px;
   width: 100%;
   height: 100%;
 }
@@ -1105,16 +1148,19 @@ canvas {
 
 /* Node tooltip on hover/click */
 .sk-tooltip {
-  position: absolute;
-  background: rgba(20,24,32,0.96);
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(20,24,32,0.98);
   border: 1px solid var(--amber-dim);
-  border-radius: 6px;
-  padding: 10px 14px;
-  width: 200px;
-  z-index: 20;
+  border-radius: 8px;
+  padding: 14px 18px;
+  width: 240px;
+  z-index: 25;
   pointer-events: auto;
-  transform: translate(-50%, 8px);
   display: none;
+  box-shadow: 0 0 30px rgba(0,0,0,0.6);
 }
 
 .sk-tooltip.visible { display: block; }
@@ -1140,6 +1186,15 @@ canvas {
   color: var(--amber);
   margin-bottom: 4px;
 }
+
+.sk-tooltip-req {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+.sk-tooltip-req.met { color: #50C850; }
+.sk-tooltip-req.unmet { color: #FF3344; }
 
 .sk-tooltip-btn {
   width: 100%;
@@ -1433,6 +1488,11 @@ canvas {
       <span class="tech-ep" id="techEP">EP: 0</span>
       <button class="tech-back" id="btnTechBack">Zurueck</button>
     </div>
+    <div class="sk-tabs">
+      <button class="sk-tab attack active" data-cat="attack">Angriff<span class="sk-tab-info" id="skTabInfoAttack"></span></button>
+      <button class="sk-tab defense" data-cat="defense">Verteidigung<span class="sk-tab-info" id="skTabInfoDefense"></span></button>
+      <button class="sk-tab resource" data-cat="resource">Ressourcen<span class="sk-tab-info" id="skTabInfoResource"></span></button>
+    </div>
     <div class="sk-viewport" id="skViewport">
       <div class="sk-canvas" id="skCanvas">
         <svg id="skLines"></svg>
@@ -1441,6 +1501,7 @@ canvas {
         <div class="sk-tooltip-name" id="skTTName"></div>
         <div class="sk-tooltip-desc" id="skTTDesc"></div>
         <div class="sk-tooltip-level" id="skTTLevel"></div>
+        <div class="sk-tooltip-req" id="skTTReq"></div>
         <button class="sk-tooltip-btn" id="skTTBuy">Kaufen</button>
       </div>
     </div>
@@ -1757,22 +1818,22 @@ const SKILL_TREE = {
   sk_pierce:   { name: 'Durchschuss',    desc: '+3% Chance auf Durchschlag',       cat: 'attack',   type: 'small', perLevel: 3,  baseCost: 15, costStep: 8,  requires: ['sk_dmg'], x: 80, y: 160 },
   sk_range:    { name: 'Reichweite',     desc: '+3% Waffenreichweite',             cat: 'attack',   type: 'small', perLevel: 3,  baseCost: 10, costStep: 5,  requires: [], x: 160, y: 220 },
   sk_syshit:   { name: 'Systemtreffer', desc: '+2% Systemtreffer-Chance',          cat: 'attack',   type: 'small', perLevel: 2,  baseCost: 15, costStep: 8,  requires: ['sk_pierce'], x: 80, y: 240 },
-  sk_rocket_t1:{ name: 'Rocket T1',     desc: 'Schnellfeuer-Raketen freischalten', cat: 'attack',   type: 'big',   cost: 40,  unlocks: 'rocket_t1', requires: [], x: 60, y: 60 },
-  sk_gun_t2:   { name: 'Gun T2',        desc: 'Mittleres Geschuetz freischalten',  cat: 'attack',   type: 'big',   cost: 25,  unlocks: 'gun_t2', requires: [], x: 260, y: 60 },
-  sk_gun_t3:   { name: 'Gun T3',        desc: 'Schweres Geschuetz freischalten',   cat: 'attack',   type: 'big',   cost: 50,  unlocks: 'gun_t3', requires: ['sk_gun_t2'], x: 320, y: 140 },
-  sk_rocket_t2:{ name: 'Rocket T2',     desc: 'Verbesserte Raketen freischalten',  cat: 'attack',   type: 'big',   cost: 70,  unlocks: 'rocket_t2', requires: ['sk_rocket_t1', 'sk_gun_t3'], x: 200, y: 290 },
-  sk_arc1:     { name: 'Angriffsradius I',  desc: '180° → 200° Feuerwinkel',       cat: 'attack',   type: 'big',   cost: 40,  unlocks: 'arc1', requires: ['sk_gun_t2'], x: 320, y: 240 },
-  sk_arc2:     { name: 'Angriffsradius II', desc: '200° → 225° Feuerwinkel',       cat: 'attack',   type: 'big',   cost: 60,  unlocks: 'arc2', requires: ['sk_arc1'], x: 340, y: 310 },
-  sk_hangar:   { name: 'Hangar',         desc: 'Kampfschiff bekaempft Gegner',      cat: 'attack',   type: 'big',   cost: 80,  unlocks: 'hangar', requires: ['sk_rocket_t2'], x: 100, y: 310 },
+  sk_rocket_t1:{ name: 'Rocket T1',     desc: 'Schnellfeuer-Raketen freischalten', cat: 'attack',   type: 'big',   cost: 40,  unlocks: 'rocket_t1', requires: [], waveReq: 5, x: 60, y: 60 },
+  sk_gun_t2:   { name: 'Gun T2',        desc: 'Mittleres Geschuetz freischalten',  cat: 'attack',   type: 'big',   cost: 25,  unlocks: 'gun_t2', requires: [], waveReq: 10, x: 260, y: 60 },
+  sk_gun_t3:   { name: 'Gun T3',        desc: 'Schweres Geschuetz freischalten',   cat: 'attack',   type: 'big',   cost: 50,  unlocks: 'gun_t3', requires: ['sk_gun_t2'], waveReq: 25, x: 320, y: 140 },
+  sk_rocket_t2:{ name: 'Rocket T2',     desc: 'Verbesserte Raketen freischalten',  cat: 'attack',   type: 'big',   cost: 70,  unlocks: 'rocket_t2', requires: ['sk_rocket_t1', 'sk_gun_t3'], waveReq: 35, x: 200, y: 290 },
+  sk_arc1:     { name: 'Angriffsradius I',  desc: '180° → 200° Feuerwinkel',       cat: 'attack',   type: 'big',   cost: 40,  unlocks: 'arc1', requires: ['sk_gun_t2'], waveReq: 15, x: 320, y: 240 },
+  sk_arc2:     { name: 'Angriffsradius II', desc: '200° → 225° Feuerwinkel',       cat: 'attack',   type: 'big',   cost: 60,  unlocks: 'arc2', requires: ['sk_arc1'], waveReq: 30, x: 340, y: 310 },
+  sk_hangar:   { name: 'Hangar',         desc: 'Kampfschiff bekaempft Gegner',      cat: 'attack',   type: 'big',   cost: 80,  unlocks: 'hangar', requires: ['sk_rocket_t2'], waveReq: 50, x: 100, y: 310 },
 
   // --- DEFENSE ---
   sk_hull:     { name: 'Huelle',         desc: '+5% Station HP pro Stufe',          cat: 'defense',  type: 'small', perLevel: 5,  baseCost: 10, costStep: 5,  requires: [], x: 520, y: 100 },
   sk_shield:   { name: 'Schild',         desc: '+5% Schildkapazitaet pro Stufe',    cat: 'defense',  type: 'small', perLevel: 5,  baseCost: 10, costStep: 5,  requires: [], x: 600, y: 160 },
   sk_energy:   { name: 'Energie',        desc: '+4% Schildregeneration pro Stufe',  cat: 'defense',  type: 'small', perLevel: 4,  baseCost: 10, costStep: 5,  requires: [], x: 440, y: 160 },
   sk_reserve:  { name: 'Notreserve',     desc: '+2% Ueberlebens-Chance bei Tod',    cat: 'defense',  type: 'small', perLevel: 2,  baseCost: 20, costStep: 10, requires: ['sk_hull'], x: 520, y: 230 },
-  sk_missile_def:{ name: 'Raketenabwehr',desc: 'Tuerme schiessen Raketen ab',       cat: 'defense',  type: 'big',   cost: 60,  unlocks: 'missile_def', requires: ['sk_hull'], x: 420, y: 60 },
-  sk_core_t2:  { name: 'Energy Core T2', desc: '+50% Energiekern-Leistung',         cat: 'defense',  type: 'big',   cost: 80,  unlocks: 'core_t2', requires: ['sk_energy'], x: 440, y: 280 },
-  sk_shield_t2:{ name: 'Schild T2',     desc: '+30% Schildkapazitaet',              cat: 'defense',  type: 'big',   cost: 100, unlocks: 'shield_t2', requires: ['sk_core_t2'], x: 560, y: 310 },
+  sk_missile_def:{ name: 'Raketenabwehr',desc: 'Tuerme schiessen Raketen ab',       cat: 'defense',  type: 'big',   cost: 60,  unlocks: 'missile_def', requires: ['sk_hull'], waveReq: 15, x: 420, y: 60 },
+  sk_core_t2:  { name: 'Energy Core T2', desc: '+50% Energiekern-Leistung',         cat: 'defense',  type: 'big',   cost: 80,  unlocks: 'core_t2', requires: ['sk_energy'], waveReq: 20, x: 440, y: 280 },
+  sk_shield_t2:{ name: 'Schild T2',     desc: '+30% Schildkapazitaet',              cat: 'defense',  type: 'big',   cost: 100, unlocks: 'shield_t2', requires: ['sk_core_t2'], waveReq: 40, x: 560, y: 310 },
 
   // --- RESOURCES ---
   sk_vsu_kill: { name: 'VSU (Abschuss)', desc: '+8% VSU pro Gegner',                cat: 'resource', type: 'small', perLevel: 8,  baseCost: 10, costStep: 5,  requires: [], x: 740, y: 100 },
@@ -1781,7 +1842,7 @@ const SKILL_TREE = {
   sk_ep_wave:  { name: 'EP (Welle)',     desc: '+6% EP bei Meilenstein',             cat: 'resource', type: 'small', perLevel: 6,  baseCost: 15, costStep: 8,  requires: ['sk_vsu_wave'], x: 820, y: 240 },
   sk_repair_eff:{ name: 'Reparatureffizienz', desc: '+1% Reparatur-Menge',          cat: 'resource', type: 'small', perLevel: 1,  baseCost: 10, costStep: 5,  requires: [], x: 740, y: 240 },
   sk_repair_cost:{ name: 'Reparaturkosten', desc: '-2 VSU Reparaturkosten',         cat: 'resource', type: 'small', perLevel: 2,  baseCost: 10, costStep: 5,  requires: ['sk_repair_eff'], x: 660, y: 300 },
-  sk_drone:    { name: 'Sammeldrohne',   desc: 'Drohne sammelt Wrack-VSU',           cat: 'resource', type: 'big',   cost: 60,  unlocks: 'drone', requires: ['sk_vsu_kill', 'sk_vsu_wave'], x: 820, y: 320 },
+  sk_drone:    { name: 'Sammeldrohne',   desc: 'Drohne sammelt Wrack-VSU',           cat: 'resource', type: 'big',   cost: 60,  unlocks: 'drone', requires: ['sk_vsu_kill', 'sk_vsu_wave'], waveReq: 20, x: 820, y: 320 },
 };
 
 function normalizeAngle(a) {
@@ -1860,6 +1921,8 @@ class Game {
     this.vsu = 1;
     this.ep = 0;
     this.totalEP = 0;
+    this.totalEPSpent = 0;
+    this.bestWave = 0;
     // Persistent skill tree state (survives across runs)
     this.skillLevels = {}; // small nodes: { sk_dmg: 3, sk_rof: 1, ... }
     for (const key of Object.keys(SKILL_TREE)) {
@@ -1923,6 +1986,21 @@ class Game {
     document.getElementById('btnSettings').addEventListener('touchend', (e) => { e.preventDefault(); this.showSettingsScreen(); });
     document.getElementById('btnTechBack').addEventListener('click', () => this.backToMenu());
     document.getElementById('btnTechBack').addEventListener('touchend', (e) => { e.preventDefault(); this.backToMenu(); });
+
+    // Skill tree tabs
+    this.activeSkillTab = 'attack';
+    document.querySelectorAll('.sk-tab').forEach(tab => {
+      const cat = tab.dataset.cat;
+      const fn = () => {
+        playSound('click');
+        this.activeSkillTab = cat;
+        document.querySelectorAll('.sk-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
+        document.getElementById('skTooltip').classList.remove('visible');
+        this.renderSkillTree();
+      };
+      tab.addEventListener('click', fn);
+      tab.addEventListener('touchend', (e) => { e.preventDefault(); fn(); });
+    });
     document.getElementById('btnSettingsBack').addEventListener('click', () => this.backToMenu());
     document.getElementById('btnSettingsBack').addEventListener('touchend', (e) => { e.preventDefault(); this.backToMenu(); });
     // Pause menu
@@ -2028,6 +2106,8 @@ class Game {
     for (const req of def.requires) {
       if (!this.isSkillUnlocked(req)) return false;
     }
+    // Big nodes: wave requirement
+    if (def.waveReq && this.bestWave < def.waveReq) return false;
     return true;
   }
 
@@ -2037,6 +2117,7 @@ class Game {
     const cost = this.getSkillCost(key);
     if (this.totalEP < cost) return;
     this.totalEP -= cost;
+    this.totalEPSpent += cost;
 
     if (def.type === 'big') {
       this.unlockedTech.add(def.unlocks);
@@ -2050,50 +2131,71 @@ class Game {
     this._showSkillTooltip(key); // refresh tooltip
   }
 
+  // Per-tab node positions (each tree fills its own canvas)
+  static TAB_POSITIONS = {
+    attack: {
+      sk_dmg: { x: 220, y: 120 }, sk_rof: { x: 340, y: 180 }, sk_pierce: { x: 100, y: 180 },
+      sk_range: { x: 220, y: 260 }, sk_syshit: { x: 100, y: 280 },
+      sk_rocket_t1: { x: 80, y: 70 }, sk_gun_t2: { x: 360, y: 70 },
+      sk_gun_t3: { x: 420, y: 180 }, sk_rocket_t2: { x: 260, y: 350 },
+      sk_arc1: { x: 420, y: 280 }, sk_arc2: { x: 440, y: 370 },
+      sk_hangar: { x: 120, y: 370 },
+    },
+    defense: {
+      sk_hull: { x: 220, y: 120 }, sk_shield: { x: 360, y: 180 },
+      sk_energy: { x: 100, y: 180 }, sk_reserve: { x: 220, y: 270 },
+      sk_missile_def: { x: 140, y: 70 }, sk_core_t2: { x: 140, y: 330 },
+      sk_shield_t2: { x: 340, y: 370 },
+    },
+    resource: {
+      sk_vsu_kill: { x: 160, y: 120 }, sk_vsu_wave: { x: 360, y: 120 },
+      sk_ep_kill: { x: 100, y: 220 }, sk_ep_wave: { x: 420, y: 220 },
+      sk_repair_eff: { x: 260, y: 260 }, sk_repair_cost: { x: 200, y: 350 },
+      sk_drone: { x: 360, y: 350 },
+    },
+  };
+
   renderSkillTree() {
     const canvas = document.getElementById('skCanvas');
     const svg = document.getElementById('skLines');
+    const cat = this.activeSkillTab || 'attack';
 
     // Remove old nodes (keep svg)
     canvas.querySelectorAll('.sk-node, .sk-cat-label').forEach(el => el.remove());
     svg.innerHTML = '';
 
-    // Category labels
-    const labels = [
-      { text: 'ANGRIFF', cat: 'attack', x: 160, y: 30 },
-      { text: 'VERTEIDIGUNG', cat: 'defense', x: 520, y: 30 },
-      { text: 'RESSOURCEN', cat: 'resource', x: 740, y: 30 },
-    ];
-    for (const lb of labels) {
-      const el = document.createElement('div');
-      el.className = `sk-cat-label ${lb.cat}`;
-      el.textContent = lb.text;
-      el.style.left = lb.x + 'px';
-      el.style.top = lb.y + 'px';
-      canvas.appendChild(el);
-    }
+    const positions = Game.TAB_POSITIONS[cat] || {};
+    const colors = { attack: '#FF5028', defense: '#00B4DC', resource: '#50C850' };
 
     // Draw connection lines first
     for (const [key, def] of Object.entries(SKILL_TREE)) {
+      if (def.cat !== cat) continue;
+      const pos = positions[key];
+      if (!pos) continue;
       for (const req of def.requires) {
-        const from = SKILL_TREE[req];
+        const reqDef = SKILL_TREE[req];
+        if (reqDef.cat !== cat) continue;
+        const fromPos = positions[req];
+        if (!fromPos) continue;
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', from.x);
-        line.setAttribute('y1', from.y);
-        line.setAttribute('x2', def.x);
-        line.setAttribute('y2', def.y);
+        line.setAttribute('x1', fromPos.x);
+        line.setAttribute('y1', fromPos.y);
+        line.setAttribute('x2', pos.x);
+        line.setAttribute('y2', pos.y);
 
         const fromOwned = this.isSkillUnlocked(req);
-        const toOwned = this.isSkillUnlocked(key);
-        const colors = { attack: '#FF5028', defense: '#00B4DC', resource: '#50C850' };
-        line.setAttribute('stroke', colors[def.cat]);
-        line.className.baseVal = (fromOwned && toOwned) ? 'active' : (fromOwned ? 'active' : 'locked');
+        line.setAttribute('stroke', colors[cat]);
+        line.className.baseVal = fromOwned ? 'active' : 'locked';
         svg.appendChild(line);
       }
     }
 
     // Draw nodes
     for (const [key, def] of Object.entries(SKILL_TREE)) {
+      if (def.cat !== cat) continue;
+      const pos = positions[key];
+      if (!pos) continue;
+
       const el = document.createElement('div');
       const owned = this.isSkillUnlocked(key);
       const available = this.isSkillAvailable(key);
@@ -2105,8 +2207,8 @@ class Game {
       if (buyable) el.classList.add('buyable');
       if (!available && !owned) el.classList.add('locked');
 
-      el.style.left = def.x + 'px';
-      el.style.top = def.y + 'px';
+      el.style.left = pos.x + 'px';
+      el.style.top = pos.y + 'px';
 
       if (def.type === 'small') {
         el.textContent = this.skillLevels[key] || 0;
@@ -2125,6 +2227,18 @@ class Game {
       });
 
       canvas.appendChild(el);
+    }
+
+    // Update tab info
+    for (const c of ['attack', 'defense', 'resource']) {
+      let spent = 0;
+      for (const [k, d] of Object.entries(SKILL_TREE)) {
+        if (d.cat !== c) continue;
+        if (d.type === 'small') spent += (this.skillLevels[k] || 0);
+        else if (this.isSkillUnlocked(k)) spent++;
+      }
+      const el = document.getElementById(`skTabInfo${c.charAt(0).toUpperCase() + c.slice(1)}`);
+      if (el) el.textContent = spent > 0 ? `${spent} Punkte` : '';
     }
   }
 
@@ -2145,12 +2259,31 @@ class Game {
       document.getElementById('skTTLevel').textContent = owned ? 'Freigeschaltet' : 'Nicht freigeschaltet';
     }
 
+    // Wave requirement display for big nodes
+    const reqEl = document.getElementById('skTTReq');
+    if (def.waveReq) {
+      const met = this.bestWave >= def.waveReq;
+      reqEl.textContent = `Wellen: ${this.bestWave}/${def.waveReq}`;
+      reqEl.className = `sk-tooltip-req ${met ? 'met' : 'unmet'}`;
+      reqEl.style.display = 'block';
+    } else {
+      reqEl.style.display = 'none';
+    }
+
     const btn = document.getElementById('skTTBuy');
     if (owned) {
       btn.textContent = 'Bereits freigeschaltet';
       btn.disabled = true;
     } else if (!available) {
-      btn.textContent = 'Voraussetzung fehlt';
+      // Show specific reason
+      const missingReqs = def.requires.filter(r => !this.isSkillUnlocked(r));
+      if (def.waveReq && this.bestWave < def.waveReq) {
+        btn.textContent = `Welle ${def.waveReq} erreichen`;
+      } else if (missingReqs.length > 0) {
+        btn.textContent = `Braucht: ${missingReqs.map(r => SKILL_TREE[r].name).join(', ')}`;
+      } else {
+        btn.textContent = 'Voraussetzung fehlt';
+      }
       btn.disabled = true;
     } else {
       btn.textContent = `Kaufen: ${cost} EP`;
@@ -2159,9 +2292,6 @@ class Game {
 
     btn.onclick = () => this.buySkill(key);
 
-    // Position near node
-    tt.style.left = def.x + 'px';
-    tt.style.top = (def.y + (def.type === 'big' ? 30 : 24)) + 'px';
     tt.classList.add('visible');
 
     // Close on outside click
@@ -3297,6 +3427,7 @@ class Game {
     }
 
     this.wave++;
+    if (this.wave - 1 > this.bestWave) this.bestWave = this.wave - 1;
     this.state = 'build';
     this.repairUsed = false;
     this._reserveUsed = false;
