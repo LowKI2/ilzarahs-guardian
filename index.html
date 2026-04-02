@@ -1447,7 +1447,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.3 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.4 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -1825,15 +1825,15 @@ const WEAPONS = {
     unlock: 'gun_t3',
   },
   rocket_t1: {
-    name: "Rocket T1", cost: 60, range: 200, fireRate: 10, damage: 2, projSpeed: 450,
-    color: "#FF6633", desc: "Schnellfeuer-Raketen", sprite: 'rocket_t1',
-    projSize: 5, projColor: '#FF6633', splashRadius: 0,
+    name: "Rocket T1", cost: 60, range: 200, fireRate: 2, damage: 10, projSpeed: 450,
+    color: "#4488FF", desc: "Lenkraketen", sprite: 'rocket_t1',
+    projSize: 6, projColor: '#4488FF', splashRadius: 0,
     unlock: 'rocket_t1',
   },
   rocket_t2: {
-    name: "Rocket T2", cost: 90, range: 220, fireRate: 10, damage: 2.4, projSpeed: 500,
-    color: "#FF8844", desc: "Verbesserte Raketen", sprite: 'rocket_t2',
-    projSize: 4, projColor: '#FF8844', splashRadius: 0,
+    name: "Rocket T2", cost: 90, range: 220, fireRate: 2, damage: 12, projSpeed: 500,
+    color: "#66AAFF", desc: "Verbesserte Lenkraketen", sprite: 'rocket_t2',
+    projSize: 6, projColor: '#66AAFF', splashRadius: 0,
     unlock: 'rocket_t2',
   },
 };
@@ -1874,6 +1874,7 @@ const SKILL_TREE = {
   sk_ep_wave:  { name: 'EP (Welle)',     desc: '+6% EP bei Meilenstein',             cat: 'resource', type: 'small', perLevel: 6,  baseCost: 15, costStep: 8,  requires: ['sk_vsu_wave'], x: 820, y: 240 },
   sk_repair_eff:{ name: 'Reparatureffizienz', desc: '+1% Reparatur-Menge',          cat: 'resource', type: 'small', perLevel: 1,  baseCost: 10, costStep: 5,  requires: [], x: 740, y: 240 },
   sk_repair_cost:{ name: 'Reparaturkosten', desc: '-2 VSU Reparaturkosten',         cat: 'resource', type: 'small', perLevel: 2,  baseCost: 10, costStep: 5,  requires: ['sk_repair_eff'], x: 660, y: 300 },
+  sk_start_vsu:{ name: 'Startkapital',   desc: '+25 Start-VSU pro Stufe',            cat: 'resource', type: 'small', perLevel: 25, baseCost: 10, costStep: 5,  requires: [], x: 660, y: 100 },
   sk_drone:    { name: 'Sammeldrohne',   desc: 'Drohne sammelt Wrack-VSU',           cat: 'resource', type: 'big',   cost: 60,  unlocks: 'drone', requires: ['sk_vsu_kill', 'sk_vsu_wave'], waveReq: 20, x: 820, y: 320 },
 };
 
@@ -1952,8 +1953,8 @@ class Game {
     this.stationMaxShield = 0;
     this.vsu = 1;
     this.ep = 0;
-    this.totalEP = 0;
-    this.totalEPSpent = 0;
+    this.totalEP = parseInt(localStorage.getItem('ilzarah_totalEP') || '0', 10);
+    this.totalEPSpent = parseInt(localStorage.getItem('ilzarah_totalEPSpent') || '0', 10);
     this.bestWave = 0;
     // Persistent skill tree state (survives across runs)
     this.skillLevels = {}; // small nodes: { sk_dmg: 3, sk_rof: 1, ... }
@@ -2173,6 +2174,7 @@ class Game {
     if (this.totalEP < cost) return;
     this.totalEP -= cost;
     this.totalEPSpent += cost;
+    this.saveEP();
 
     if (def.type === 'big') {
       this.unlockedTech.add(def.unlocks);
@@ -2410,7 +2412,7 @@ class Game {
 
   getUpgCost(key) {
     const lvl = this.runUpgrades[key];
-    return 15 + lvl * 5; // 15, 20, 25, 30 ...
+    return 10 + lvl * 5; // 10, 15, 20, 25 ...
   }
 
   getUpgBonus(key) {
@@ -2711,7 +2713,7 @@ class Game {
     this.stationMaxShield = station.shield;
     this.shieldRegenRate = station.energyCore;
     this.applySkillTreeBonuses(); // overrides HP/Shield/Regen with permanent bonuses
-    this.vsu = 1;
+    this.vsu = 1 + this.getSkillBonus('sk_start_vsu');
     this.wave = 1;
     this.kills = 0;
     this.repairUsed = false;
@@ -3122,14 +3124,20 @@ class Game {
       }
 
       if (nearestEnemy && turret.cooldown <= 0) {
-        // Burst fire: 5 shots fast, then 0.3s pause
+        // Burst fire: 5 shots fast, then 0.3s pause (rockets fire individually)
         const rofMult = 1 + this.getTotalBonus('rof') / 100;
-        turret.burstCount = (turret.burstCount || 0) + 1;
-        if (turret.burstCount >= 5) {
-          turret.cooldown = 0.3 / rofMult;
+        const isRocket = turret.weaponKey && turret.weaponKey.startsWith('rocket');
+        if (isRocket) {
+          turret.cooldown = 1 / (turret.fireRate * rofMult);
           turret.burstCount = 0;
         } else {
-          turret.cooldown = 1 / (turret.fireRate * rofMult);
+          turret.burstCount = (turret.burstCount || 0) + 1;
+          if (turret.burstCount >= 5) {
+            turret.cooldown = 0.3 / rofMult;
+            turret.burstCount = 0;
+          } else {
+            turret.cooldown = 1 / (turret.fireRate * rofMult);
+          }
         }
         const dmg = turret.damage * (1 + this.station.dmgBonus) * (1 + this.getTotalBonus('dmg') / 100);
         const isCrit = Math.random() < this.station.crit;
@@ -3182,7 +3190,22 @@ class Game {
 
     // Update turret projectiles
     this.projectiles = this.projectiles.filter(p => {
-      // Move in straight line
+      // Homing for rocket projectiles
+      if (p.weaponKey && p.weaponKey.startsWith('rocket') && p.targetEnemy && p.targetEnemy.hp > 0) {
+        const hdx = p.targetEnemy.x - p.x;
+        const hdy = p.targetEnemy.y - p.y;
+        const desiredAngle = Math.atan2(hdy, hdx);
+        let angleDiff = desiredAngle - p.angle;
+        while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+        while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+        const turnRate = 4.0;
+        const maxTurn = turnRate * dt;
+        p.angle += Math.max(-maxTurn, Math.min(maxTurn, angleDiff));
+        p.vx = Math.cos(p.angle) * p.speed;
+        p.vy = Math.sin(p.angle) * p.speed;
+      }
+
+      // Move
       const step = p.speed * dt;
       p.x += p.vx * dt;
       p.y += p.vy * dt;
@@ -3249,13 +3272,15 @@ class Game {
             size: 70 + hitEnemy.tier * 12,
           });
 
-          // Wreck — delayed spawn, appears near end of explosion, fades over 3s
+          // Wreck — delayed spawn, appears near end of explosion, fades over 5s
           this.wrecks.push({
             x: hitEnemy.x, y: hitEnemy.y,
             rotation: hitEnemy.rotation || Math.random() * Math.PI * 2,
             tier: hitEnemy.tier,
             delay: 2.0, // wait for explosion to almost finish
-            life: 3.0, maxLife: 3.0,
+            life: 5.0, maxLife: 5.0,
+            looted: false,
+            vsuReward: hitEnemy.tier >= 3 ? 10 : 5 + Math.floor(Math.random() * 6),
           });
 
           // Some debris particles
@@ -3483,6 +3508,7 @@ class Game {
     const epKillBonus = 1 + this.getTotalBonus('epKill') / 100;
     const epEarned = Math.floor((this.wave * 5 + this.kills * 0.5) * epKillBonus);
     this.totalEP += epEarned;
+    this.saveEP();
 
     document.getElementById('goWaves').textContent = this.wave;
     document.getElementById('goEP').textContent = epEarned;
@@ -3505,6 +3531,7 @@ class Game {
       const epMilestone = Math.floor(this.wave * 3 * epWaveBonus);
       this.ep += epMilestone;
       this.totalEP += epMilestone;
+      this.saveEP();
       this.showBanner(`MEILENSTEIN! +${epMilestone} EP`);
     } else {
       this.showBanner(`WELLE ${this.wave} GESCHAFFT! +${vsuEarned} VSU`);
@@ -3561,6 +3588,7 @@ class Game {
     const epKillBonus2 = 1 + this.getTotalBonus('epKill') / 100;
     const epEarned = Math.floor((this.wave * 3 + this.kills * 0.3) * epKillBonus2);
     this.totalEP += epEarned;
+    this.saveEP();
     document.getElementById('goWaves').textContent = this.wave;
     document.getElementById('goEP').textContent = epEarned;
     document.getElementById('goKills').textContent = this.kills;
@@ -3679,6 +3707,11 @@ class Game {
     document.getElementById('hudKills').textContent = this.kills;
   }
 
+  saveEP() {
+    localStorage.setItem('ilzarah_totalEP', this.totalEP);
+    localStorage.setItem('ilzarah_totalEPSpent', this.totalEPSpent);
+  }
+
   showBanner(text) {
     this.bannerText = text;
     this.bannerTimer = 2.0;
@@ -3744,7 +3777,7 @@ class Game {
       }
     }
 
-    // Wrecks (behind enemies, fade over 3s, skip if still delayed)
+    // Wrecks (behind enemies, fade over 5s, skip if still delayed)
     for (const w of this.wrecks) {
       if (w.delay > 0) continue;
       const alpha = w.life / w.maxLife;
@@ -3759,6 +3792,16 @@ class Game {
         ctx.drawImage(wreckImg, -s / 2, -s / 2, s, s);
         ctx.imageSmoothingEnabled = true;
         ctx.restore();
+
+        // Loot glow for unlootted wrecks
+        if (!w.looted) {
+          const pulse = 0.3 + Math.sin(this.gridPulse * 4) * 0.15;
+          ctx.beginPath();
+          ctx.arc(w.x, w.y, s * 0.7, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(212,160,60,${pulse * alpha})`;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
       }
     }
     ctx.globalAlpha = 1;
@@ -3841,7 +3884,7 @@ class Game {
       const alpha = d.life / d.maxLife;
       ctx.globalAlpha = alpha;
       ctx.font = d.isCrit ? 'bold 18px "Share Tech Mono"' : '14px "Share Tech Mono"';
-      ctx.fillStyle = d.isCrit ? '#FFD700' : '#FF3344';
+      ctx.fillStyle = d.isLoot ? '#D4A03C' : d.isCrit ? '#FFD700' : '#FF3344';
       ctx.textAlign = 'center';
       ctx.fillText(d.value, d.x, d.y);
     }
@@ -4076,7 +4119,42 @@ class Game {
         // No connection lines — slots are on the station body
       }
 
-      // Hover: show effective attack range (fire arc wedge)
+      // Build phase: always show fire arc for placed weapons
+      if (this.state === 'build' && slot.building && slot.building.range && this.hoveredSlot !== slot) {
+        const b = slot.building;
+        const range = b.range * (1 + this.getTotalBonus('range') / 100);
+        const facingAngle = slot.angle;
+        const halfArc = this.getFireArc() / 2;
+
+        // Subtle filled arc area
+        ctx.beginPath();
+        ctx.moveTo(slot.x, slot.y);
+        ctx.arc(slot.x, slot.y, range, facingAngle - halfArc, facingAngle + halfArc);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(255,51,68,0.03)';
+        ctx.fill();
+
+        // Dashed arc border
+        ctx.beginPath();
+        ctx.arc(slot.x, slot.y, range, facingAngle - halfArc, facingAngle + halfArc);
+        ctx.strokeStyle = 'rgba(255,51,68,0.12)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Side lines
+        ctx.beginPath();
+        ctx.moveTo(slot.x, slot.y);
+        ctx.lineTo(slot.x + Math.cos(facingAngle - halfArc) * range, slot.y + Math.sin(facingAngle - halfArc) * range);
+        ctx.moveTo(slot.x, slot.y);
+        ctx.lineTo(slot.x + Math.cos(facingAngle + halfArc) * range, slot.y + Math.sin(facingAngle + halfArc) * range);
+        ctx.strokeStyle = 'rgba(255,51,68,0.08)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      // Hover: show effective attack range (fire arc wedge, brighter)
       if (this.hoveredSlot === slot && slot.building) {
         const b = slot.building;
         const range = b.range;
@@ -4141,6 +4219,10 @@ class Game {
       ctx.save();
       ctx.translate(slot.x, slot.y);
       ctx.rotate(b.barrelAngle + Math.PI);
+      if (this.state === 'build') {
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = 'rgba(80,160,255,0.35)';
+      }
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(spriteImg, -drawW/2, -drawH/2, drawW, drawH);
       ctx.imageSmoothingEnabled = true;
@@ -4235,8 +4317,9 @@ class Game {
   // TRACER-STYLE turret projectile rendering
   renderProjectile(ctx, proj) {
     const angle = proj.angle || 0;
-    const tracerLen = proj.isCrit ? 5 : 3;
-    const tracerWidth = proj.isCrit ? 1 : 0.6;
+    const isRocket = proj.weaponKey && proj.weaponKey.startsWith('rocket');
+    const tracerLen = proj.isCrit ? 5 : (isRocket ? 6 : 3);
+    const tracerWidth = proj.isCrit ? 1 : (isRocket ? 2.5 : 0.6);
 
     // Trail segments (fading tracer trail)
     for (const t of proj.trail) {
@@ -4249,7 +4332,7 @@ class Game {
       ctx.beginPath();
       ctx.moveTo(-tracerLen * 0.6, 0);
       ctx.lineTo(0, 0);
-      ctx.strokeStyle = proj.isCrit ? '#FFD700' : '#ffffff';
+      ctx.strokeStyle = proj.isCrit ? '#FFD700' : (isRocket ? '#4488FF' : '#ffffff');
       ctx.lineWidth = tracerWidth * 0.5;
       ctx.stroke();
       ctx.globalAlpha = 1;
@@ -4262,21 +4345,21 @@ class Game {
     ctx.rotate(angle);
 
     // Subtle glow
-    ctx.shadowBlur = 4;
-    ctx.shadowColor = proj.isCrit ? '#FFD700' : 'rgba(255,255,255,0.6)';
+    ctx.shadowBlur = isRocket ? 6 : 4;
+    ctx.shadowColor = proj.isCrit ? '#FFD700' : (isRocket ? 'rgba(68,136,255,0.8)' : 'rgba(255,255,255,0.6)');
 
-    // White tracer line
+    // Tracer line
     ctx.beginPath();
     ctx.moveTo(-tracerLen, 0);
     ctx.lineTo(2, 0);
-    ctx.strokeStyle = proj.isCrit ? '#FFD700' : 'rgba(255,255,255,0.9)';
+    ctx.strokeStyle = proj.isCrit ? '#FFD700' : (isRocket ? 'rgba(68,136,255,0.95)' : 'rgba(255,255,255,0.9)');
     ctx.lineWidth = tracerWidth;
     ctx.stroke();
 
     // Bright tip
     ctx.beginPath();
     ctx.arc(1, 0, tracerWidth * 0.5, 0, Math.PI * 2);
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = isRocket ? '#88BBFF' : '#ffffff';
     ctx.fill();
 
     ctx.shadowBlur = 0;
@@ -4372,11 +4455,52 @@ class Game {
 
   // -- Input --
   onPointerDown(e) {
-    if (this.state !== 'build') return;
-
     const rect = this.canvas.getBoundingClientRect();
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
+
+    // Wreck looting (works in build and combat)
+    if (this.state === 'combat' || this.state === 'build') {
+      for (const w of this.wrecks) {
+        if (w.looted || w.delay > 0) continue;
+        const dx = mx - w.x;
+        const dy = my - w.y;
+        const hitRadius = this.isMobile ? 25 : 18;
+        if (dx * dx + dy * dy < hitRadius * hitRadius) {
+          w.looted = true;
+          const epGain = 1;
+          const vsuGain = w.vsuReward;
+          this.ep += epGain;
+          this.totalEP += epGain;
+          this.vsu += vsuGain;
+          this.saveEP();
+
+          // Loot pickup particles
+          for (let i = 0; i < 6; i++) {
+            this.particles.push({
+              x: w.x, y: w.y,
+              vx: (Math.random() - 0.5) * 80,
+              vy: (Math.random() - 0.5) * 80 - 30,
+              life: 0.5, maxLife: 0.5,
+              color: '#D4A03C', size: 3,
+            });
+          }
+
+          // Floating loot text
+          this.damageNumbers.push({
+            x: w.x, y: w.y - 15,
+            value: `+${vsuGain} VSU  +${epGain} EP`,
+            life: 1.2, maxLife: 1.2,
+            isCrit: false, isLoot: true,
+          });
+
+          this.updateHUD();
+          return;
+        }
+      }
+    }
+
+    if (this.state !== 'build') return;
 
     for (const slot of this.slots) {
       const dx = mx - slot.x;
