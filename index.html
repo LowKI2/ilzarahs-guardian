@@ -65,22 +65,24 @@ canvas {
   display: none;
   align-items: center;
   justify-content: space-around;
-  padding: 0 8px;
+  padding: 0 40px 0 6px;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
   z-index: 10;
   pointer-events: none;
   flex-wrap: nowrap;
+  gap: 2px;
 }
 
-.hud-item { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
-.hud-label { color: var(--text-dim); font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; }
-.hud-value { color: var(--amber); font-size: 14px; font-weight: 700; }
+.hud-item { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.hud-label { color: var(--text-dim); font-size: 8px; text-transform: uppercase; letter-spacing: 0.3px; }
+.hud-value { color: var(--amber); font-size: 12px; font-weight: 700; }
 .hud-value.cyan { color: var(--ilzarah); }
 .hud-value.red { color: #FF3344; }
 
 @media (min-width: 600px) {
-  #hud { height: 48px; padding: 0 20px; font-size: 14px; }
+  #hud { height: 48px; padding: 0 48px 0 20px; font-size: 14px; gap: 4px; }
+  .hud-item { gap: 4px; }
   .hud-label { font-size: 11px; letter-spacing: 1px; }
   .hud-value { font-size: 16px; }
 }
@@ -340,26 +342,29 @@ canvas {
 
 .build-btn {
   font-family: var(--font-ui);
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 600;
-  padding: 10px 8px;
+  padding: 6px 4px;
   border: 1px solid var(--amber-dim);
   background: rgba(44,52,64,0.8);
   color: var(--amber);
   cursor: pointer;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   transition: all 0.15s;
   pointer-events: auto;
-  min-width: 60px;
-  min-height: 44px;
+  min-width: 48px;
+  min-height: 40px;
   border-radius: 4px;
   flex: 1;
-  max-width: 120px;
+  max-width: 100px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .build-btn img {
@@ -386,8 +391,8 @@ canvas {
 .build-btn.start-combat {
   border-color: rgba(255,51,68,0.5);
   color: #FF3344;
-  max-width: 150px;
-  font-size: 13px;
+  max-width: 120px;
+  font-size: 11px;
 }
 
 .build-btn.start-combat:active, .build-btn.start-combat:hover {
@@ -606,8 +611,9 @@ canvas {
 }
 
 @media (min-width: 600px) {
-  .build-btn { font-size: 12px; padding: 10px 14px; min-width: 80px; max-width: 140px; }
+  .build-btn { font-size: 11px; padding: 10px 12px; min-width: 70px; max-width: 130px; letter-spacing: 0.5px; }
   .build-btn img { width: 28px; height: 28px; }
+  .build-btn.start-combat { font-size: 13px; max-width: 150px; }
 }
 
 
@@ -1530,6 +1536,14 @@ const ASSET_PATHS = {
     click: 'assets/audio/sfx/ui_click.mp3',
     confirm: 'assets/audio/sfx/ui_confirm.mp3',
     hover: 'assets/audio/sfx/ui_hover.mp3',
+    gatling: 'assets/audio/sfx/gatling.mp3',
+    rocketflight: 'assets/audio/sfx/rocketflight.mp3',
+    rocketexplosion: 'assets/audio/sfx/rocketexplosion.mp3',
+    torpedoexplosion: 'assets/audio/sfx/torpedoexplosion.mp3',
+  },
+  music: {
+    drifting: [1,2,3,4,5,6,7,8,9,10].map(i => `assets/audio/music/drifting${i}.mp3`),
+    combat: [1,2,3,4,5,6].map(i => `assets/audio/music/combat${i}.mp3`),
   }
 };
 
@@ -1612,21 +1626,80 @@ function loadAssets() {
       IMAGES.fx[key] = img;
     }
 
-    // Audio
+    // Audio SFX
     for (const [key, path] of Object.entries(ASSET_PATHS.sfx)) {
       SOUNDS[key] = new Audio(path);
       SOUNDS[key].volume = 0.3;
+    }
+
+    // Music playlists
+    MUSIC_TRACKS = {};
+    for (const [key, paths] of Object.entries(ASSET_PATHS.music)) {
+      MUSIC_TRACKS[key] = paths.map(p => {
+        const a = new Audio(p);
+        a.volume = 0.15;
+        return a;
+      });
     }
 
     if (total === 0) resolve();
   });
 }
 
+let MUSIC_TRACKS = {};
+let currentMusicCategory = null;
+let currentMusicAudio = null;
+
 function playSound(name) {
   if (SOUNDS[name]) {
     SOUNDS[name].currentTime = 0;
     SOUNDS[name].play().catch(() => {});
   }
+}
+
+function pickRandomTrack(category) {
+  const tracks = MUSIC_TRACKS[category];
+  if (!tracks || tracks.length === 0) return null;
+  // Avoid repeating the same track
+  let pick;
+  do {
+    pick = tracks[Math.floor(Math.random() * tracks.length)];
+  } while (pick === currentMusicAudio && tracks.length > 1);
+  return pick;
+}
+
+function playMusic(category) {
+  if (currentMusicCategory === category && currentMusicAudio && !currentMusicAudio.paused) return;
+  stopMusic();
+  currentMusicCategory = category;
+  const track = pickRandomTrack(category);
+  if (!track) return;
+  currentMusicAudio = track;
+  track.currentTime = 0;
+  track.play().catch(() => {});
+  // When track ends, play next random track from same category
+  track.onended = () => {
+    if (currentMusicCategory === category) {
+      currentMusicAudio = null;
+      const next = pickRandomTrack(category);
+      if (next) {
+        currentMusicAudio = next;
+        next.currentTime = 0;
+        next.play().catch(() => {});
+        next.onended = track.onended;
+      }
+    }
+  };
+}
+
+function stopMusic() {
+  if (currentMusicAudio) {
+    currentMusicAudio.pause();
+    currentMusicAudio.currentTime = 0;
+    currentMusicAudio.onended = null;
+  }
+  currentMusicCategory = null;
+  currentMusicAudio = null;
 }
 
 // -- Station Data --
@@ -1907,6 +1980,7 @@ class Game {
     this.state = 'mainmenu';
     document.getElementById('mainMenu').style.display = 'flex';
     document.getElementById('stationSelect').style.display = 'none';
+    playMusic('drifting');
     this.loop(0);
   }
 
@@ -2121,6 +2195,7 @@ class Game {
 
     document.getElementById('mainMenu').style.display = 'flex';
     this.state = 'mainmenu';
+    playMusic('drifting');
   }
 
   // -- Upgrade System --
@@ -2455,6 +2530,7 @@ class Game {
     this.showBanner(`WELLE ${this.wave} — VORBEREITEN`);
     this.updateHUD();
     playSound('confirm');
+    playMusic('drifting');
   }
 
   generateSlots() {
@@ -2685,6 +2761,7 @@ class Game {
     document.getElementById('buildUI').style.display = 'none';
     document.getElementById('combatControls').style.display = 'flex';
     document.getElementById('hudPhase').textContent = 'KAMPF';
+    playMusic('combat');
 
     this.waveEnemyCount = this.wave === 1 ? 1 : 1 + Math.floor(this.wave * 0.8);
     this.waveEnemiesSpawned = 0;
@@ -2845,7 +2922,7 @@ class Game {
         const finalDmg = isCrit ? dmg * 2 : dmg;
 
         // Muzzle position: barrel points at target, muzzle at tip of weapon sprite
-        const muzzleDist = (this.isMobile ? 48 : 42) * 0.5;
+        const muzzleDist = (this.isMobile ? 36 : 42) * 0.5;
         const muzzleX = slot.x + Math.cos(turret.barrelAngle) * muzzleDist;
         const muzzleY = slot.y + Math.sin(turret.barrelAngle) * muzzleDist;
 
@@ -2866,7 +2943,15 @@ class Game {
           angle: pAngle,
           maxRange: turret.range * (1 + this.getTotalBonus('range') / 100) * 1.5,
           traveled: 0,
+          weaponKey: turret.weaponKey,
         });
+
+        // Weapon fire sound (throttled — only play if not already playing)
+        if (turret.weaponKey && turret.weaponKey.startsWith('rocket')) {
+          playSound('rocketflight');
+        } else if (turret.burstCount === 1) {
+          playSound('gatling');
+        }
 
         // Muzzle flash sprite (3x3 sheet: 3 types × 3 anim frames)
         this.particles.push({
@@ -2932,15 +3017,21 @@ class Game {
           else if (dmgResult.systemHit === 'SHIELD') hitEnemy.maxShield = 0;
         }
 
+        // Rocket hit sound
+        if (p.weaponKey && p.weaponKey.startsWith('rocket')) {
+          playSound('rocketexplosion');
+        }
+
         if (hitEnemy.hp <= 0) {
           this.kills++;
           this.vsu += Math.floor(hitEnemy.vsuReward * (1 + this.getTotalBonus('vsuKill') / 100));
           this.waveEnemiesDefeated++;
+          playSound('torpedoexplosion');
 
-          // Explosion sprite
+          // Explosion sprite (longer duration for slower visual)
           this.explosions.push({
             x: hitEnemy.x, y: hitEnemy.y,
-            life: 1.5, maxLife: 1.5,
+            life: 2.5, maxLife: 2.5,
             size: 40 + hitEnemy.tier * 8,
           });
 
@@ -2949,7 +3040,7 @@ class Game {
             x: hitEnemy.x, y: hitEnemy.y,
             rotation: hitEnemy.rotation || Math.random() * Math.PI * 2,
             tier: hitEnemy.tier,
-            delay: 1.2, // wait for explosion to almost finish
+            delay: 2.0, // wait for explosion to almost finish
             life: 3.0, maxLife: 3.0,
           });
 
@@ -3187,6 +3278,7 @@ class Game {
     document.getElementById('combatControls').style.display = 'none';
     this.closeUpgPanel();
     document.getElementById('hud').style.display = 'none';
+    stopMusic();
   }
 
   waveCompleted() {
@@ -3211,6 +3303,7 @@ class Game {
     document.getElementById('buildUI').style.display = 'flex';
     document.getElementById('combatControls').style.display = 'none';
     document.getElementById('hudPhase').textContent = 'VORBEREITEN';
+    playMusic('drifting');
 
     this.stationShield = Math.min(this.stationMaxShield, this.stationShield + 15);
 
@@ -3267,6 +3360,7 @@ class Game {
     this.enemies = [];
     this.projectiles = [];
     this.enemyProjectiles = [];
+    stopMusic();
   }
 
   newRun() {
@@ -3281,6 +3375,7 @@ class Game {
     this.enemyProjectiles = [];
     this.particles = [];
     this.damageNumbers = [];
+    playMusic('drifting');
   }
 
   // -- Update --
@@ -3816,7 +3911,7 @@ class Game {
     // Draw weapon sprite with CORRECT ASPECT RATIO
     const spriteImg = IMAGES.weapons[b.sprite];
     if (spriteImg && spriteImg.complete && spriteImg.naturalWidth > 0) {
-      const baseSize = this.isMobile ? 48 : 42;
+      const baseSize = this.isMobile ? 36 : 42;
       const nw = spriteImg.naturalWidth;
       const nh = spriteImg.naturalHeight;
       const aspect = nw / nh;
