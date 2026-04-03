@@ -1698,7 +1698,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.9.2 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.9.3 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2080,11 +2080,11 @@ function stopMusic() {
 
 // -- Station Data --
 const STATIONS = [
-  { id: 0, name: "Crusader", hp: 800, shield: 200, energyCore: 8, dmgBonus: 0.15, slotCount: 4, energyPool: 100, tier: 0, waveReq: 0, desc: "Offensiv", sprite: 0 },
-  { id: 1, name: "Starshield", hp: 1200, shield: 400, energyCore: 15, dmgBonus: 0.0, slotCount: 4, energyPool: 100, tier: 0, waveReq: 0, desc: "Defensiv", sprite: 1 },
-  { id: 2, name: "Crusader Mk.II", hp: 900, shield: 250, energyCore: 10, dmgBonus: 0.30, slotCount: 6, energyPool: 150, tier: 1, waveReq: 50, desc: "Offensiv+", sprite: 2 },
-  { id: 3, name: "Starshield Mk.II", hp: 1600, shield: 600, energyCore: 22, dmgBonus: 0.0, slotCount: 6, energyPool: 150, tier: 1, waveReq: 50, desc: "Defensiv+", sprite: 3 },
-  { id: 4, name: "Nexus", hp: 1400, shield: 500, energyCore: 16, dmgBonus: 0.20, slotCount: 8, energyPool: 200, tier: 2, waveReq: 100, desc: "Hybrid", sprite: 4 },
+  { id: 0, name: "Crusader", hp: 800, shield: 200, energyCore: 8, dmgBonus: 0.30, basePierce: 5, baseSys: 5, slotCount: 4, energyPool: 100, tier: 0, waveReq: 0, desc: "Offensiv", sprite: 0 },
+  { id: 1, name: "Starshield", hp: 1200, shield: 400, energyCore: 15, dmgBonus: 0.0, basePierce: 0, baseSys: 0, slotCount: 4, energyPool: 100, tier: 0, waveReq: 0, desc: "Defensiv", sprite: 1 },
+  { id: 2, name: "Crusader Mk.II", hp: 900, shield: 250, energyCore: 10, dmgBonus: 0.30, basePierce: 5, baseSys: 5, slotCount: 6, energyPool: 150, tier: 1, waveReq: 50, desc: "Offensiv+", sprite: 2 },
+  { id: 3, name: "Starshield Mk.II", hp: 1600, shield: 600, energyCore: 22, dmgBonus: 0.0, basePierce: 0, baseSys: 0, slotCount: 6, energyPool: 150, tier: 1, waveReq: 50, desc: "Defensiv+", sprite: 3 },
+  { id: 4, name: "Nexus", hp: 1400, shield: 500, energyCore: 16, dmgBonus: 0.20, basePierce: 3, baseSys: 3, slotCount: 8, energyPool: 200, tier: 2, waveReq: 100, desc: "Hybrid", sprite: 4 },
 ];
 
 // -- Weapon Definitions (all 10 RoF, damage adjusted for similar DPS) --
@@ -2788,7 +2788,13 @@ class Game {
     const skMap = { dmg: 'sk_dmg', rof: 'sk_rof', range: 'sk_range', pierce: 'sk_pierce', syshit: 'sk_syshit', hull: 'sk_hull', shield: 'sk_shield', energy: 'sk_energy', reserve: 'sk_reserve', vsuKill: 'sk_vsu_kill', vsuWave: 'sk_vsu_wave', epKill: 'sk_ep_kill', epWave: 'sk_ep_wave', repairEff: 'sk_repair_eff', repairCost: 'sk_repair_cost' };
     const skKey = skMap[key];
     const skBonus = skKey ? this.getSkillBonus(skKey) : 0;
-    return runBonus + skBonus;
+    // Station base bonuses
+    let stationBase = 0;
+    if (this.station) {
+      if (key === 'pierce') stationBase = this.station.basePierce || 0;
+      else if (key === 'syshit') stationBase = this.station.baseSys || 0;
+    }
+    return runBonus + skBonus + stationBase;
   }
 
   buyUpgrade(key) {
@@ -3074,6 +3080,8 @@ class Game {
         <div class="station-stat"><span class="label">Schild</span><span class="val def">${s.shield}</span></div>
         <div class="station-stat"><span class="label">Energiekern</span><span class="val cyan">${s.energyCore}/s</span></div>
         <div class="station-stat"><span class="label">Damage</span><span class="val dmg">+${Math.round(s.dmgBonus*100)}%</span></div>
+        <div class="station-stat"><span class="label">Pierce</span><span class="val dmg">${s.basePierce}%</span></div>
+        <div class="station-stat"><span class="label">Systemtreffer</span><span class="val dmg">${s.baseSys}%</span></div>
         <div class="station-stat"><span class="label">Energie</span><span class="val cyan">${s.energyPool}%</span></div>
         <div class="station-slots">${s.slotCount} WAFFEN-SLOTS</div>
         `}
