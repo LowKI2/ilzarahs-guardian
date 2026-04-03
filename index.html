@@ -357,14 +357,13 @@ canvas {
   min-height: 40px;
   border-radius: 4px;
   flex: 1;
-  max-width: 100px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 1px;
-  overflow: hidden;
+  overflow: visible;
   white-space: nowrap;
-  text-overflow: ellipsis;
 }
 
 .build-btn img {
@@ -703,7 +702,7 @@ canvas {
 }
 
 @media (min-width: 600px) {
-  .build-btn { font-size: 11px; padding: 10px 12px; min-width: 70px; max-width: 130px; letter-spacing: 0.5px; }
+  .build-btn { font-size: 11px; padding: 10px 12px; min-width: 70px; letter-spacing: 0.5px; }
   .build-btn img { width: 28px; height: 28px; }
   .build-btn.start-combat { font-size: 13px; max-width: 150px; }
 }
@@ -1726,7 +1725,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.9.9 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.9.10 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
