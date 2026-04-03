@@ -1576,7 +1576,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.5.2 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.5.3 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -3437,12 +3437,13 @@ class Game {
             size: 40 + hitEnemy.tier * 8,
           });
 
-          // Wreck — delayed spawn, appears near end of explosion, fades over 5s
+          // Wreck — appears instantly with explosion, fades over 5s
           this.wrecks.push({
             x: hitEnemy.x, y: hitEnemy.y,
             rotation: hitEnemy.rotation || Math.random() * Math.PI * 2,
             tier: hitEnemy.tier,
-            delay: 2.0, // wait for explosion to almost finish
+            delay: 0,
+            spawnAge: 0, // for scale-in animation
             life: 5.0, maxLife: 5.0,
             looted: false,
             vsuReward: hitEnemy.tier >= 3 ? 10 : 5 + Math.floor(Math.random() * 6),
@@ -3836,6 +3837,7 @@ class Game {
     this.shieldHits = this.shieldHits.filter(h => { h.life -= dt; return h.life > 0; });
     this.wrecks = this.wrecks.filter(w => {
       if (w.delay > 0) { w.delay -= dt; return true; }
+      w.spawnAge = (w.spawnAge || 0) + dt;
       w.life -= dt; return w.life > 0;
     });
     this.explosions = this.explosions.filter(e => { e.life -= dt; return e.life > 0; });
@@ -4150,9 +4152,12 @@ class Game {
       const wreckImg = IMAGES.wrecks[w.tier % IMAGES.wrecks.length];
       if (wreckImg && wreckImg.complete && wreckImg.naturalWidth > 0) {
         const s = 28 + w.tier * 4;
+        const age = w.spawnAge || 0;
+        const scaleIn = age < 0.3 ? 0.5 + 0.5 * (age / 0.3) : 1.0;
         ctx.save();
         ctx.translate(w.x, w.y);
         ctx.rotate(w.rotation);
+        ctx.scale(scaleIn, scaleIn);
         ctx.globalAlpha = alpha * 0.8;
         ctx.imageSmoothingEnabled = false;
         ctx.drawImage(wreckImg, -s / 2, -s / 2, s, s);
