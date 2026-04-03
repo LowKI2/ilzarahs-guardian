@@ -719,6 +719,15 @@ canvas {
 .upg-panel.defense .upg-panel-title { color: #00B4DC; border-color: rgba(0,180,220,0.3); }
 .upg-panel.resource .upg-panel-title { color: #50C850; border-color: rgba(80,200,80,0.3); }
 
+.upg-station-info {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  padding: 2px 0 4px;
+  border-bottom: 1px solid rgba(100,120,140,0.1);
+  margin-bottom: 2px;
+}
+
 .upg-row {
   display: flex;
   align-items: center;
@@ -1676,7 +1685,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.7.1 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.7.2 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -1689,6 +1698,7 @@ canvas {
 
   <div class="upg-panel attack" id="upgPanelAttack">
     <div class="upg-panel-title">Angriff</div>
+    <div class="upg-station-info" id="upgStationAttack"></div>
     <div class="upg-row"><div class="upg-info"><div class="upg-name">Basisschaden</div><div class="upg-val" id="upgValDmg">+0%</div></div><button class="upg-buy" id="upgBuyDmg">-- VSU</button></div>
     <div class="upg-row"><div class="upg-info"><div class="upg-name">Feuerrate</div><div class="upg-val" id="upgValRof">+0%</div></div><button class="upg-buy" id="upgBuyRof">-- VSU</button></div>
     <div class="upg-row"><div class="upg-info"><div class="upg-name">Reichweite</div><div class="upg-val" id="upgValRange">+0%</div></div><button class="upg-buy" id="upgBuyRange">-- VSU</button></div>
@@ -1698,10 +1708,12 @@ canvas {
 
   <div class="upg-panel defense" id="upgPanelDefense">
     <div class="upg-panel-title">Verteidigung</div>
+    <div class="upg-station-info" id="upgStationDefense"></div>
     <div class="upg-row"><div class="upg-info"><div class="upg-name">Hülle verstärken</div><div class="upg-val" id="upgValHull">+0%</div></div><button class="upg-buy" id="upgBuyHull">-- VSU</button></div>
     <div class="upg-row"><div class="upg-info"><div class="upg-name">Schild verstärken</div><div class="upg-val" id="upgValShield">+0%</div></div><button class="upg-buy" id="upgBuyShield">-- VSU</button></div>
     <div class="upg-row"><div class="upg-info"><div class="upg-name">Energie erhöhen</div><div class="upg-val" id="upgValEnergy">+0%</div></div><button class="upg-buy" id="upgBuyEnergy">-- VSU</button></div>
     <div class="upg-row"><div class="upg-info"><div class="upg-name">Notreserve</div><div class="upg-val" id="upgValReserve">+0%</div></div><button class="upg-buy" id="upgBuyReserve">-- VSU</button></div>
+    <div class="upg-row"><div class="upg-info"><div class="upg-name">Energieverbrauch</div><div class="upg-val" id="upgValEnergySave">-0%</div></div><button class="upg-buy" id="upgBuyEnergySave">-- VSU</button></div>
   </div>
 
   <div class="upg-panel resource" id="upgPanelResource">
@@ -2371,7 +2383,7 @@ class Game {
     autoBtn.addEventListener('touchend', (e) => { e.preventDefault(); autoFn(); });
 
     // Upgrade buy buttons
-    const upgBuys = { Dmg: 'dmg', Rof: 'rof', Range: 'range', Pierce: 'pierce', Syshit: 'syshit', Hull: 'hull', Shield: 'shield', Energy: 'energy', Reserve: 'reserve', VsuKill: 'vsuKill', VsuWave: 'vsuWave', EpKill: 'epKill', EpWave: 'epWave', RepairEff: 'repairEff', RepairCost: 'repairCost' };
+    const upgBuys = { Dmg: 'dmg', Rof: 'rof', Range: 'range', Pierce: 'pierce', Syshit: 'syshit', Hull: 'hull', Shield: 'shield', Energy: 'energy', Reserve: 'reserve', EnergySave: 'energySave', VsuKill: 'vsuKill', VsuWave: 'vsuWave', EpKill: 'epKill', EpWave: 'epWave', RepairEff: 'repairEff', RepairCost: 'repairCost' };
     for (const [suffix, key] of Object.entries(upgBuys)) {
       const btn = document.getElementById(`upgBuy${suffix}`);
       const fn = () => this.buyUpgrade(key);
@@ -2740,6 +2752,7 @@ class Game {
     shield:    { label: 'Schild verstärken',  cat: 'defense',  perLevel: 5 },
     energy:    { label: 'Energie erhöhen',    cat: 'defense',  perLevel: 4 },
     reserve:   { label: 'Notreserve',         cat: 'defense',  perLevel: 2 },
+    energySave:{ label: 'Energieverbrauch',   cat: 'defense',  perLevel: 5, maxLevel: 6 },
     vsuKill:   { label: 'VSU bei Abschuss',   cat: 'resource', perLevel: 8 },
     vsuWave:   { label: 'VSU bei Wellenende', cat: 'resource', perLevel: 6 },
     epKill:    { label: 'EP bei Abschuss',    cat: 'resource', perLevel: 5 },
@@ -2768,6 +2781,8 @@ class Game {
   }
 
   buyUpgrade(key) {
+    const def = Game.UPG_DEFS[key];
+    if (def.maxLevel && this.runUpgrades[key] >= def.maxLevel) return;
     const cost = this.getUpgCost(key);
     if (this.vsu < cost || this.state !== 'build') return;
     this.vsu -= cost;
@@ -2877,18 +2892,39 @@ class Game {
     // Update values + costs for each upgrade row
     const ids = {
       dmg: 'Dmg', rof: 'Rof', range: 'Range', pierce: 'Pierce', syshit: 'Syshit',
-      hull: 'Hull', shield: 'Shield', energy: 'Energy', reserve: 'Reserve',
+      hull: 'Hull', shield: 'Shield', energy: 'Energy', reserve: 'Reserve', energySave: 'EnergySave',
       vsuKill: 'VsuKill', vsuWave: 'VsuWave', epKill: 'EpKill', epWave: 'EpWave',
       repairEff: 'RepairEff', repairCost: 'RepairCost',
     };
     for (const [key, suffix] of Object.entries(ids)) {
       const val = document.getElementById(`upgVal${suffix}`);
       const btn = document.getElementById(`upgBuy${suffix}`);
-      if (val) val.textContent = `+${this.getUpgBonus(key)}% (Lv.${this.runUpgrades[key]})`;
+      const def = Game.UPG_DEFS[key];
+      const atMax = def.maxLevel && this.runUpgrades[key] >= def.maxLevel;
+      if (val) {
+        const prefix = key === 'energySave' ? '-' : '+';
+        val.textContent = `${prefix}${this.getUpgBonus(key)}% (Lv.${this.runUpgrades[key]})`;
+      }
       if (btn) {
-        const cost = this.getUpgCost(key);
-        btn.textContent = `${cost} VSU`;
-        btn.disabled = this.vsu < cost;
+        if (atMax) {
+          btn.textContent = 'MAX';
+          btn.disabled = true;
+        } else {
+          const cost = this.getUpgCost(key);
+          btn.textContent = `${cost} VSU`;
+          btn.disabled = this.vsu < cost;
+        }
+      }
+    }
+
+    // Station info in panels
+    if (this.station) {
+      const atkInfo = document.getElementById('upgStationAttack');
+      if (atkInfo) atkInfo.textContent = `${this.station.name} — Schaden +${Math.round(this.station.dmgBonus * 100)}%`;
+      const defInfo = document.getElementById('upgStationDefense');
+      if (defInfo) {
+        const eSave = this.getUpgBonus('energySave');
+        defInfo.textContent = `${this.station.name} — Energie ${this.getEffectiveEnergyPool()}/${this.station.energyPool}% | Kern ${this.shieldRegenRate.toFixed(0)}/s`;
       }
     }
 
@@ -3065,7 +3101,7 @@ class Game {
     // In-Run upgrades (VSU, temporary per run)
     this.runUpgrades = {
       dmg: 0, rof: 0, range: 0, pierce: 0, syshit: 0,          // attack
-      hull: 0, shield: 0, energy: 0, reserve: 0,                // defense
+      hull: 0, shield: 0, energy: 0, reserve: 0, energySave: 0,  // defense
       vsuKill: 0, vsuWave: 0, epKill: 0, epWave: 0, repairEff: 0, repairCost: 0, // resources
     };
     this.activeUpgPanel = null;
@@ -3196,7 +3232,7 @@ class Game {
     const u = this.runUpgrades;
     const badges = {
       Attack: u.dmg + u.rof + u.range + u.pierce + u.syshit,
-      Defense: u.hull + u.shield + u.energy + u.reserve,
+      Defense: u.hull + u.shield + u.energy + u.reserve + u.energySave,
       Resource: u.vsuKill + u.vsuWave + u.epKill + u.epWave + u.repairEff + u.repairCost,
     };
     for (const [cat, val] of Object.entries(badges)) {
@@ -3317,7 +3353,14 @@ class Game {
   }
 
   getEnergyPool() {
-    return this.station ? this.station.energyPool : 100;
+    return this.getEffectiveEnergyPool();
+  }
+
+  getEffectiveEnergyPool() {
+    if (!this.station) return 100;
+    // energySave reduces consumption = effectively increases pool
+    const saveBonus = this.getUpgBonus('energySave');
+    return Math.round(this.station.energyPool * (1 + saveBonus / 100));
   }
 
   getRemainingEnergy() {
