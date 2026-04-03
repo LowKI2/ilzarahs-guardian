@@ -1726,7 +1726,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.9.6 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.9.7 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2572,8 +2572,25 @@ class Game {
 
   startFromMenu() {
     playSound('confirm');
+
+    // If an active run exists, ask to end it first
+    if (this.hasSavedRun()) {
+      const ok = confirm('Du hast einen laufenden Run. Wenn du einen neuen Run startest, wird der aktuelle beendet und abgerechnet. Fortfahren?');
+      if (!ok) return;
+
+      const data = JSON.parse(localStorage.getItem('ilzarah_runState'));
+      const epKillBonus = 1 + this.getTotalBonus('epKill') / 100;
+      const epEarned = Math.floor(((data.wave || 1) * 3 + (data.kills || 0) * 0.3) * epKillBonus);
+      this.totalEP += epEarned;
+      this.saveEP();
+      this.clearRunState();
+      this.showBanner(`Run abgerechnet: +${epEarned} EP`);
+    }
+
+    // Go to station select (not directly into a new run)
     document.getElementById('mainMenu').style.display = 'none';
     document.getElementById('stationSelect').style.display = 'flex';
+    document.getElementById('btnContinueRun').style.display = 'none';
     this.state = 'menu';
     this.renderStationSelect();
   }
