@@ -889,35 +889,27 @@ canvas {
 /* -- Turret Stats Overlay -- */
 #turretStatsOverlay {
   position: absolute;
-  bottom: 8px;
+  bottom: 52px;
   right: 8px;
   display: none;
-  flex-direction: column;
-  gap: 4px;
-  z-index: 8;
+  align-items: flex-end;
+  z-index: 18;
   pointer-events: none;
-  max-width: 200px;
+  background: rgba(10,12,16,0.7);
+  border: 1px solid rgba(100,120,140,0.15);
+  border-radius: 3px;
+  padding: 3px 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  gap: 10px;
+  white-space: nowrap;
 }
 
 #turretStatsOverlay.visible { display: flex; }
 
-.ts-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(10,12,16,0.7);
-  border: 1px solid rgba(100,120,140,0.15);
-  border-radius: 3px;
-  padding: 3px 8px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-dim);
-  line-height: 1.4;
-}
-
 .ts-name {
   color: var(--amber);
-  min-width: 48px;
 }
 
 .ts-val {
@@ -1675,7 +1667,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.6.3 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.6.4 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -4081,26 +4073,22 @@ class Game {
     const sysHitChance = this.getTotalBonus('syshit');
     const critChance = this.station ? this.station.crit : 0;
 
-    let html = '';
+    let parts = [];
     for (const [key, info] of Object.entries(turretMap)) {
       const baseDmg = info.def.damage * dmgMult;
       const effectiveRof = info.def.fireRate * rofMult;
       const dps = baseDmg * effectiveRof * info.count;
-      const avgDps = dps * (1 + critChance); // crits do 2x, so avg = dps * (1 + critChance)
-      html += `<div class="ts-row">` +
-        `<span class="ts-name">${info.def.name}${info.count > 1 ? ' x' + info.count : ''}</span>` +
-        `<span class="ts-val">${avgDps.toFixed(1)} DPS</span>` +
-        `</div>`;
+      const avgDps = dps * (1 + critChance);
+      parts.push(`<span class="ts-name">${info.def.name}${info.count > 1 ? ' x' + info.count : ''}</span>` +
+        `<span class="ts-val">${avgDps.toFixed(1)} DPS</span>`);
     }
+    parts.push(
+      `<span class="ts-val">Pierce ${(pierceChance * 100).toFixed(0)}%</span>`,
+      `<span class="ts-val">Sys ${sysHitChance.toFixed(0)}%</span>`,
+      `<span class="ts-val">Crit ${(critChance * 100).toFixed(0)}%</span>`
+    );
 
-    // Global stats row
-    html += `<div class="ts-row" style="border-top:1px solid rgba(100,120,140,0.25);margin-top:2px;padding-top:5px;">` +
-      `<span class="ts-val">Pierce ${(pierceChance * 100).toFixed(0)}%</span>` +
-      `<span class="ts-val">Sys ${sysHitChance.toFixed(0)}%</span>` +
-      `<span class="ts-val">Crit ${(critChance * 100).toFixed(0)}%</span>` +
-      `</div>`;
-
-    overlay.innerHTML = html;
+    overlay.innerHTML = parts.join('<span style="color:rgba(100,120,140,0.3)">|</span>');
     overlay.classList.add('visible');
   }
 
