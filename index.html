@@ -1726,7 +1726,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.9.8 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.9.9 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -1973,6 +1973,50 @@ const IMAGES = {};
 const SOUNDS = {};
 let assetsLoaded = false;
 
+// Check if an image or canvas is ready to draw
+function isDrawable(img) {
+  if (!img) return false;
+  if (img instanceof HTMLCanvasElement) return img.width > 0;
+  return img.complete && img.naturalWidth > 0;
+}
+
+// Pre-render large sprites to medium resolution to avoid downscaling artifacts
+// Uses an offscreen canvas with smoothing enabled for clean scaling
+function downsampleSprite(img, maxSize) {
+  if (!img || !img.complete || !img.naturalWidth) return img;
+  const w = img.naturalWidth;
+  const h = img.naturalHeight;
+  if (w <= maxSize && h <= maxSize) return img; // already small enough
+  const scale = maxSize / Math.max(w, h);
+  const oc = document.createElement('canvas');
+  oc.width = Math.round(w * scale);
+  oc.height = Math.round(h * scale);
+  const octx = oc.getContext('2d');
+  octx.imageSmoothingEnabled = true;
+  octx.imageSmoothingQuality = 'high';
+  octx.drawImage(img, 0, 0, oc.width, oc.height);
+  return oc; // canvas can be used as drawImage source
+}
+
+function prepareSpriteCache() {
+  // Stations: rendered at ~120-260px, source is 1440px → cache at 512px
+  for (let i = 0; i < IMAGES.stations.length; i++) {
+    IMAGES.stations[i] = downsampleSprite(IMAGES.stations[i], 512);
+  }
+  // Enemies: rendered at ~30-80px, source is 1376px → cache at 256px
+  for (let i = 0; i < IMAGES.enemies.length; i++) {
+    IMAGES.enemies[i] = downsampleSprite(IMAGES.enemies[i], 256);
+  }
+  // Wrecks: rendered at ~28-40px, source similar → cache at 128px
+  for (let i = 0; i < IMAGES.wrecks.length; i++) {
+    IMAGES.wrecks[i] = downsampleSprite(IMAGES.wrecks[i], 128);
+  }
+  // Weapons: rendered at ~36-42px, source is 1440px → cache at 128px
+  for (const key of Object.keys(IMAGES.weapons)) {
+    IMAGES.weapons[key] = downsampleSprite(IMAGES.weapons[key], 128);
+  }
+}
+
 function loadAssets() {
   return new Promise((resolve) => {
     let total = 0;
@@ -1982,6 +2026,7 @@ function loadAssets() {
       loaded++;
       if (loaded >= total) {
         assetsLoaded = true;
+        prepareSpriteCache();
         resolve();
       }
     }
@@ -4843,7 +4888,7 @@ class Game {
       if (w.delay > 0) continue;
       const alpha = w.life / w.maxLife;
       const wreckImg = IMAGES.wrecks[w.tier % IMAGES.wrecks.length];
-      if (wreckImg && wreckImg.complete && wreckImg.naturalWidth > 0) {
+      if (isDrawable(wreckImg)) {
         const s = 28 + w.tier * 4;
         const age = w.spawnAge || 0;
         const scaleIn = age < 0.3 ? 0.5 + 0.5 * (age / 0.3) : 1.0;
@@ -4852,9 +4897,7 @@ class Game {
         ctx.rotate(w.rotation);
         ctx.scale(scaleIn, scaleIn);
         ctx.globalAlpha = alpha * 0.8;
-        ctx.imageSmoothingEnabled = false;
         ctx.drawImage(wreckImg, -s / 2, -s / 2, s, s);
-        ctx.imageSmoothingEnabled = true;
         ctx.restore();
 
         // Loot glow for unlootted wrecks
@@ -4891,7 +4934,7 @@ class Game {
       const alpha = p.life / p.maxLife;
       if (p.isMuzzleFlash) {
         const img = IMAGES.fx.muzzleSheet;
-        if (img && img.complete && img.naturalWidth > 0) {
+        if (isDrawable(img)) {
           const t = 1 - (p.life / p.maxLife); // 0→1
           const frameCol = Math.min(Math.floor(t * 3), 2); // 0,1,2
           const frameRow = p.muzzleType;
@@ -5032,14 +5075,12 @@ class Game {
     // Draw station sprite — BIGGER, with rotation
     if (this.station) {
       const spriteImg = IMAGES.stations[this.station.sprite];
-      if (spriteImg && spriteImg.complete && spriteImg.naturalWidth > 0) {
+      if (isDrawable(spriteImg)) {
         const s = this.getStationSpriteSize();
         ctx.save();
         ctx.translate(cx, cy);
         ctx.rotate(this.stationRotation);
-        ctx.imageSmoothingEnabled = false;
         ctx.drawImage(spriteImg, -s/2, -s/2, s, s);
-        ctx.imageSmoothingEnabled = true;
         ctx.restore();
       } else {
         // Fallback hexagon
@@ -5270,10 +5311,10 @@ class Game {
 
     // Draw weapon sprite with CORRECT ASPECT RATIO
     const spriteImg = IMAGES.weapons[b.sprite];
-    if (spriteImg && spriteImg.complete && spriteImg.naturalWidth > 0) {
+    if (isDrawable(spriteImg)) {
       const baseSize = this.isMobile ? 36 : 42;
-      const nw = spriteImg.naturalWidth;
-      const nh = spriteImg.naturalHeight;
+      const nw = spriteImg.naturalWidth || spriteImg.width;
+      const nh = spriteImg.naturalHeight || spriteImg.height;
       const aspect = nw / nh;
       let drawW, drawH;
       if (aspect >= 1) {
@@ -5290,9 +5331,7 @@ class Game {
         ctx.shadowBlur = 6;
         ctx.shadowColor = 'rgba(80,160,255,0.35)';
       }
-      ctx.imageSmoothingEnabled = false;
       ctx.drawImage(spriteImg, -drawW/2, -drawH/2, drawW, drawH);
-      ctx.imageSmoothingEnabled = true;
       ctx.restore();
     } else {
       // Fallback circle
@@ -5327,7 +5366,7 @@ class Game {
   renderEnemy(ctx, enemy) {
     const spriteImg = IMAGES.enemies[enemy.tier];
 
-    if (spriteImg && spriteImg.complete && spriteImg.naturalWidth > 0) {
+    if (isDrawable(spriteImg)) {
       const size = enemy.radius * 2.5;
       ctx.save();
       ctx.translate(enemy.x, enemy.y);
@@ -5338,9 +5377,7 @@ class Game {
         ctx.filter = 'brightness(3)';
       }
 
-      ctx.imageSmoothingEnabled = false;
       ctx.drawImage(spriteImg, -size/2, -size/2, size, size);
-      ctx.imageSmoothingEnabled = true;
 
       if (enemy.hitFlash > 0) {
         ctx.filter = 'none';
@@ -5828,7 +5865,7 @@ const game = new Game();
 
     // Draw station sprite
     const img = IMAGES.stations[devStation];
-    if (img && img.complete && img.naturalWidth > 0) {
+    if (isDrawable(img)) {
       g.drawImage(img, offset.x - spriteSize / 2, offset.y - spriteSize / 2, spriteSize, spriteSize);
     } else {
       // Fallback circle
