@@ -1667,7 +1667,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.6.5 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.6.6 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2205,7 +2205,7 @@ class Game {
     this.ep = 0;
     this.totalEP = parseInt(localStorage.getItem('ilzarah_totalEP') || '0', 10) || 0;
     this.totalEPSpent = parseInt(localStorage.getItem('ilzarah_totalEPSpent') || '0', 10) || 0;
-    this.bestWave = 0;
+    this.bestWave = parseInt(localStorage.getItem('ilzarah_bestWave') || '0', 10) || 0;
     // Persistent skill tree state (survives across runs)
     this.skillLevels = {}; // small nodes: { sk_dmg: 3, sk_rof: 1, ... }
     for (const key of Object.keys(SKILL_TREE)) {
@@ -2308,8 +2308,10 @@ class Game {
       localStorage.removeItem('ilzarah_unlockedTech');
       localStorage.removeItem('ilzarah_runState');
       localStorage.removeItem('ilzarah_tutorialDone');
+      localStorage.removeItem('ilzarah_bestWave');
       this.totalEP = 0;
       this.totalEPSpent = 0;
+      this.bestWave = 0;
       this.skillLevels = {};
       this.unlockedTech = new Set();
       this.clearRunState();
@@ -3833,6 +3835,10 @@ class Game {
   triggerGameOver() {
     this.state = 'gameover';
     this.paused = false;
+    if (this.wave > this.bestWave) {
+      this.bestWave = this.wave;
+      localStorage.setItem('ilzarah_bestWave', this.bestWave);
+    }
     this.clearRunState();
     document.getElementById('pauseMenu').classList.remove('visible');
     const epKillBonus = 1 + this.getTotalBonus('epKill') / 100;
@@ -3868,7 +3874,10 @@ class Game {
     }
 
     this.wave++;
-    if (this.wave - 1 > this.bestWave) this.bestWave = this.wave - 1;
+    if (this.wave - 1 > this.bestWave) {
+      this.bestWave = this.wave - 1;
+      localStorage.setItem('ilzarah_bestWave', this.bestWave);
+    }
     this.state = 'build';
     this.repairUsed = false;
     this._reserveUsed = false;
