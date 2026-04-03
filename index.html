@@ -898,7 +898,7 @@ canvas {
 /* -- Turret Stats Overlay -- */
 #turretStatsOverlay {
   position: absolute;
-  bottom: 60px;
+  bottom: 74px;
   right: 8px;
   display: none;
   align-items: flex-end;
@@ -1676,7 +1676,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.7.0 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.7.1 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -4164,6 +4164,13 @@ class Game {
     );
 
     overlay.innerHTML = parts.join('<span style="color:rgba(100,120,140,0.3)">|</span>');
+    // Position above whichever bottom panel is visible
+    const buildUI = document.getElementById('buildUI');
+    const combatCtrl = document.getElementById('combatControls');
+    let panelH = 0;
+    if (buildUI && buildUI.style.display !== 'none') panelH = buildUI.offsetHeight;
+    else if (combatCtrl && combatCtrl.style.display !== 'none') panelH = combatCtrl.offsetHeight;
+    overlay.style.bottom = (panelH + 8) + 'px';
     overlay.classList.add('visible');
   }
 
