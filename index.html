@@ -1145,6 +1145,32 @@ canvas {
   background: rgba(212,130,10,0.1);
 }
 
+.tech-header-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.tech-respec {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  padding: 6px 12px;
+  border: 1px solid rgba(255,51,68,0.3);
+  background: transparent;
+  color: rgba(255,51,68,0.7);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-radius: 4px;
+  min-height: 32px;
+  transition: all 0.15s;
+}
+
+.tech-respec:hover {
+  border-color: rgba(255,51,68,0.6);
+  color: #FF3344;
+  background: rgba(255,51,68,0.1);
+}
+
 /* -- Skill Tree Tabs -- */
 .sk-tabs {
   display: flex;
@@ -1611,7 +1637,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.6.1 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.6.2 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -1697,7 +1723,10 @@ canvas {
     <div class="tech-header">
       <span class="tech-title">Technologie</span>
       <span class="tech-ep" id="techEP">EP: 0</span>
-      <button class="tech-back" id="btnTechBack">Zurueck</button>
+      <div class="tech-header-btns">
+        <button class="tech-respec" id="btnRespec">Neuverteilen</button>
+        <button class="tech-back" id="btnTechBack">Zurueck</button>
+      </div>
     </div>
     <div class="sk-tabs">
       <button class="sk-tab attack active" data-cat="attack">Angriff<span class="sk-tab-info" id="skTabInfoAttack"></span></button>
@@ -2212,6 +2241,9 @@ class Game {
     document.getElementById('btnSettings').addEventListener('touchend', (e) => { e.preventDefault(); this.showSettingsScreen(); });
     document.getElementById('btnTechBack').addEventListener('click', () => this.backToMenu());
     document.getElementById('btnTechBack').addEventListener('touchend', (e) => { e.preventDefault(); this.backToMenu(); });
+    const respecFn = () => { playSound('click'); this.respecSkills(); };
+    document.getElementById('btnRespec').addEventListener('click', respecFn);
+    document.getElementById('btnRespec').addEventListener('touchend', (e) => { e.preventDefault(); respecFn(); });
 
     // Skill tree tabs
     this.activeSkillTab = 'attack';
@@ -2427,6 +2459,28 @@ class Game {
     playSound('confirm');
     this.renderSkillTree();
     this._showSkillTooltip(key); // refresh tooltip
+  }
+
+  respecSkills() {
+    if (this.totalEPSpent <= 0) return;
+    if (!confirm(`Willst du alle Skills zurücksetzen?\n\nDu erhältst ${this.totalEPSpent} EP zurück.`)) return;
+    this.totalEP += this.totalEPSpent;
+    this.totalEPSpent = 0;
+    // Reset all small nodes
+    for (const key of Object.keys(SKILL_TREE)) {
+      if (SKILL_TREE[key].type === 'small') this.skillLevels[key] = 0;
+    }
+    // Reset all big nodes
+    this.unlockedTech = new Set();
+    this.saveEP();
+    localStorage.setItem('ilzarah_totalEPSpent', '0');
+    localStorage.setItem('ilzarah_skillLevels', JSON.stringify(this.skillLevels));
+    localStorage.setItem('ilzarah_unlockedTech', JSON.stringify([...this.unlockedTech]));
+    document.getElementById('techEP').textContent = 'EP: ' + this.totalEP;
+    document.getElementById('skTooltip').classList.remove('visible');
+    playSound('confirm');
+    this.renderSkillTree();
+    this.showBanner('Skills zurückgesetzt!');
   }
 
   // Per-tab node positions (each tree fills its own canvas)
