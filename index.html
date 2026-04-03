@@ -1725,7 +1725,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.9.12 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.9.13 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2954,7 +2954,7 @@ class Game {
     // key: { label, category, perLevel (% bonus per level) }
     dmg:       { label: 'Basisschaden',       cat: 'attack',   perLevel: 5 },
     rof:       { label: 'Feuerrate',          cat: 'attack',   perLevel: 4 },
-    range:     { label: 'Reichweite',         cat: 'attack',   perLevel: 3 },
+    range:     { label: 'Reichweite',         cat: 'attack',   perLevel: 3, maxLevel: 10 },
     pierce:    { label: 'Durchschuss',        cat: 'attack',   perLevel: 3 },
     syshit:    { label: 'Systemtreffer',      cat: 'attack',   perLevel: 2 },
     hull:      { label: 'Hülle verstärken',   cat: 'defense',  perLevel: 5 },
@@ -3971,7 +3971,8 @@ class Game {
         while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
         while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
         // Fast enemies evade rockets — reduced turn rate
-        const turnRate = p.targetEnemy.specialType === 'fast' ? 1.5 : 4.0;
+        // Fast enemies evade rockets — near-zero homing, rockets fly past
+        const turnRate = p.targetEnemy.specialType === 'fast' ? 0.3 : 4.0;
         const maxTurn = turnRate * dt;
         p.angle += Math.max(-maxTurn, Math.min(maxTurn, angleDiff));
         p.vx = Math.cos(p.angle) * p.speed;
