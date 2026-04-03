@@ -562,7 +562,7 @@ canvas {
 
 @media (min-width: 600px) {
   #btnPauseMenu { top: 8px; right: 16px; width: 36px; height: 36px; font-size: 18px; }
-  #btnFullscreen { top: 8px; right: 58px; }
+  #btnFullscreen { top: 8px; right: 56px; width: 36px; height: 36px; }
 }
 
 #btnFullscreen {
@@ -1443,7 +1443,8 @@ canvas {
       <h1 class="mm-title"><span style="margin-bottom:-14px;display:block;">Guardian</span><span class="mm-title-of">of</span><br>Ilzarah</h1>
       <div class="mm-subtitle">// PROTOTYPE //</div>
       <div class="mm-buttons">
-        <button class="mm-btn mm-btn-primary" id="btnRunStart">Run Starten</button>
+        <button class="mm-btn mm-btn-primary" id="btnContinueRun" style="display:none">Run Fortsetzen</button>
+        <button class="mm-btn mm-btn-primary" id="btnRunStart">Neuer Run</button>
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
@@ -1508,7 +1509,7 @@ canvas {
       <div class="go-stat"><div class="go-val" id="goEP">0</div><div class="go-label">EP Erhalten</div></div>
       <div class="go-stat"><div class="go-val" id="goKills">0</div><div class="go-label">Kills</div></div>
     </div>
-    <button class="go-btn" id="btnNewRun">Neuer Run</button>
+    <button class="go-btn" id="btnNewRun">Hauptmenü</button>
   </div>
 
   <div id="tooltip"></div>
@@ -1622,7 +1623,7 @@ const ASSET_PATHS = {
     'assets/sprites/enemies/wreck5.png',
   ],
   fx: {
-    explosion: 'assets/fx/explosion (1).gif',
+    explosionSheet: 'assets/fx/explosionship_grid.png',
     muzzleSheet: 'assets/fx/muzzle.png',
   },
   sfx: {
@@ -2011,6 +2012,9 @@ class Game {
     document.getElementById('btnNewRun').addEventListener('touchend', (e) => { e.preventDefault(); this.newRun(); });
 
     // Main Menu buttons
+    const continueFn = () => { playSound('confirm'); this.loadRunState(); };
+    document.getElementById('btnContinueRun').addEventListener('click', continueFn);
+    document.getElementById('btnContinueRun').addEventListener('touchend', (e) => { e.preventDefault(); continueFn(); });
     document.getElementById('btnRunStart').addEventListener('click', () => this.startFromMenu());
     document.getElementById('btnRunStart').addEventListener('touchend', (e) => { e.preventDefault(); this.startFromMenu(); });
     document.getElementById('btnTech').addEventListener('click', () => this.showTechScreen());
@@ -2114,6 +2118,8 @@ class Game {
     this.state = 'mainmenu';
     document.getElementById('mainMenu').style.display = 'flex';
     document.getElementById('stationSelect').style.display = 'none';
+    // Show continue button if a saved run exists
+    document.getElementById('btnContinueRun').style.display = this.hasSavedRun() ? '' : 'none';
     playMusic('drifting');
     this.loop(0);
   }
@@ -2128,6 +2134,22 @@ class Game {
 
   showTechScreen() {
     playSound('click');
+
+    // If an active run exists, ask to end it first
+    if (this.hasSavedRun()) {
+      const ok = confirm('Du hast einen laufenden Run. Wenn du den Technologie-Baum öffnest, wird der Run beendet und abgerechnet. Fortfahren?');
+      if (!ok) return;
+
+      // Settle the run
+      const data = JSON.parse(localStorage.getItem('ilzarah_runState'));
+      const epKillBonus = 1 + this.getTotalBonus('epKill') / 100;
+      const epEarned = Math.floor(((data.wave || 1) * 3 + (data.kills || 0) * 0.3) * epKillBonus);
+      this.totalEP += epEarned;
+      this.saveEP();
+      this.clearRunState();
+      this.showBanner(`Run abgerechnet: +${epEarned} EP`);
+    }
+
     document.getElementById('mainMenu').style.display = 'none';
     document.getElementById('techScreen').style.display = 'flex';
     document.getElementById('techEP').textContent = 'EP: ' + this.totalEP;
@@ -2438,6 +2460,7 @@ class Game {
     this.applyDefenseUpgrades(key);
     this.updateUpgradeUI();
     this.updateHUD();
+    this.saveRunState();
     playSound('click');
   }
 
@@ -2746,6 +2769,8 @@ class Game {
     this.updateUpgradeUI();
     this.showBanner(`WELLE ${this.wave} — VORBEREITEN`);
     this.updateHUD();
+    this.clearRunState(); // new run starts fresh
+    this.saveRunState();
     playSound('confirm');
     playMusic('drifting');
   }
@@ -2924,19 +2949,22 @@ class Game {
     menu.style.top = (sy + 20) + 'px';
     menu.classList.add('visible');
 
-    // Close on outside click
-    const close = (e) => {
+    // Close on outside click — but don't consume the event so slots still work
+    this._slotMenuCloseHandler = (e) => {
       if (!menu.contains(e.target)) {
         this.closeSlotMenu();
-        document.removeEventListener('pointerdown', close);
       }
     };
-    setTimeout(() => document.addEventListener('pointerdown', close), 10);
+    setTimeout(() => document.addEventListener('pointerdown', this._slotMenuCloseHandler), 10);
   }
 
   closeSlotMenu() {
     document.getElementById('slotMenu').classList.remove('visible');
     this._menuSlot = null;
+    if (this._slotMenuCloseHandler) {
+      document.removeEventListener('pointerdown', this._slotMenuCloseHandler);
+      this._slotMenuCloseHandler = null;
+    }
   }
 
   buildWeaponOnSlot(slot, weaponKey, cost) {
@@ -2956,6 +2984,7 @@ class Game {
     };
     this.updateHUD();
     this.updateBuildBar();
+    this.saveRunState();
     playSound('confirm');
 
     for (let i = 0; i < 8; i++) {
@@ -3125,21 +3154,8 @@ class Game {
       }
 
       if (nearestEnemy && turret.cooldown <= 0) {
-        // Burst fire: 5 shots fast, then 0.3s pause (rockets fire individually)
         const rofMult = 1 + this.getTotalBonus('rof') / 100;
-        const isRocket = turret.weaponKey && turret.weaponKey.startsWith('rocket');
-        if (isRocket) {
-          turret.cooldown = 1 / (turret.fireRate * rofMult);
-          turret.burstCount = 0;
-        } else {
-          turret.burstCount = (turret.burstCount || 0) + 1;
-          if (turret.burstCount >= 5) {
-            turret.cooldown = 0.3 / rofMult;
-            turret.burstCount = 0;
-          } else {
-            turret.cooldown = 1 / (turret.fireRate * rofMult);
-          }
-        }
+        turret.cooldown = 1 / (turret.fireRate * rofMult);
         const dmg = turret.damage * (1 + this.station.dmgBonus) * (1 + this.getTotalBonus('dmg') / 100);
         const isCrit = Math.random() < this.station.crit;
         const finalDmg = isCrit ? dmg * 2 : dmg;
@@ -3266,11 +3282,11 @@ class Game {
           this.waveEnemiesDefeated++;
           playSound('torpedoexplosion');
 
-          // Explosion sprite (longer duration for slower visual)
+          // Explosion sprite at fixed position
           this.explosions.push({
-            x: hitEnemy.x, y: hitEnemy.y,
-            life: 2.5, maxLife: 2.5,
-            size: 70 + hitEnemy.tier * 12,
+            x: hitEnemy.x + 0, y: hitEnemy.y + 0,
+            life: 0.8, maxLife: 0.8,
+            size: 40 + hitEnemy.tier * 8,
           });
 
           // Wreck — delayed spawn, appears near end of explosion, fades over 5s
@@ -3505,6 +3521,7 @@ class Game {
   triggerGameOver() {
     this.state = 'gameover';
     this.paused = false;
+    this.clearRunState();
     document.getElementById('pauseMenu').classList.remove('visible');
     const epKillBonus = 1 + this.getTotalBonus('epKill') / 100;
     const epEarned = Math.floor((this.wave * 5 + this.kills * 0.5) * epKillBonus);
@@ -3553,6 +3570,7 @@ class Game {
     this.renderBuildButtons();
     this.updateUpgradeUI();
     this.updateHUD();
+    this.saveRunState();
 
     // Auto-combat: start 5 second countdown
     if (this.autoCombat) {
@@ -3585,6 +3603,7 @@ class Game {
 
   quitRun() {
     this.paused = false;
+    this.clearRunState();
     document.getElementById('pauseMenu').classList.remove('visible');
     const epKillBonus2 = 1 + this.getTotalBonus('epKill') / 100;
     const epEarned = Math.floor((this.wave * 3 + this.kills * 0.3) * epKillBonus2);
@@ -3613,6 +3632,7 @@ class Game {
     document.getElementById('gameOverScreen').style.display = 'none';
     document.getElementById('stationSelect').style.display = 'none';
     document.getElementById('mainMenu').style.display = 'flex';
+    document.getElementById('btnContinueRun').style.display = this.hasSavedRun() ? '' : 'none';
     this.state = 'mainmenu';
     this.enemies = [];
     this.projectiles = [];
@@ -3711,6 +3731,121 @@ class Game {
   saveEP() {
     localStorage.setItem('ilzarah_totalEP', this.totalEP);
     localStorage.setItem('ilzarah_totalEPSpent', this.totalEPSpent);
+  }
+
+  // -- Run Persistence --
+  saveRunState() {
+    const slotData = this.slots.map(s => ({
+      hardpoint: s.hardpoint,
+      building: s.building ? {
+        weaponKey: s.building.weaponKey,
+        name: s.building.name,
+        fireRate: s.building.fireRate,
+        damage: s.building.damage,
+        range: s.building.range,
+        projSpeed: s.building.projSpeed,
+        projSize: s.building.projSize,
+        projColor: s.building.projColor,
+        splashRadius: s.building.splashRadius,
+        color: s.building.color,
+      } : null,
+    }));
+
+    const data = {
+      stationId: this.station.id,
+      stationHP: this.stationHP,
+      stationMaxHP: this.stationMaxHP,
+      stationShield: this.stationShield,
+      stationMaxShield: this.stationMaxShield,
+      shieldRegenRate: this.shieldRegenRate,
+      vsu: this.vsu,
+      ep: this.ep,
+      wave: this.wave,
+      kills: this.kills,
+      slots: slotData,
+      runUpgrades: { ...this.runUpgrades },
+      repairUsed: this.repairUsed,
+      _reserveUsed: this._reserveUsed,
+      unlockedTech: [...this.unlockedTech],
+      state: this.state,
+    };
+    localStorage.setItem('ilzarah_runState', JSON.stringify(data));
+  }
+
+  clearRunState() {
+    localStorage.removeItem('ilzarah_runState');
+    document.getElementById('btnContinueRun').style.display = 'none';
+  }
+
+  hasSavedRun() {
+    return !!localStorage.getItem('ilzarah_runState');
+  }
+
+  loadRunState() {
+    const raw = localStorage.getItem('ilzarah_runState');
+    if (!raw) return false;
+    try {
+      const data = JSON.parse(raw);
+      const station = STATIONS.find(s => s.id === data.stationId);
+      if (!station) { this.clearRunState(); return false; }
+
+      this.station = station;
+      this.stationHP = data.stationHP;
+      this.stationMaxHP = data.stationMaxHP;
+      this.stationShield = data.stationShield;
+      this.stationMaxShield = data.stationMaxShield;
+      this.shieldRegenRate = data.shieldRegenRate;
+      this.vsu = data.vsu;
+      this.ep = data.ep || 0;
+      this.wave = data.wave;
+      this.kills = data.kills;
+      this.runUpgrades = data.runUpgrades;
+      this.repairUsed = data.repairUsed || false;
+      this._reserveUsed = data._reserveUsed || false;
+      this.unlockedTech = new Set(data.unlockedTech || []);
+      this.enemies = [];
+      this.projectiles = [];
+      this.enemyProjectiles = [];
+      this.particles = [];
+      this.damageNumbers = [];
+      this.selectedWeapon = null;
+      this.activeUpgPanel = null;
+
+      this.generateSlots();
+
+      // Restore buildings on slots — use full WEAPONS def to get sprite etc.
+      for (let i = 0; i < data.slots.length && i < this.slots.length; i++) {
+        if (data.slots[i].building) {
+          const b = data.slots[i].building;
+          const wDef = WEAPONS[b.weaponKey];
+          if (wDef) {
+            this.slots[i].building = {
+              weaponKey: b.weaponKey,
+              ...wDef,
+              cooldown: 0,
+              targetEnemy: null,
+              barrelAngle: this.slots[i].angle,
+            };
+          }
+        }
+      }
+
+      document.getElementById('mainMenu').style.display = 'none';
+      document.getElementById('stationSelect').style.display = 'none';
+      document.getElementById('hud').style.display = 'flex';
+      document.getElementById('buildUI').style.display = 'flex';
+      document.getElementById('combatControls').style.display = 'none';
+      this.state = 'build';
+      this.renderBuildButtons();
+      this.updateUpgradeUI();
+      this.updateHUD();
+      this.showBanner(`WELLE ${this.wave} — FORTGESETZT`);
+      playMusic('drifting');
+      return true;
+    } catch (e) {
+      this.clearRunState();
+      return false;
+    }
   }
 
   showBanner(text) {
@@ -3812,31 +3947,6 @@ class Game {
       this.renderEnemy(ctx, enemy);
     }
 
-    // Explosions (on top of enemies)
-    for (const e of this.explosions) {
-      const t = 1 - e.life / e.maxLife;
-      const alpha = t < 0.3 ? t / 0.3 : (1 - t) / 0.7; // fade in then out
-      const explosionImg = IMAGES.fx.explosion;
-      if (explosionImg && explosionImg.complete && explosionImg.naturalWidth > 0) {
-        const s = e.size * (0.6 + t * 0.8);
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.drawImage(explosionImg, e.x - s / 2, e.y - s / 2, s, s);
-        ctx.restore();
-      } else {
-        // Fallback: orange flash
-        const grad = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, e.size * (0.5 + t));
-        grad.addColorStop(0, `rgba(255,200,50,${alpha})`);
-        grad.addColorStop(0.5, `rgba(255,100,30,${alpha * 0.5})`);
-        grad.addColorStop(1, `rgba(255,50,20,0)`);
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(e.x, e.y, e.size, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-    ctx.globalAlpha = 1;
-
     // Enemy projectiles — TRACER style
     for (const ep of this.enemyProjectiles) {
       this.renderEnemyProjectile(ctx, ep);
@@ -3910,6 +4020,31 @@ class Game {
     this.renderStationHPBar(ctx);
 
     ctx.restore();
+
+    // Explosions — rendered AFTER shake restore so they stay fixed
+    const explSheet = IMAGES.fx.explosionSheet;
+    const EXPL_COLS = 8, EXPL_ROWS = 6, EXPL_FRAMES = 48;
+    for (const e of this.explosions) {
+      const t = 1 - e.life / e.maxLife;
+      const alpha = t < 0.05 ? t / 0.05 : Math.max(0, 1 - t * 0.5);
+
+      if (explSheet && explSheet.complete && explSheet.naturalWidth > 0) {
+        const frameW = Math.floor(explSheet.naturalWidth / EXPL_COLS);
+        const frameH = Math.floor(explSheet.naturalHeight / EXPL_ROWS);
+        const frame = Math.min(Math.floor(t * EXPL_FRAMES), EXPL_FRAMES - 1);
+        const col = frame % EXPL_COLS;
+        const row = Math.floor(frame / EXPL_COLS);
+        const s = e.size * 1.2;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.drawImage(
+          explSheet,
+          col * frameW, row * frameH, frameW, frameH,
+          Math.round(e.x - s / 2), Math.round(e.y - s / 2), s, s
+        );
+        ctx.restore();
+      }
+    }
   }
 
   renderMenuBackground(ctx, W, H) {
@@ -4501,7 +4636,18 @@ class Game {
       }
     }
 
+    // Close upgrade panels on outside click (canvas counts as outside)
+    if (this.activeUpgPanel) {
+      this.closeUpgPanel();
+    }
+
     if (this.state !== 'build') return;
+
+    // Close current slot menu first, then check if another slot was clicked
+    const hadMenu = !!this._menuSlot;
+    if (hadMenu) {
+      this.closeSlotMenu();
+    }
 
     for (const slot of this.slots) {
       const dx = mx - slot.x;
