@@ -1204,9 +1204,29 @@ canvas {
   background: rgba(212,130,10,0.1);
 }
 
-.tech-header-btns {
-  display: flex;
-  gap: 8px;
+.screen-back-btn {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  padding: 5px 20px;
+  border: 1px solid var(--amber-dim);
+  background: rgba(20,24,32,0.85);
+  color: var(--text-dim);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border-radius: 3px;
+  transition: all 0.15s;
+}
+
+.screen-back-btn:hover {
+  border-color: var(--amber);
+  color: var(--amber-bright);
+  background: rgba(212,130,10,0.1);
 }
 
 .tech-respec-wrap {
@@ -1706,11 +1726,12 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.9.5 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.9.6 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
   <div id="stationSelect">
+    <button class="screen-back-btn" id="btnStationBack">Zurück</button>
     <h1>Guardian of Ilzarah</h1>
     <div class="subtitle">// STATION AUSWAHL //</div>
     <div class="station-grid" id="stationGrid"></div>
@@ -1792,12 +1813,10 @@ canvas {
 
   <!-- TECH SCREEN -->
   <div id="techScreen">
+    <button class="screen-back-btn" id="btnTechBack">Zurück</button>
     <div class="tech-header">
       <span class="tech-title">Technologie</span>
       <span class="tech-ep" id="techEP">EP: 0</span>
-      <div class="tech-header-btns">
-        <button class="tech-back" id="btnTechBack">Zurueck</button>
-      </div>
     </div>
     <div class="sk-tabs">
       <button class="sk-tab attack active" data-cat="attack">Angriff<span class="sk-tab-info" id="skTabInfoAttack"></span></button>
@@ -2332,6 +2351,9 @@ class Game {
     document.getElementById('btnSettings').addEventListener('touchend', (e) => { e.preventDefault(); this.showSettingsScreen(); });
     document.getElementById('btnTechBack').addEventListener('click', () => this.backToMenu());
     document.getElementById('btnTechBack').addEventListener('touchend', (e) => { e.preventDefault(); this.backToMenu(); });
+    const stationBackFn = () => { playSound('click'); document.getElementById('stationSelect').style.display = 'none'; document.getElementById('mainMenu').style.display = 'flex'; this.state = 'mainmenu'; };
+    document.getElementById('btnStationBack').addEventListener('click', stationBackFn);
+    document.getElementById('btnStationBack').addEventListener('touchend', (e) => { e.preventDefault(); stationBackFn(); });
     const respecFn = () => { playSound('click'); this.respecSkills(); };
     document.getElementById('btnRespec').addEventListener('click', respecFn);
     document.getElementById('btnRespec').addEventListener('touchend', (e) => { e.preventDefault(); respecFn(); });
