@@ -777,12 +777,13 @@ canvas {
   background: linear-gradient(165deg, rgba(30,36,48,0.97), rgba(20,24,32,0.99));
   border: 1px solid var(--amber-dim);
   border-radius: 8px;
-  padding: clamp(24px, 5vw, 40px);
+  padding: clamp(20px, 4vw, 36px);
   max-width: 440px;
   width: 90%;
   text-align: center;
   box-shadow: 0 0 60px rgba(212,130,10,0.12), inset 0 1px 0 rgba(255,189,85,0.08);
   animation: tutCardIn 0.35s ease-out;
+  overflow: hidden;
 }
 
 @keyframes tutCardIn {
@@ -844,19 +845,21 @@ canvas {
 .tut-buttons {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
+  width: 100%;
 }
 
 .tut-btn {
   font-family: var(--font-ui);
-  font-size: 13px;
+  font-size: clamp(10px, 2.5vw, 13px);
   text-transform: uppercase;
-  letter-spacing: 2px;
-  padding: 10px 24px;
+  letter-spacing: 1px;
+  padding: 8px 14px;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
-  min-height: 44px;
+  min-height: 40px;
+  white-space: nowrap;
 }
 
 .tut-btn-skip {
@@ -1608,7 +1611,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.5.4 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.5.5 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
