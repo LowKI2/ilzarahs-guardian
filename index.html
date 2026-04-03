@@ -1725,7 +1725,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.9.13 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.9.14 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -4171,10 +4171,23 @@ class Game {
 
     switch (enemy.aiState) {
       case ENEMY_STATE.APPROACH: {
-        // Fly straight toward station
-        enemy.x += Math.cos(angleToStation) * enemy.speed * speedMult * dt;
-        enemy.y += Math.sin(angleToStation) * enemy.speed * speedMult * dt;
-        enemy.rotation = angleToStation;
+        // Fly toward station
+        let moveX = Math.cos(angleToStation) * enemy.speed * speedMult * dt;
+        let moveY = Math.sin(angleToStation) * enemy.speed * speedMult * dt;
+
+        // Fast enemies: sinusoidal weave perpendicular to flight path
+        if (enemy.specialType === 'fast') {
+          enemy._wavePhase = (enemy._wavePhase || 0) + dt * 6;
+          const perpX = -Math.sin(angleToStation);
+          const perpY = Math.cos(angleToStation);
+          const weave = Math.sin(enemy._wavePhase) * enemy.speed * 0.4 * dt;
+          moveX += perpX * weave;
+          moveY += perpY * weave;
+        }
+
+        enemy.x += moveX;
+        enemy.y += moveY;
+        enemy.rotation = Math.atan2(moveY, moveX);
 
         // Enter firing range → start shooting
         if (dist <= enemy.firingRange) {
@@ -4205,9 +4218,21 @@ class Game {
 
       case ENEMY_STATE.STRAFE: {
         // Fly past/through station without shooting
-        enemy.x += Math.cos(enemy.flybyAngle) * enemy.speed * 1.1 * speedMult * dt;
-        enemy.y += Math.sin(enemy.flybyAngle) * enemy.speed * 1.1 * speedMult * dt;
-        enemy.rotation = enemy.flybyAngle;
+        let sX = Math.cos(enemy.flybyAngle) * enemy.speed * 1.1 * speedMult * dt;
+        let sY = Math.sin(enemy.flybyAngle) * enemy.speed * 1.1 * speedMult * dt;
+
+        if (enemy.specialType === 'fast') {
+          enemy._wavePhase = (enemy._wavePhase || 0) + dt * 6;
+          const pX = -Math.sin(enemy.flybyAngle);
+          const pY = Math.cos(enemy.flybyAngle);
+          const weave = Math.sin(enemy._wavePhase) * enemy.speed * 0.4 * dt;
+          sX += pX * weave;
+          sY += pY * weave;
+        }
+
+        enemy.x += sX;
+        enemy.y += sY;
+        enemy.rotation = Math.atan2(sY, sX);
 
         // Once past station and far enough → start turn
         if (dist > enemy.firingRange * 1.2) {
