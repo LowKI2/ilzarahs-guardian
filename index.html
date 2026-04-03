@@ -1667,7 +1667,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.6.4 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.6.5 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2048,11 +2048,11 @@ function stopMusic() {
 
 // -- Station Data --
 const STATIONS = [
-  { id: 0, name: "Crusader", hp: 800, shield: 200, energyCore: 8, dmgBonus: 0.15, crit: 0.05, slotCount: 4, locked: false, desc: "Offensiv", sprite: 0 },
-  { id: 1, name: "Starshield", hp: 1200, shield: 400, energyCore: 15, dmgBonus: 0.0, crit: 0.02, slotCount: 4, locked: false, desc: "Defensiv", sprite: 1 },
-  { id: 2, name: "Crusader Mk.II", hp: 900, shield: 250, energyCore: 10, dmgBonus: 0.30, crit: 0.12, slotCount: 6, locked: true, desc: "Offensiv+", sprite: 2 },
-  { id: 3, name: "Starshield Mk.II", hp: 1600, shield: 600, energyCore: 22, dmgBonus: 0.0, crit: 0.02, slotCount: 6, locked: true, desc: "Defensiv+", sprite: 3 },
-  { id: 4, name: "Nexus", hp: 1400, shield: 500, energyCore: 16, dmgBonus: 0.20, crit: 0.08, slotCount: 8, locked: true, desc: "Hybrid", sprite: 4 },
+  { id: 0, name: "Crusader", hp: 800, shield: 200, energyCore: 8, dmgBonus: 0.15, slotCount: 4, locked: false, desc: "Offensiv", sprite: 0 },
+  { id: 1, name: "Starshield", hp: 1200, shield: 400, energyCore: 15, dmgBonus: 0.0, slotCount: 4, locked: false, desc: "Defensiv", sprite: 1 },
+  { id: 2, name: "Crusader Mk.II", hp: 900, shield: 250, energyCore: 10, dmgBonus: 0.30, slotCount: 6, locked: true, desc: "Offensiv+", sprite: 2 },
+  { id: 3, name: "Starshield Mk.II", hp: 1600, shield: 600, energyCore: 22, dmgBonus: 0.0, slotCount: 6, locked: true, desc: "Defensiv+", sprite: 3 },
+  { id: 4, name: "Nexus", hp: 1400, shield: 500, energyCore: 16, dmgBonus: 0.20, slotCount: 8, locked: true, desc: "Hybrid", sprite: 4 },
 ];
 
 // -- Weapon Definitions (all 10 RoF, damage adjusted for similar DPS) --
@@ -2139,14 +2139,13 @@ function normalizeAngle(a) {
 // Pipeline: Penetration Check → Shield → Armor → Hull → System Hit
 const DAMAGE_SCALE = 15;
 
-function calculateDamage(baseDmg, isCrit, target, sysHitBonus = 0) {
+function calculateDamage(baseDmg, isCrit, target, sysHitBonus = 0, pierceChance = 0) {
   // target = { shield, maxShield, hp, maxHP, armor (0-1), tier }
   // Returns { totalDmg, shieldDmg, hullDmg, penetrated, systemHit }
   const result = { totalDmg: 0, shieldDmg: 0, hullDmg: 0, penetrated: false, systemHit: null };
 
-  // Penetration check: crits always penetrate, else chance based on tier
-  const penChance = isCrit ? 1.0 : (target.tier || 0) * 0.05;
-  result.penetrated = Math.random() < penChance;
+  // Penetration (Pierce): upgrade-based chance, bypasses armor
+  result.penetrated = Math.random() < pierceChance;
 
   let dmg = baseDmg;
 
@@ -3024,7 +3023,6 @@ class Game {
         <div class="station-stat"><span class="label">Schild</span><span class="val def">${s.shield}</span></div>
         <div class="station-stat"><span class="label">Energiekern</span><span class="val cyan">${s.energyCore}/s</span></div>
         <div class="station-stat"><span class="label">Damage</span><span class="val dmg">+${Math.round(s.dmgBonus*100)}%</span></div>
-        <div class="station-stat"><span class="label">Crit</span><span class="val dmg">${Math.round(s.crit*100)}%</span></div>
         <div class="station-slots">${s.slotCount} WAFFEN-SLOTS</div>
       `;
       if (!s.locked) {
@@ -3470,9 +3468,7 @@ class Game {
       if (nearestEnemy && turret.cooldown <= 0) {
         const rofMult = 1 + this.getTotalBonus('rof') / 100;
         turret.cooldown = 1 / (turret.fireRate * rofMult);
-        const dmg = turret.damage * (1 + this.station.dmgBonus) * (1 + this.getTotalBonus('dmg') / 100);
-        const isCrit = Math.random() < this.station.crit;
-        const finalDmg = isCrit ? dmg * 2 : dmg;
+        const finalDmg = turret.damage * (1 + this.station.dmgBonus) * (1 + this.getTotalBonus('dmg') / 100);
 
         // Muzzle position: barrel points at target, muzzle at tip of weapon sprite
         const muzzleDist = (this.isMobile ? 36 : 42) * 0.5;
@@ -3489,7 +3485,7 @@ class Game {
           targetEnemy: nearestEnemy,
           speed: turret.projSpeed,
           damage: finalDmg,
-          isCrit: isCrit,
+          isCrit: false,
           trail: [],
           size: turret.projSize,
           color: '#ffffff',
@@ -3561,7 +3557,7 @@ class Game {
       }
 
       if (hitEnemy) {
-        const dmgResult = calculateDamage(p.damage, p.isCrit, hitEnemy, this.getTotalBonus('syshit'));
+        const dmgResult = calculateDamage(p.damage, p.isCrit, hitEnemy, this.getTotalBonus('syshit'), this.getTotalBonus('pierce') / 100);
         hitEnemy.shield -= dmgResult.shieldDmg;
         hitEnemy.hp -= dmgResult.hullDmg;
         hitEnemy.hitFlash = 0.1;
@@ -3571,7 +3567,7 @@ class Game {
         this.damageNumbers.push({
           x: hitEnemy.x, y: hitEnemy.y - 15,
           value: label + dmgResult.totalDmg.toFixed(1),
-          life: 0.8, maxLife: 0.8, isCrit: p.isCrit || dmgResult.penetrated,
+          life: 0.8, maxLife: 0.8, isCrit: dmgResult.penetrated,
         });
 
         // System hit effects
@@ -4071,21 +4067,18 @@ class Game {
     const rofMult = 1 + this.getTotalBonus('rof') / 100;
     const pierceChance = this.getTotalBonus('pierce') / 100;
     const sysHitChance = this.getTotalBonus('syshit');
-    const critChance = this.station ? this.station.crit : 0;
 
     let parts = [];
     for (const [key, info] of Object.entries(turretMap)) {
       const baseDmg = info.def.damage * dmgMult;
       const effectiveRof = info.def.fireRate * rofMult;
       const dps = baseDmg * effectiveRof * info.count;
-      const avgDps = dps * (1 + critChance);
       parts.push(`<span class="ts-name">${info.def.name}${info.count > 1 ? ' x' + info.count : ''}</span>` +
-        `<span class="ts-val">${avgDps.toFixed(1)} DPS</span>`);
+        `<span class="ts-val">${dps.toFixed(1)} DPS</span>`);
     }
     parts.push(
       `<span class="ts-val">Pierce ${(pierceChance * 100).toFixed(0)}%</span>`,
-      `<span class="ts-val">Sys ${sysHitChance.toFixed(0)}%</span>`,
-      `<span class="ts-val">Crit ${(critChance * 100).toFixed(0)}%</span>`
+      `<span class="ts-val">Sys ${sysHitChance.toFixed(0)}%</span>`
     );
 
     overlay.innerHTML = parts.join('<span style="color:rgba(100,120,140,0.3)">|</span>');
