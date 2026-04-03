@@ -1655,7 +1655,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.8.5 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.9.0 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -3437,25 +3437,54 @@ class Game {
     else if (this.wave >= 5) tier = Math.min(3, Math.floor(Math.random() * 2) + 1);
     else if (this.wave >= 3) tier = Math.random() < 0.4 ? 1 : 0;
 
-    // FAST PIRATES: base speed 180-240, higher tiers even faster
-    const speed = (120 + Math.random() * 40) * (1 + tier * 0.1);
+    // Size scales every 10 waves, not per tier
+    const sizeStep = Math.floor(this.wave / 10);
+    const sizeMultiplier = 1 + sizeStep * 0.1;
+
+    // Special enemy types (from wave 5+)
+    let specialType = null;
+    if (this.wave >= 5) {
+      const roll = Math.random();
+      if (this.wave >= 15 && roll < 0.15) specialType = 'rocketeer';
+      else if (this.wave >= 8 && roll < 0.30) specialType = 'armored';
+      else if (roll < 0.45) specialType = 'fast';
+    }
+
+    let speed = (120 + Math.random() * 40) * (1 + tier * 0.1);
     const hpMultiplier = 1 + tier * 0.5;
     const dmgMultiplier = 1 + tier * 0.3;
-    const sizeMultiplier = 1 + tier * 0.15;
     const rew = this.getRewardMult();
-    const vsuReward = (8 + this.wave) * (1 + tier * 0.5) * rew;
+    let vsuReward = (8 + this.wave) * (1 + tier * 0.5) * rew;
     const firingRange = 140 + tier * 20;
+    let armor = 0.05 + tier * 0.08;
+    let fireRate = 3 + tier * 0.8;
+    let enemyRadius = (12 + tier * 2) * sizeMultiplier;
+
+    // Apply special type modifiers
+    if (specialType === 'fast') {
+      speed *= 1.8;
+      armor *= 0.3;
+      vsuReward *= 1.2;
+    } else if (specialType === 'armored') {
+      speed *= 0.6;
+      armor = 0.3 + tier * 0.1;
+      vsuReward *= 1.5;
+      enemyRadius *= 1.2;
+    } else if (specialType === 'rocketeer') {
+      fireRate *= 0.4; // slower fire rate but rockets
+      vsuReward *= 1.3;
+    }
 
     this.enemies.push({
       x: this.stationCenter.x + Math.cos(angle) * dist,
       y: this.stationCenter.y + Math.sin(angle) * dist,
-      hp: baseHP * hpMultiplier,
-      maxHP: baseHP * hpMultiplier,
+      hp: baseHP * hpMultiplier * (specialType === 'armored' ? 1.5 : 1),
+      maxHP: baseHP * hpMultiplier * (specialType === 'armored' ? 1.5 : 1),
       speed: speed,
       damage: (1.5 + this.wave * 0.3) * dmgMultiplier * diff,
-      radius: (12 + tier * 2) * sizeMultiplier,
+      radius: enemyRadius,
       tier: tier,
-      armor: 0.05 + tier * 0.08, // armor scales with tier
+      armor: armor,
       shield: 0,
       maxShield: 0,
       vsuReward: Math.floor(vsuReward),
@@ -3465,7 +3494,7 @@ class Game {
       aiState: ENEMY_STATE.APPROACH,
       firingRange: firingRange,
       fireTimer: 0,
-      fireRate: 3 + tier * 0.8,
+      fireRate: fireRate,
       shotsInPass: 0,
       maxShotsPerPass: 5 + Math.floor(tier * 2),
       flybyAngle: 0,
@@ -3473,6 +3502,7 @@ class Game {
       turnTimer: 0,
       rotation: angle + Math.PI,
       strafeOffset: (Math.random() - 0.5) * 0.8, // slight lateral variation on strafe
+      specialType: specialType,
     });
     this.waveEnemiesSpawned++;
   }
@@ -3690,7 +3720,8 @@ class Game {
         let angleDiff = desiredAngle - p.angle;
         while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
         while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-        const turnRate = 4.0;
+        // Fast enemies evade rockets — reduced turn rate
+        const turnRate = p.targetEnemy.specialType === 'fast' ? 1.5 : 4.0;
         const maxTurn = turnRate * dt;
         p.angle += Math.max(-maxTurn, Math.min(maxTurn, angleDiff));
         p.vx = Math.cos(p.angle) * p.speed;
@@ -3711,6 +3742,22 @@ class Game {
       // Remove if off screen
       if (p.x < -50 || p.x > this.W + 50 || p.y < -50 || p.y > this.H + 50) return false;
 
+      // Missile defense: gun projectiles intercept enemy rockets
+      if (this.unlockedTech.has('missile_def') && p.weaponKey && p.weaponKey.startsWith('gun')) {
+        for (let i = this.enemyProjectiles.length - 1; i >= 0; i--) {
+          const ep = this.enemyProjectiles[i];
+          if (!ep.isRocket) continue;
+          const dx = ep.x - p.x;
+          const dy = ep.y - p.y;
+          if (dx * dx + dy * dy < 16 * 16) {
+            // Intercepted!
+            this.particles.push({ x: ep.x, y: ep.y, vx: 0, vy: 0, life: 0.3, maxLife: 0.3, color: '#FFD700', size: 6 });
+            this.enemyProjectiles.splice(i, 1);
+            return false; // consume the gun projectile
+          }
+        }
+      }
+
       // Check hit against all enemies
       let hitEnemy = null;
       for (const enemy of this.enemies) {
@@ -3722,7 +3769,11 @@ class Game {
       }
 
       if (hitEnemy) {
-        const dmgResult = calculateDamage(p.damage, p.isCrit, hitEnemy, this.getTotalBonus('syshit'), this.getTotalBonus('pierce') / 100);
+        // Rockets deal 2x damage to armored enemies
+        let dmg = p.damage;
+        const isRocket = p.weaponKey && p.weaponKey.startsWith('rocket');
+        if (isRocket && hitEnemy.specialType === 'armored') dmg *= 2;
+        const dmgResult = calculateDamage(dmg, p.isCrit, hitEnemy, this.getTotalBonus('syshit'), this.getTotalBonus('pierce') / 100);
         hitEnemy.shield -= dmgResult.shieldDmg;
         hitEnemy.hp -= dmgResult.hullDmg;
         hitEnemy.hitFlash = 0.1;
@@ -3808,11 +3859,24 @@ class Game {
 
     // Update enemy projectiles (aimed at station)
     this.enemyProjectiles = this.enemyProjectiles.filter(p => {
+      // Enemy rockets: light homing toward station
+      if (p.isRocket) {
+        const dx = this.stationCenter.x - p.x;
+        const dy = this.stationCenter.y - p.y;
+        const targetAngle = Math.atan2(dy, dx);
+        let diff = targetAngle - p.angle;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        p.angle += Math.max(-2.0 * dt, Math.min(2.0 * dt, diff));
+        p.vx = Math.cos(p.angle) * p.speed;
+        p.vy = Math.sin(p.angle) * p.speed;
+      }
+
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       p.life -= dt;
 
-      p.trail.push({ x: p.x, y: p.y, life: 0.08, angle: p.angle });
+      p.trail.push({ x: p.x, y: p.y, life: p.isRocket ? 0.15 : 0.08, angle: p.angle });
       p.trail = p.trail.filter(t => { t.life -= dt; return t.life > 0; });
 
       const dx = p.x - this.stationCenter.x;
@@ -3938,18 +4002,21 @@ class Game {
       enemy.fireTimer = 1 / enemy.fireRate;
       enemy.shotsInPass++;
 
-      const projAngle = enemy.rotation + (Math.random() - 0.5) * 0.12;
-      const projSpeed = 280 + enemy.tier * 40;
+      const isRocket = enemy.specialType === 'rocketeer';
+      const projAngle = enemy.rotation + (Math.random() - 0.5) * (isRocket ? 0.05 : 0.12);
+      const projSpeed = isRocket ? 180 : (280 + enemy.tier * 40);
       this.enemyProjectiles.push({
         x: enemy.x + Math.cos(enemy.rotation) * enemy.radius,
         y: enemy.y + Math.sin(enemy.rotation) * enemy.radius,
         vx: Math.cos(projAngle) * projSpeed,
         vy: Math.sin(projAngle) * projSpeed,
-        damage: enemy.damage,
-        life: 2.5,
+        damage: enemy.damage * (isRocket ? 2.5 : 1),
+        life: isRocket ? 4.0 : 2.5,
         trail: [],
         tier: enemy.tier,
         angle: projAngle,
+        isRocket: isRocket,
+        speed: projSpeed,
       });
 
       // Small muzzle flash
@@ -5042,6 +5109,18 @@ class Game {
         ctx.globalAlpha = 1;
       }
 
+      // Special type indicator ring
+      if (enemy.specialType && enemy.hitFlash <= 0) {
+        const ringColor = enemy.specialType === 'fast' ? 'rgba(0,200,255,0.5)' :
+                          enemy.specialType === 'armored' ? 'rgba(200,150,50,0.5)' :
+                          'rgba(255,50,30,0.5)'; // rocketeer
+        ctx.beginPath();
+        ctx.arc(0, 0, size * 0.4, 0, Math.PI * 2);
+        ctx.strokeStyle = ringColor;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
       ctx.restore();
     } else {
       // Fallback
@@ -5139,53 +5218,92 @@ class Game {
   // TRACER-STYLE enemy projectile rendering (gatling — small, fast)
   renderEnemyProjectile(ctx, ep) {
     const angle = ep.angle || Math.atan2(ep.vy, ep.vx);
-    const tracerLen = 5;
-    const tracerWidth = 1.2;
 
-    // Trail — short, faint
-    for (const t of ep.trail) {
-      const alpha = t.life / 0.08;
-      const tAngle = t.angle || angle;
+    if (ep.isRocket) {
+      // Enemy rocket — larger, distinct red-yellow with thick trail
+      const rLen = 8;
+      const rWidth = 2.5;
+
+      for (const t of ep.trail) {
+        const alpha = t.life / 0.15;
+        ctx.save();
+        ctx.translate(t.x, t.y);
+        ctx.rotate(t.angle || angle);
+        ctx.globalAlpha = alpha * 0.3;
+        ctx.beginPath();
+        ctx.moveTo(-rLen * 0.6, 0);
+        ctx.lineTo(0, 0);
+        ctx.strokeStyle = '#FF4400';
+        ctx.lineWidth = rWidth * 0.6;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.restore();
+      }
+
       ctx.save();
-      ctx.translate(t.x, t.y);
-      ctx.rotate(tAngle);
-      ctx.globalAlpha = alpha * 0.15;
+      ctx.translate(ep.x, ep.y);
+      ctx.rotate(angle);
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#FF2200';
+
+      // Rocket body
       ctx.beginPath();
-      ctx.moveTo(-tracerLen * 0.5, 0);
-      ctx.lineTo(0, 0);
-      ctx.strokeStyle = '#FF6633';
-      ctx.lineWidth = tracerWidth * 0.4;
+      ctx.moveTo(-rLen, -rWidth * 0.4);
+      ctx.lineTo(3, 0);
+      ctx.lineTo(-rLen, rWidth * 0.4);
+      ctx.closePath();
+      ctx.fillStyle = '#FF3311';
+      ctx.fill();
+
+      // Bright tip
+      ctx.beginPath();
+      ctx.arc(2, 0, 1.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#FFDD44';
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    } else {
+      // Normal projectile — small tracer
+      const tracerLen = 5;
+      const tracerWidth = 1.2;
+
+      for (const t of ep.trail) {
+        const alpha = t.life / 0.08;
+        ctx.save();
+        ctx.translate(t.x, t.y);
+        ctx.rotate(t.angle || angle);
+        ctx.globalAlpha = alpha * 0.15;
+        ctx.beginPath();
+        ctx.moveTo(-tracerLen * 0.5, 0);
+        ctx.lineTo(0, 0);
+        ctx.strokeStyle = '#FF6633';
+        ctx.lineWidth = tracerWidth * 0.4;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.restore();
+      }
+
+      ctx.save();
+      ctx.translate(ep.x, ep.y);
+      ctx.rotate(angle);
+      ctx.shadowBlur = 4;
+      ctx.shadowColor = '#FF4422';
+      ctx.beginPath();
+      ctx.moveTo(-tracerLen, 0);
+      ctx.lineTo(2, 0);
+      ctx.strokeStyle = '#FF5533';
+      ctx.lineWidth = tracerWidth;
       ctx.stroke();
-      ctx.globalAlpha = 1;
+      ctx.beginPath();
+      ctx.moveTo(-tracerLen * 0.3, 0);
+      ctx.lineTo(1.5, 0);
+      ctx.strokeStyle = 'rgba(255,220,180,0.8)';
+      ctx.lineWidth = 0.6;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
       ctx.restore();
     }
-
-    // Main tracer body — small orange-red
-    ctx.save();
-    ctx.translate(ep.x, ep.y);
-    ctx.rotate(angle);
-
-    ctx.shadowBlur = 4;
-    ctx.shadowColor = '#FF4422';
-
-    // Outer tracer
-    ctx.beginPath();
-    ctx.moveTo(-tracerLen, 0);
-    ctx.lineTo(2, 0);
-    ctx.strokeStyle = '#FF5533';
-    ctx.lineWidth = tracerWidth;
-    ctx.stroke();
-
-    // Bright core
-    ctx.beginPath();
-    ctx.moveTo(-tracerLen * 0.3, 0);
-    ctx.lineTo(1.5, 0);
-    ctx.strokeStyle = 'rgba(255,220,180,0.8)';
-    ctx.lineWidth = 0.6;
-    ctx.stroke();
-
-    ctx.shadowBlur = 0;
-    ctx.restore();
   }
 
   renderStationHPBar(ctx) {
