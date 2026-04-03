@@ -1374,7 +1374,7 @@ canvas {
 }
 
 .sk-tooltip-btn:hover { background: rgba(212,130,10,0.15); border-color: var(--amber); }
-.sk-tooltip-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.sk-tooltip-btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
 
 /* -- Settings Screen -- */
 #settingsScreen {
@@ -1611,7 +1611,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.5.5 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.5.6 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2404,10 +2404,11 @@ class Game {
   }
 
   buySkill(key) {
-    if (!this.isSkillAvailable(key)) return;
     const def = SKILL_TREE[key];
     const cost = this.getSkillCost(key);
+    if (!this.isSkillAvailable(key)) return;
     if (this.totalEP < cost) return;
+    if (def.type === 'big' && this.unlockedTech.has(def.unlocks)) return;
     this.totalEP -= cost;
     this.totalEPSpent += cost;
     this.saveEP();
@@ -2589,7 +2590,7 @@ class Game {
       btn.disabled = this.totalEP < cost;
     }
 
-    btn.onclick = () => this.buySkill(key);
+    btn.onclick = btn.disabled ? null : () => this.buySkill(key);
 
     tt.classList.add('visible');
 
