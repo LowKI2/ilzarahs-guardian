@@ -1725,7 +1725,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.9.11 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.9.12 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -1977,6 +1977,13 @@ function isDrawable(img) {
   if (!img) return false;
   if (img instanceof HTMLCanvasElement) return img.width > 0;
   return img.complete && img.naturalWidth > 0;
+}
+
+// Get a usable src URL from an Image or Canvas (for <img> tags in HTML)
+function getSrc(img) {
+  if (!img) return '';
+  if (img instanceof HTMLCanvasElement) return img.toDataURL();
+  return img.src || '';
 }
 
 // Pre-render large sprites to medium resolution to avoid downscaling artifacts
@@ -3261,7 +3268,7 @@ class Game {
       card.className = 'station-card' + (isLocked ? ' locked' : '');
 
       const spriteImg = IMAGES.stations[s.sprite];
-      const imgSrc = spriteImg ? spriteImg.src : '';
+      const imgSrc = getSrc(spriteImg);
 
       card.innerHTML = `
         <div class="station-preview"><img src="${imgSrc}" alt="${s.name}"></div>
@@ -3488,7 +3495,7 @@ class Game {
       const cost = isFree ? 0 : wep.cost;
 
       item.innerHTML = `
-        <img src="${weaponImg ? weaponImg.src : ''}" alt="${wep.name}">
+        <img src="${getSrc(weaponImg)}" alt="${wep.name}">
         <div class="slot-menu-item-info">
           <div class="slot-menu-item-name">${wep.name} <span style="color:var(--ilzarah);font-size:10px">${eCost}%</span></div>
           <div class="slot-menu-item-cost">${isFree ? 'Vorhanden' : cost + ' VSU'}</div>
