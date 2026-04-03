@@ -886,6 +886,44 @@ canvas {
   box-shadow: 0 0 16px rgba(255,189,85,0.25);
 }
 
+/* -- Turret Stats Overlay -- */
+#turretStatsOverlay {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 8;
+  pointer-events: none;
+  max-width: 200px;
+}
+
+#turretStatsOverlay.visible { display: flex; }
+
+.ts-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(10,12,16,0.7);
+  border: 1px solid rgba(100,120,140,0.15);
+  border-radius: 3px;
+  padding: 3px 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+.ts-name {
+  color: var(--amber);
+  min-width: 48px;
+}
+
+.ts-val {
+  color: var(--text);
+}
+
 /* -- Game Over Screen -- */
 #gameOverScreen {
   position: absolute;
@@ -1637,7 +1675,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.6.2 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.6.3 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -1689,6 +1727,8 @@ canvas {
   </div>
 
   <div id="waveBanner"></div>
+
+  <div id="turretStatsOverlay"></div>
 
   <div id="gameOverScreen">
     <h2 id="goTitle">Station Zerstort</h2>
@@ -2016,41 +2056,41 @@ function stopMusic() {
 
 // -- Station Data --
 const STATIONS = [
-  { id: 0, name: "Crusader", hp: 8000, shield: 2000, energyCore: 80, dmgBonus: 0.15, crit: 0.05, slotCount: 4, locked: false, desc: "Offensiv", sprite: 0 },
-  { id: 1, name: "Starshield", hp: 12000, shield: 4000, energyCore: 150, dmgBonus: 0.0, crit: 0.02, slotCount: 4, locked: false, desc: "Defensiv", sprite: 1 },
-  { id: 2, name: "Crusader Mk.II", hp: 9000, shield: 2500, energyCore: 100, dmgBonus: 0.30, crit: 0.12, slotCount: 6, locked: true, desc: "Offensiv+", sprite: 2 },
-  { id: 3, name: "Starshield Mk.II", hp: 16000, shield: 6000, energyCore: 220, dmgBonus: 0.0, crit: 0.02, slotCount: 6, locked: true, desc: "Defensiv+", sprite: 3 },
-  { id: 4, name: "Nexus", hp: 14000, shield: 5000, energyCore: 160, dmgBonus: 0.20, crit: 0.08, slotCount: 8, locked: true, desc: "Hybrid", sprite: 4 },
+  { id: 0, name: "Crusader", hp: 800, shield: 200, energyCore: 8, dmgBonus: 0.15, crit: 0.05, slotCount: 4, locked: false, desc: "Offensiv", sprite: 0 },
+  { id: 1, name: "Starshield", hp: 1200, shield: 400, energyCore: 15, dmgBonus: 0.0, crit: 0.02, slotCount: 4, locked: false, desc: "Defensiv", sprite: 1 },
+  { id: 2, name: "Crusader Mk.II", hp: 900, shield: 250, energyCore: 10, dmgBonus: 0.30, crit: 0.12, slotCount: 6, locked: true, desc: "Offensiv+", sprite: 2 },
+  { id: 3, name: "Starshield Mk.II", hp: 1600, shield: 600, energyCore: 22, dmgBonus: 0.0, crit: 0.02, slotCount: 6, locked: true, desc: "Defensiv+", sprite: 3 },
+  { id: 4, name: "Nexus", hp: 1400, shield: 500, energyCore: 16, dmgBonus: 0.20, crit: 0.08, slotCount: 8, locked: true, desc: "Hybrid", sprite: 4 },
 ];
 
 // -- Weapon Definitions (all 10 RoF, damage adjusted for similar DPS) --
 const WEAPONS = {
   gun_t1: {
-    name: "Gun T1", cost: 35, range: 150, fireRate: 10, damage: 16, projSpeed: 700,
+    name: "Gun T1", cost: 35, range: 150, fireRate: 10, damage: 1.6, projSpeed: 700,
     color: "#44AAFF", desc: "Basis-Geschuetz", sprite: 'gun_t1',
     projSize: 2, projColor: '#44AAFF', splashRadius: 0,
     unlock: null, // immer verfuegbar
   },
   gun_t2: {
-    name: "Gun T2", cost: 55, range: 170, fireRate: 10, damage: 28, projSpeed: 750,
+    name: "Gun T2", cost: 55, range: 170, fireRate: 10, damage: 2.8, projSpeed: 750,
     color: "#33CCFF", desc: "Mittleres Geschuetz", sprite: 'gun_t2',
     projSize: 2.5, projColor: '#33CCFF', splashRadius: 0,
     unlock: 'gun_t2', // Tech-Tree Node
   },
   gun_t3: {
-    name: "Gun T3", cost: 100, range: 190, fireRate: 10, damage: 49, projSpeed: 800,
+    name: "Gun T3", cost: 100, range: 190, fireRate: 10, damage: 4.9, projSpeed: 800,
     color: "#00EEFF", desc: "Schweres Geschuetz", sprite: 'gun_t3',
     projSize: 3, projColor: '#00EEFF', splashRadius: 0,
     unlock: 'gun_t3',
   },
   rocket_t1: {
-    name: "Rocket T1", cost: 60, range: 200, fireRate: 2, damage: 100, projSpeed: 450,
+    name: "Rocket T1", cost: 60, range: 200, fireRate: 2, damage: 10, projSpeed: 450,
     color: "#4488FF", desc: "Lenkraketen", sprite: 'rocket_t1',
     projSize: 6, projColor: '#4488FF', splashRadius: 0,
     unlock: 'rocket_t1',
   },
   rocket_t2: {
-    name: "Rocket T2", cost: 90, range: 220, fireRate: 2, damage: 120, projSpeed: 500,
+    name: "Rocket T2", cost: 90, range: 220, fireRate: 2, damage: 12, projSpeed: 500,
     color: "#66AAFF", desc: "Verbesserte Lenkraketen", sprite: 'rocket_t2',
     projSize: 6, projColor: '#66AAFF', splashRadius: 0,
     unlock: 'rocket_t2',
@@ -3302,7 +3342,7 @@ class Game {
   spawnEnemy() {
     const angle = Math.random() * Math.PI * 2;
     const dist = Math.max(this.W, this.H) * 0.65;
-    const baseHP = 120 + this.wave * 30;
+    const baseHP = 12 + this.wave * 3;
 
     // Pirate tier based on wave
     let tier = 0;
@@ -3324,7 +3364,7 @@ class Game {
       hp: baseHP * hpMultiplier,
       maxHP: baseHP * hpMultiplier,
       speed: speed,
-      damage: (15 + this.wave * 3) * dmgMultiplier,
+      damage: (1.5 + this.wave * 0.3) * dmgMultiplier,
       radius: (12 + tier * 2) * sizeMultiplier,
       tier: tier,
       armor: 0.05 + tier * 0.08, // armor scales with tier
@@ -3538,7 +3578,7 @@ class Game {
         const label = dmgResult.penetrated ? 'PEN ' : '';
         this.damageNumbers.push({
           x: hitEnemy.x, y: hitEnemy.y - 15,
-          value: label + Math.round(dmgResult.totalDmg),
+          value: label + dmgResult.totalDmg.toFixed(1),
           life: 0.8, maxLife: 0.8, isCrit: p.isCrit || dmgResult.penetrated,
         });
 
@@ -3776,7 +3816,8 @@ class Game {
       // Shield hit ripple at impact point
       if (hitX !== undefined) {
         const angle = Math.atan2(hitY - this.stationCenter.y, hitX - this.stationCenter.x);
-        this.shieldHits.push({ angle, life: 0.6, maxLife: 0.6, intensity: Math.min(absorbed / 5, 1) });
+        const shieldPct = this.stationMaxShield > 0 ? this.stationShield / this.stationMaxShield : 0;
+        this.shieldHits.push({ angle, life: 0.6, maxLife: 0.6, intensity: Math.min(absorbed / 5, 1) * (0.2 + 0.8 * shieldPct) });
       }
     }
     if (dmg > 0) {
@@ -4010,6 +4051,57 @@ class Game {
     document.getElementById('hudHP').textContent = Math.floor(this.stationHP);
     document.getElementById('hudShield').textContent = Math.floor(this.stationShield);
     document.getElementById('hudKills').textContent = this.kills;
+    this.updateTurretStats();
+  }
+
+  updateTurretStats() {
+    const overlay = document.getElementById('turretStatsOverlay');
+    if (this.state !== 'build' && this.state !== 'combat') {
+      overlay.classList.remove('visible');
+      return;
+    }
+
+    // Gather equipped turrets by type
+    const turretMap = {};
+    for (const slot of this.slots) {
+      if (!slot.building) continue;
+      const key = slot.building.weaponKey;
+      if (!turretMap[key]) turretMap[key] = { count: 0, def: WEAPONS[key], turret: slot.building };
+      turretMap[key].count++;
+    }
+
+    if (Object.keys(turretMap).length === 0) {
+      overlay.classList.remove('visible');
+      return;
+    }
+
+    const dmgMult = (1 + (this.station ? this.station.dmgBonus : 0)) * (1 + this.getTotalBonus('dmg') / 100);
+    const rofMult = 1 + this.getTotalBonus('rof') / 100;
+    const pierceChance = this.getTotalBonus('pierce') / 100;
+    const sysHitChance = this.getTotalBonus('syshit');
+    const critChance = this.station ? this.station.crit : 0;
+
+    let html = '';
+    for (const [key, info] of Object.entries(turretMap)) {
+      const baseDmg = info.def.damage * dmgMult;
+      const effectiveRof = info.def.fireRate * rofMult;
+      const dps = baseDmg * effectiveRof * info.count;
+      const avgDps = dps * (1 + critChance); // crits do 2x, so avg = dps * (1 + critChance)
+      html += `<div class="ts-row">` +
+        `<span class="ts-name">${info.def.name}${info.count > 1 ? ' x' + info.count : ''}</span>` +
+        `<span class="ts-val">${avgDps.toFixed(1)} DPS</span>` +
+        `</div>`;
+    }
+
+    // Global stats row
+    html += `<div class="ts-row" style="border-top:1px solid rgba(100,120,140,0.25);margin-top:2px;padding-top:5px;">` +
+      `<span class="ts-val">Pierce ${(pierceChance * 100).toFixed(0)}%</span>` +
+      `<span class="ts-val">Sys ${sysHitChance.toFixed(0)}%</span>` +
+      `<span class="ts-val">Crit ${(critChance * 100).toFixed(0)}%</span>` +
+      `</div>`;
+
+    overlay.innerHTML = html;
+    overlay.classList.add('visible');
   }
 
   saveEP() {
