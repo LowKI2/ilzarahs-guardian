@@ -457,6 +457,15 @@ canvas {
   pointer-events: none;
 }
 
+.slot-menu-energy {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 4px 8px;
+  text-align: center;
+  border-bottom: 1px solid rgba(100,120,140,0.15);
+  margin-bottom: 2px;
+}
+
 .slot-menu-item:hover {
   border-color: var(--amber-dim);
   background: rgba(212,130,10,0.08);
@@ -1667,7 +1676,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.6.7 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.7.0 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2048,41 +2057,41 @@ function stopMusic() {
 
 // -- Station Data --
 const STATIONS = [
-  { id: 0, name: "Crusader", hp: 800, shield: 200, energyCore: 8, dmgBonus: 0.15, slotCount: 4, locked: false, desc: "Offensiv", sprite: 0 },
-  { id: 1, name: "Starshield", hp: 1200, shield: 400, energyCore: 15, dmgBonus: 0.0, slotCount: 4, locked: false, desc: "Defensiv", sprite: 1 },
-  { id: 2, name: "Crusader Mk.II", hp: 900, shield: 250, energyCore: 10, dmgBonus: 0.30, slotCount: 6, locked: true, desc: "Offensiv+", sprite: 2 },
-  { id: 3, name: "Starshield Mk.II", hp: 1600, shield: 600, energyCore: 22, dmgBonus: 0.0, slotCount: 6, locked: true, desc: "Defensiv+", sprite: 3 },
-  { id: 4, name: "Nexus", hp: 1400, shield: 500, energyCore: 16, dmgBonus: 0.20, slotCount: 8, locked: true, desc: "Hybrid", sprite: 4 },
+  { id: 0, name: "Crusader", hp: 800, shield: 200, energyCore: 8, dmgBonus: 0.15, slotCount: 4, energyPool: 100, locked: false, desc: "Offensiv", sprite: 0 },
+  { id: 1, name: "Starshield", hp: 1200, shield: 400, energyCore: 15, dmgBonus: 0.0, slotCount: 4, energyPool: 100, locked: false, desc: "Defensiv", sprite: 1 },
+  { id: 2, name: "Crusader Mk.II", hp: 900, shield: 250, energyCore: 10, dmgBonus: 0.30, slotCount: 6, energyPool: 150, locked: true, desc: "Offensiv+", sprite: 2 },
+  { id: 3, name: "Starshield Mk.II", hp: 1600, shield: 600, energyCore: 22, dmgBonus: 0.0, slotCount: 6, energyPool: 150, locked: true, desc: "Defensiv+", sprite: 3 },
+  { id: 4, name: "Nexus", hp: 1400, shield: 500, energyCore: 16, dmgBonus: 0.20, slotCount: 8, energyPool: 200, locked: true, desc: "Hybrid", sprite: 4 },
 ];
 
 // -- Weapon Definitions (all 10 RoF, damage adjusted for similar DPS) --
 const WEAPONS = {
   gun_t1: {
-    name: "Gun T1", cost: 35, range: 150, fireRate: 10, damage: 1.6, projSpeed: 700,
+    name: "Gun T1", cost: 35, energyCost: 20, range: 150, fireRate: 10, damage: 1.6, projSpeed: 700,
     color: "#44AAFF", desc: "Basis-Geschuetz", sprite: 'gun_t1',
     projSize: 2, projColor: '#44AAFF', splashRadius: 0,
     unlock: null, // immer verfuegbar
   },
   gun_t2: {
-    name: "Gun T2", cost: 55, range: 170, fireRate: 10, damage: 2.8, projSpeed: 750,
+    name: "Gun T2", cost: 55, energyCost: 30, range: 170, fireRate: 10, damage: 2.8, projSpeed: 750,
     color: "#33CCFF", desc: "Mittleres Geschuetz", sprite: 'gun_t2',
     projSize: 2.5, projColor: '#33CCFF', splashRadius: 0,
-    unlock: 'gun_t2', // Tech-Tree Node
+    unlock: 'gun_t2',
   },
   gun_t3: {
-    name: "Gun T3", cost: 100, range: 190, fireRate: 10, damage: 4.9, projSpeed: 800,
+    name: "Gun T3", cost: 100, energyCost: 45, range: 190, fireRate: 10, damage: 4.9, projSpeed: 800,
     color: "#00EEFF", desc: "Schweres Geschuetz", sprite: 'gun_t3',
     projSize: 3, projColor: '#00EEFF', splashRadius: 0,
     unlock: 'gun_t3',
   },
   rocket_t1: {
-    name: "Rocket T1", cost: 60, range: 200, fireRate: 2, damage: 10, projSpeed: 450,
+    name: "Rocket T1", cost: 60, energyCost: 35, range: 200, fireRate: 2, damage: 10, projSpeed: 450,
     color: "#4488FF", desc: "Lenkraketen", sprite: 'rocket_t1',
     projSize: 6, projColor: '#4488FF', splashRadius: 0,
     unlock: 'rocket_t1',
   },
   rocket_t2: {
-    name: "Rocket T2", cost: 90, range: 220, fireRate: 2, damage: 12, projSpeed: 500,
+    name: "Rocket T2", cost: 90, energyCost: 50, range: 220, fireRate: 2, damage: 12, projSpeed: 500,
     color: "#66AAFF", desc: "Verbesserte Lenkraketen", sprite: 'rocket_t2',
     projSize: 6, projColor: '#66AAFF', splashRadius: 0,
     unlock: 'rocket_t2',
@@ -3025,6 +3034,7 @@ class Game {
         <div class="station-stat"><span class="label">Schild</span><span class="val def">${s.shield}</span></div>
         <div class="station-stat"><span class="label">Energiekern</span><span class="val cyan">${s.energyCore}/s</span></div>
         <div class="station-stat"><span class="label">Damage</span><span class="val dmg">+${Math.round(s.dmgBonus*100)}%</span></div>
+        <div class="station-stat"><span class="label">Energie</span><span class="val cyan">${s.energyPool}%</span></div>
         <div class="station-slots">${s.slotCount} WAFFEN-SLOTS</div>
       `;
       if (!s.locked) {
@@ -3066,6 +3076,7 @@ class Game {
     this.particles = [];
     this.damageNumbers = [];
     this.selectedWeapon = null;
+    this.ownedWeapons = {}; // { gun_t1: 1, rocket_t1: 1, ... } — bought this run, free to re-equip
 
     this.generateSlots();
 
@@ -3112,6 +3123,7 @@ class Game {
     // Pre-mount a Gun T1 on the first slot
     if (this.slots.length > 0) {
       const wDef = WEAPONS.gun_t1;
+      this.ownedWeapons['gun_t1'] = (this.ownedWeapons['gun_t1'] || 0) + 1;
       this.slots[0].building = {
         weaponKey: 'gun_t1',
         ...wDef,
@@ -3209,23 +3221,40 @@ class Game {
     const title = document.getElementById('slotMenuTitle');
     title.textContent = slot.building ? `${slot.building.name} — Ersetzen` : 'Waffe wählen';
 
+    // Energy info header
+    const energyInfo = document.createElement('div');
+    energyInfo.className = 'slot-menu-energy';
+    const remaining = this.getRemainingEnergy();
+    const eFreed = slot.building ? (WEAPONS[slot.building.weaponKey].energyCost || 0) : 0;
+    energyInfo.innerHTML = `<span style="color:var(--ilzarah)">Energie: ${remaining + eFreed}/${this.getEnergyPool()}</span>`;
+    items.appendChild(energyInfo);
+
     // Available weapons
     for (const [key, wep] of Object.entries(WEAPONS)) {
       if (wep.unlock && !this.unlockedTech.has(wep.unlock)) continue;
-      // Skip if same weapon already installed
       if (slot.building && slot.building.weaponKey === key) continue;
 
       const item = document.createElement('button');
       item.className = 'slot-menu-item';
       const weaponImg = IMAGES.weapons[wep.sprite];
-      const cost = slot.building ? Math.floor(wep.cost * 0.6) : wep.cost;
+      const eCost = wep.energyCost || 0;
+      const energyAvail = remaining + eFreed;
+      const notEnoughEnergy = eCost > energyAvail;
+
+      // Check if already owned and a spare copy is available
+      const equipped = this.countEquippedWeapon(key);
+      const owned = this.ownedWeapons[key] || 0;
+      const isFree = owned > equipped;
+      const cost = isFree ? 0 : wep.cost;
+
       item.innerHTML = `
         <img src="${weaponImg ? weaponImg.src : ''}" alt="${wep.name}">
         <div class="slot-menu-item-info">
-          <div class="slot-menu-item-name">${wep.name}</div>
-          <div class="slot-menu-item-cost">${cost} VSU</div>
+          <div class="slot-menu-item-name">${wep.name} <span style="color:var(--ilzarah);font-size:10px">${eCost}%</span></div>
+          <div class="slot-menu-item-cost">${isFree ? 'Vorhanden' : cost + ' VSU'}</div>
         </div>`;
-      item.disabled = this.vsu < cost;
+      item.disabled = notEnoughEnergy || (!isFree && this.vsu < cost);
+      if (notEnoughEnergy) item.style.opacity = '0.35';
 
       const fn = () => {
         this.buildWeaponOnSlot(slot, key, cost);
@@ -3236,14 +3265,12 @@ class Game {
       items.appendChild(item);
     }
 
-    // Remove option if turret exists
+    // Remove option if turret exists — no VSU refund, just frees energy
     if (slot.building) {
-      const refund = Math.floor(WEAPONS[slot.building.weaponKey].cost * 0.3);
       const removeBtn = document.createElement('button');
       removeBtn.className = 'slot-menu-item remove';
-      removeBtn.textContent = `Entfernen (+${refund} VSU)`;
+      removeBtn.textContent = `Entfernen (${eFreed}% frei)`;
       const rmFn = () => {
-        this.vsu += refund;
         slot.building = null;
         this.closeSlotMenu();
         this.updateHUD();
@@ -3281,14 +3308,57 @@ class Game {
     }
   }
 
+  getUsedEnergy() {
+    let used = 0;
+    for (const s of this.slots) {
+      if (s.building) used += (WEAPONS[s.building.weaponKey].energyCost || 0);
+    }
+    return used;
+  }
+
+  getEnergyPool() {
+    return this.station ? this.station.energyPool : 100;
+  }
+
+  getRemainingEnergy() {
+    return this.getEnergyPool() - this.getUsedEnergy();
+  }
+
+  isWeaponOwned(weaponKey) {
+    return (this.ownedWeapons[weaponKey] || 0) > 0;
+  }
+
+  countEquippedWeapon(weaponKey) {
+    let count = 0;
+    for (const s of this.slots) {
+      if (s.building && s.building.weaponKey === weaponKey) count++;
+    }
+    return count;
+  }
+
   buildWeaponOnSlot(slot, weaponKey, cost) {
-    if (this.vsu < cost) {
-      this.showBanner("NICHT GENUG VSU!");
+    const wDef = WEAPONS[weaponKey];
+    const eCost = wDef.energyCost || 0;
+    // Energy freed if replacing existing turret
+    const eFreed = slot.building ? (WEAPONS[slot.building.weaponKey].energyCost || 0) : 0;
+    const energyNeeded = eCost - eFreed;
+
+    if (energyNeeded > this.getRemainingEnergy()) {
+      this.showBanner("NICHT GENUG ENERGIE!");
       return;
     }
 
-    this.vsu -= cost;
-    const wDef = WEAPONS[weaponKey];
+    // Check if already owned — free to re-equip
+    const alreadyOwned = this.isWeaponOwned(weaponKey) && this.countEquippedWeapon(weaponKey) < this.ownedWeapons[weaponKey];
+    if (!alreadyOwned) {
+      if (this.vsu < cost) {
+        this.showBanner("NICHT GENUG VSU!");
+        return;
+      }
+      this.vsu -= cost;
+      this.ownedWeapons[weaponKey] = (this.ownedWeapons[weaponKey] || 0) + 1;
+    }
+
     slot.building = {
       weaponKey: weaponKey,
       ...wDef,
@@ -4085,7 +4155,10 @@ class Game {
       parts.push(`<span class="ts-name">${info.def.name}${info.count > 1 ? ' x' + info.count : ''}</span>` +
         `<span class="ts-val">${dps.toFixed(1)} DPS</span>`);
     }
+    const usedE = this.getUsedEnergy();
+    const poolE = this.getEnergyPool();
     parts.push(
+      `<span class="ts-val" style="color:${usedE > poolE * 0.8 ? '#FF5028' : 'var(--ilzarah)'}">E ${usedE}/${poolE}%</span>`,
       `<span class="ts-val">Pierce ${(pierceChance * 100).toFixed(0)}%</span>`,
       `<span class="ts-val">Sys ${sysHitChance.toFixed(0)}%</span>`
     );
@@ -4130,6 +4203,7 @@ class Game {
       kills: this.kills,
       slots: slotData,
       runUpgrades: { ...this.runUpgrades },
+      ownedWeapons: { ...this.ownedWeapons },
       repairUsed: this.repairUsed,
       _reserveUsed: this._reserveUsed,
       unlockedTech: [...this.unlockedTech],
@@ -4166,6 +4240,7 @@ class Game {
       this.wave = data.wave;
       this.kills = data.kills;
       this.runUpgrades = data.runUpgrades;
+      this.ownedWeapons = data.ownedWeapons || {};
       this.repairUsed = data.repairUsed || false;
       this._reserveUsed = data._reserveUsed || false;
       this.unlockedTech = new Set(data.unlockedTech || []);
