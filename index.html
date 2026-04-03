@@ -1655,7 +1655,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.7.8 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.7.9 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2108,10 +2108,10 @@ const SKILL_TREE = {
   sk_shield_t2:{ name: 'Schild T2',     desc: '+30% Schildkapazitaet',              cat: 'defense',  type: 'big',   cost: 100, unlocks: 'shield_t2', requires: ['sk_core_t2'], waveReq: 40, x: 560, y: 310 },
 
   // --- RESOURCES ---
-  sk_vsu_kill: { name: 'VSU (Abschuss)', desc: '+8% VSU pro Gegner',                cat: 'resource', type: 'small', perLevel: 8,  baseCost: 10, costStep: 5,  requires: [], x: 740, y: 100 },
-  sk_vsu_wave: { name: 'VSU (Welle)',    desc: '+6% VSU bei Wellenende',             cat: 'resource', type: 'small', perLevel: 6,  baseCost: 10, costStep: 5,  requires: [], x: 820, y: 160 },
-  sk_ep_kill:  { name: 'EP (Abschuss)',  desc: '+5% EP pro Gegner',                  cat: 'resource', type: 'small', perLevel: 5,  baseCost: 15, costStep: 8,  requires: ['sk_vsu_kill'], x: 660, y: 160 },
-  sk_ep_wave:  { name: 'EP (Welle)',     desc: '+6% EP bei Meilenstein',             cat: 'resource', type: 'small', perLevel: 6,  baseCost: 15, costStep: 8,  requires: ['sk_vsu_wave'], x: 820, y: 240 },
+  sk_vsu_kill: { name: 'VSU (Abschuss)', desc: '+3% VSU pro Gegner',                cat: 'resource', type: 'small', perLevel: 3,  baseCost: 10, costStep: 5,  requires: [], x: 740, y: 100 },
+  sk_vsu_wave: { name: 'VSU (Welle)',    desc: '+3% VSU bei Wellenende',             cat: 'resource', type: 'small', perLevel: 3,  baseCost: 10, costStep: 5,  requires: [], x: 820, y: 160 },
+  sk_ep_kill:  { name: 'EP (Abschuss)',  desc: '+2% EP pro Gegner',                  cat: 'resource', type: 'small', perLevel: 2,  baseCost: 15, costStep: 8,  requires: ['sk_vsu_kill'], x: 660, y: 160 },
+  sk_ep_wave:  { name: 'EP (Welle)',     desc: '+2% EP bei Meilenstein',             cat: 'resource', type: 'small', perLevel: 2,  baseCost: 15, costStep: 8,  requires: ['sk_vsu_wave'], x: 820, y: 240 },
   sk_repair_eff:{ name: 'Reparatureffizienz', desc: '+1% Reparatur-Menge',          cat: 'resource', type: 'small', perLevel: 1,  baseCost: 10, costStep: 5,  requires: [], x: 740, y: 240 },
   sk_repair_cost:{ name: 'Reparaturkosten', desc: '-2 VSU Reparaturkosten',         cat: 'resource', type: 'small', perLevel: 2,  baseCost: 10, costStep: 5,  requires: ['sk_repair_eff'], x: 660, y: 300 },
   sk_start_vsu:{ name: 'Startkapital',   desc: '+25 Start-VSU pro Stufe',            cat: 'resource', type: 'small', perLevel: 25, baseCost: 10, costStep: 5,  requires: [], x: 660, y: 100 },
@@ -2721,12 +2721,12 @@ class Game {
     energy:    { label: 'Energie erhöhen',    cat: 'defense',  perLevel: 4 },
     reserve:   { label: 'Notreserve',         cat: 'defense',  perLevel: 2 },
     energySave:{ label: 'Energieverbrauch',   cat: 'defense',  perLevel: 5, maxLevel: 6 },
-    vsuKill:   { label: 'VSU bei Abschuss',   cat: 'resource', perLevel: 8 },
-    vsuWave:   { label: 'VSU bei Wellenende', cat: 'resource', perLevel: 6 },
-    epKill:    { label: 'EP bei Abschuss',    cat: 'resource', perLevel: 5 },
-    epWave:    { label: 'EP bei Welle',       cat: 'resource', perLevel: 6 },
+    vsuKill:   { label: 'VSU bei Abschuss',   cat: 'resource', perLevel: 3 },
+    vsuWave:   { label: 'VSU bei Wellenende', cat: 'resource', perLevel: 3 },
+    epKill:    { label: 'EP bei Abschuss',    cat: 'resource', perLevel: 2 },
+    epWave:    { label: 'EP bei Welle',       cat: 'resource', perLevel: 2 },
     repairEff: { label: 'Reparatureffizienz', cat: 'resource', perLevel: 1 },
-    repairCost:{ label: 'Reparaturkosten',    cat: 'resource', perLevel: 2 },
+    repairCost:{ label: 'Reparaturkosten',    cat: 'resource', perLevel: 1 },
   };
 
   getUpgCost(key) {
