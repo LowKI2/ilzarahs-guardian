@@ -1611,7 +1611,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.6.0 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.6.1 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2308,6 +2308,8 @@ class Game {
     this.volumeMaster = 0.8;
     this.volumeSFX = 0.8;
     this.volumeMusic = 0.5;
+    this.particleScale = 1.0;
+    this.dmgNumScale = 1.0;
 
     for (const id of ['Master', 'SFX', 'Music', 'Particles', 'DmgNums']) {
       const slider = document.getElementById('slider' + id);
@@ -2820,6 +2822,10 @@ class Game {
         audio.volume = musicVol * 0.3;
       }
     }
+
+    // Display settings
+    this.particleScale = (parseInt(document.getElementById('sliderParticles').value) || 0) / 100;
+    this.dmgNumScale = (parseInt(document.getElementById('sliderDmgNums').value) || 0) / 100;
   }
 
   resize() {
@@ -4267,7 +4273,8 @@ class Game {
     }
 
     // Particles
-    for (const p of this.particles) {
+    if (this.particleScale <= 0) { /* skip all particles */ }
+    else for (const p of this.particles) {
       const alpha = p.life / p.maxLife;
       if (p.isMuzzleFlash) {
         const img = IMAGES.fx.muzzleSheet;
@@ -4300,13 +4307,15 @@ class Game {
     ctx.globalAlpha = 1;
 
     // Damage numbers
-    for (const d of this.damageNumbers) {
-      const alpha = d.life / d.maxLife;
-      ctx.globalAlpha = alpha;
-      ctx.font = d.isCrit ? 'bold 18px "Share Tech Mono"' : '14px "Share Tech Mono"';
-      ctx.fillStyle = d.isLoot ? '#D4A03C' : d.isCrit ? '#FFD700' : '#FF3344';
-      ctx.textAlign = 'center';
-      ctx.fillText(d.value, d.x, d.y);
+    if (this.dmgNumScale > 0) {
+      for (const d of this.damageNumbers) {
+        const alpha = d.life / d.maxLife * this.dmgNumScale;
+        ctx.globalAlpha = alpha;
+        ctx.font = d.isCrit ? 'bold 18px "Share Tech Mono"' : '14px "Share Tech Mono"';
+        ctx.fillStyle = d.isLoot ? '#D4A03C' : d.isCrit ? '#FFD700' : '#FF3344';
+        ctx.textAlign = 'center';
+        ctx.fillText(d.value, d.x, d.y);
+      }
     }
     ctx.globalAlpha = 1;
 
