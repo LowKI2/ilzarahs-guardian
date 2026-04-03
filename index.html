@@ -1611,7 +1611,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.5.6 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.5.7 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2143,8 +2143,8 @@ class Game {
     this.stationMaxShield = 0;
     this.vsu = 1;
     this.ep = 0;
-    this.totalEP = parseInt(localStorage.getItem('ilzarah_totalEP') || '0', 10);
-    this.totalEPSpent = parseInt(localStorage.getItem('ilzarah_totalEPSpent') || '0', 10);
+    this.totalEP = parseInt(localStorage.getItem('ilzarah_totalEP') || '0', 10) || 0;
+    this.totalEPSpent = parseInt(localStorage.getItem('ilzarah_totalEPSpent') || '0', 10) || 0;
     this.bestWave = 0;
     // Persistent skill tree state (survives across runs)
     this.skillLevels = {}; // small nodes: { sk_dmg: 3, sk_rof: 1, ... }
@@ -2240,11 +2240,13 @@ class Game {
       if (!confirm('Willst du wirklich deinen gesamten Fortschritt zurücksetzen?\n\nAlle EP, Skills und freigeschaltete Technologien gehen verloren!')) return;
       if (!confirm('Bist du sicher? Das kann NICHT rückgängig gemacht werden!')) return;
       localStorage.removeItem('ilzarah_totalEP');
+      localStorage.removeItem('ilzarah_totalEPSpent');
       localStorage.removeItem('ilzarah_skillLevels');
       localStorage.removeItem('ilzarah_unlockedTech');
       localStorage.removeItem('ilzarah_runState');
       localStorage.removeItem('ilzarah_tutorialDone');
       this.totalEP = 0;
+      this.totalEPSpent = 0;
       this.skillLevels = {};
       this.unlockedTech = new Set();
       this.clearRunState();
@@ -2407,7 +2409,7 @@ class Game {
     const def = SKILL_TREE[key];
     const cost = this.getSkillCost(key);
     if (!this.isSkillAvailable(key)) return;
-    if (this.totalEP < cost) return;
+    if (!Number.isFinite(this.totalEP) || this.totalEP < cost) return;
     if (def.type === 'big' && this.unlockedTech.has(def.unlocks)) return;
     this.totalEP -= cost;
     this.totalEPSpent += cost;
