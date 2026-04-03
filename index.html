@@ -1655,7 +1655,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.8.4 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.8.5 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2090,10 +2090,10 @@ const SKILL_TREE = {
   sk_pierce:   { name: 'Durchschuss',    desc: '+3% Chance auf Durchschlag',       cat: 'attack',   type: 'small', perLevel: 3,  baseCost: 15, costStep: 8,  requires: ['sk_dmg'], x: 80, y: 160 },
   sk_range:    { name: 'Reichweite',     desc: '+3% Waffenreichweite',             cat: 'attack',   type: 'small', perLevel: 3,  baseCost: 10, costStep: 5,  requires: [], x: 160, y: 220 },
   sk_syshit:   { name: 'Systemtreffer', desc: '+2% Systemtreffer-Chance',          cat: 'attack',   type: 'small', perLevel: 2,  baseCost: 15, costStep: 8,  requires: ['sk_pierce'], x: 80, y: 240 },
-  sk_rocket_t1:{ name: 'Rocket T1',     desc: 'Schnellfeuer-Raketen freischalten', cat: 'attack',   type: 'big',   cost: 40,  unlocks: 'rocket_t1', requires: [], waveReq: 12, x: 60, y: 60 },
+  sk_rocket_t1:{ name: 'Rocket T1',     desc: 'Schnellfeuer-Raketen freischalten', cat: 'attack',   type: 'big',   cost: 40,  unlocks: 'rocket_t1', requires: [], waveReq: 10, x: 60, y: 60 },
   sk_gun_t2:   { name: 'Gun T2',        desc: 'Mittleres Geschuetz freischalten',  cat: 'attack',   type: 'big',   cost: 25,  unlocks: 'gun_t2', requires: [], waveReq: 15, x: 260, y: 60 },
   sk_gun_t3:   { name: 'Gun T3',        desc: 'Schweres Geschuetz freischalten',   cat: 'attack',   type: 'big',   cost: 50,  unlocks: 'gun_t3', requires: ['sk_gun_t2'], waveReq: 28, x: 320, y: 140 },
-  sk_rocket_t2:{ name: 'Rocket T2',     desc: 'Verbesserte Raketen freischalten',  cat: 'attack',   type: 'big',   cost: 70,  unlocks: 'rocket_t2', requires: ['sk_rocket_t1', 'sk_gun_t3'], waveReq: 38, x: 200, y: 290 },
+  sk_rocket_t2:{ name: 'Rocket T2',     desc: 'Verbesserte Raketen freischalten',  cat: 'attack',   type: 'big',   cost: 70,  unlocks: 'rocket_t2', requires: ['sk_rocket_t1', 'sk_gun_t3'], waveReq: 35, x: 200, y: 290 },
   sk_arc1:     { name: 'Angriffsradius I',  desc: '180° → 200° Feuerwinkel',       cat: 'attack',   type: 'big',   cost: 40,  unlocks: 'arc1', requires: ['sk_gun_t2'], waveReq: 22, x: 320, y: 240 },
   sk_arc2:     { name: 'Angriffsradius II', desc: '200° → 225° Feuerwinkel',       cat: 'attack',   type: 'big',   cost: 60,  unlocks: 'arc2', requires: ['sk_arc1'], waveReq: 35, x: 340, y: 310 },
   sk_hangar:   { name: 'Hangar',         desc: 'Kampfschiff bekaempft Gegner',      cat: 'attack',   type: 'big',   cost: 80,  unlocks: 'hangar', requires: ['sk_rocket_t2'], waveReq: 48, x: 100, y: 310 },
