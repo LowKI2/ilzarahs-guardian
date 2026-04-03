@@ -606,6 +606,47 @@ canvas {
   box-shadow: 3px -3px 0 -1px var(--steel), 3px -3px 0 0 var(--amber);
 }
 
+/* -- Wave Preview -- */
+#wavePreview {
+  position: absolute;
+  top: 44px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  align-items: center;
+  gap: 10px;
+  z-index: 9;
+  background: rgba(10,12,16,0.75);
+  border: 1px solid rgba(100,120,140,0.2);
+  border-radius: 4px;
+  padding: 4px 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+#wavePreview.visible { display: flex; }
+
+.wp-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.wp-count {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.wp-label { color: var(--text-dim); }
+.wp-fast { color: #00C8FF; }
+.wp-armored { color: #C89632; }
+.wp-rocketeer { color: #FF3322; }
+.wp-boss { color: #FF3344; font-weight: 700; }
+.wp-sep { color: rgba(100,120,140,0.3); }
+
 /* -- Pause Menu Overlay -- */
 #pauseMenu {
   position: absolute;
@@ -1635,6 +1676,8 @@ canvas {
     <button id="btnPauseMenu">☰</button>
   </div>
 
+  <div id="wavePreview"></div>
+
   <div id="pauseMenu">
     <div class="pause-title">Pausiert</div>
     <button class="pause-btn" id="btnResume">Fortsetzen</button>
@@ -1655,7 +1698,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.9.0 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.9.1 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -4284,6 +4327,45 @@ class Game {
     document.getElementById('hudShield').textContent = Math.floor(this.stationShield);
     document.getElementById('hudKills').textContent = this.kills;
     this.updateTurretStats();
+    this.updateWavePreview();
+  }
+
+  updateWavePreview() {
+    const preview = document.getElementById('wavePreview');
+    if (this.state !== 'build') {
+      preview.classList.remove('visible');
+      return;
+    }
+
+    // Cache preview for same wave
+    if (this._previewWave === this.wave) {
+      preview.classList.add('visible');
+      return;
+    }
+    this._previewWave = this.wave;
+
+    const w = this.wave;
+    const isBoss = w % 10 === 0 && w > 0;
+    const totalEnemies = isBoss ? (3 + Math.floor(w * 0.3)) : (w === 1 ? 1 : 1 + Math.floor(w * 0.8));
+
+    // Estimate special type counts based on probabilities
+    let fastCount = 0, armoredCount = 0, rocketeerCount = 0;
+    if (w >= 5) {
+      rocketeerCount = w >= 15 ? Math.round(totalEnemies * 0.15) : 0;
+      armoredCount = w >= 8 ? Math.round((totalEnemies - rocketeerCount) * 0.18) : 0;
+      fastCount = Math.round((totalEnemies - rocketeerCount - armoredCount) * 0.20);
+    }
+    const normalCount = totalEnemies - fastCount - armoredCount - rocketeerCount;
+
+    let parts = [`<span class="wp-label">Welle ${w}:</span>`];
+    if (normalCount > 0) parts.push(`<span class="wp-group"><span class="wp-count">${normalCount}</span><span class="wp-label">Normal</span></span>`);
+    if (fastCount > 0) parts.push(`<span class="wp-group"><span class="wp-count wp-fast">${fastCount}</span><span class="wp-fast">Schnell</span></span>`);
+    if (armoredCount > 0) parts.push(`<span class="wp-group"><span class="wp-count wp-armored">${armoredCount}</span><span class="wp-armored">Gepanzert</span></span>`);
+    if (rocketeerCount > 0) parts.push(`<span class="wp-group"><span class="wp-count wp-rocketeer">${rocketeerCount}</span><span class="wp-rocketeer">Rakete</span></span>`);
+    if (isBoss) parts.push(`<span class="wp-boss">+ BOSS</span>`);
+
+    preview.innerHTML = parts.join('<span class="wp-sep"> | </span>');
+    preview.classList.add('visible');
   }
 
   updateTurretStats() {
