@@ -1655,7 +1655,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.7.9 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.8.0 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2090,13 +2090,13 @@ const SKILL_TREE = {
   sk_pierce:   { name: 'Durchschuss',    desc: '+3% Chance auf Durchschlag',       cat: 'attack',   type: 'small', perLevel: 3,  baseCost: 15, costStep: 8,  requires: ['sk_dmg'], x: 80, y: 160 },
   sk_range:    { name: 'Reichweite',     desc: '+3% Waffenreichweite',             cat: 'attack',   type: 'small', perLevel: 3,  baseCost: 10, costStep: 5,  requires: [], x: 160, y: 220 },
   sk_syshit:   { name: 'Systemtreffer', desc: '+2% Systemtreffer-Chance',          cat: 'attack',   type: 'small', perLevel: 2,  baseCost: 15, costStep: 8,  requires: ['sk_pierce'], x: 80, y: 240 },
-  sk_rocket_t1:{ name: 'Rocket T1',     desc: 'Schnellfeuer-Raketen freischalten', cat: 'attack',   type: 'big',   cost: 40,  unlocks: 'rocket_t1', requires: [], waveReq: 5, x: 60, y: 60 },
+  sk_rocket_t1:{ name: 'Rocket T1',     desc: 'Schnellfeuer-Raketen freischalten', cat: 'attack',   type: 'big',   cost: 40,  unlocks: 'rocket_t1', requires: [], waveReq: 10, x: 60, y: 60 },
   sk_gun_t2:   { name: 'Gun T2',        desc: 'Mittleres Geschuetz freischalten',  cat: 'attack',   type: 'big',   cost: 25,  unlocks: 'gun_t2', requires: [], waveReq: 10, x: 260, y: 60 },
-  sk_gun_t3:   { name: 'Gun T3',        desc: 'Schweres Geschuetz freischalten',   cat: 'attack',   type: 'big',   cost: 50,  unlocks: 'gun_t3', requires: ['sk_gun_t2'], waveReq: 25, x: 320, y: 140 },
-  sk_rocket_t2:{ name: 'Rocket T2',     desc: 'Verbesserte Raketen freischalten',  cat: 'attack',   type: 'big',   cost: 70,  unlocks: 'rocket_t2', requires: ['sk_rocket_t1', 'sk_gun_t3'], waveReq: 35, x: 200, y: 290 },
-  sk_arc1:     { name: 'Angriffsradius I',  desc: '180° → 200° Feuerwinkel',       cat: 'attack',   type: 'big',   cost: 40,  unlocks: 'arc1', requires: ['sk_gun_t2'], waveReq: 15, x: 320, y: 240 },
+  sk_gun_t3:   { name: 'Gun T3',        desc: 'Schweres Geschuetz freischalten',   cat: 'attack',   type: 'big',   cost: 50,  unlocks: 'gun_t3', requires: ['sk_gun_t2'], waveReq: 20, x: 320, y: 140 },
+  sk_rocket_t2:{ name: 'Rocket T2',     desc: 'Verbesserte Raketen freischalten',  cat: 'attack',   type: 'big',   cost: 70,  unlocks: 'rocket_t2', requires: ['sk_rocket_t1', 'sk_gun_t3'], waveReq: 30, x: 200, y: 290 },
+  sk_arc1:     { name: 'Angriffsradius I',  desc: '180° → 200° Feuerwinkel',       cat: 'attack',   type: 'big',   cost: 40,  unlocks: 'arc1', requires: ['sk_gun_t2'], waveReq: 20, x: 320, y: 240 },
   sk_arc2:     { name: 'Angriffsradius II', desc: '200° → 225° Feuerwinkel',       cat: 'attack',   type: 'big',   cost: 60,  unlocks: 'arc2', requires: ['sk_arc1'], waveReq: 30, x: 340, y: 310 },
-  sk_hangar:   { name: 'Hangar',         desc: 'Kampfschiff bekaempft Gegner',      cat: 'attack',   type: 'big',   cost: 80,  unlocks: 'hangar', requires: ['sk_rocket_t2'], waveReq: 50, x: 100, y: 310 },
+  sk_hangar:   { name: 'Hangar',         desc: 'Kampfschiff bekaempft Gegner',      cat: 'attack',   type: 'big',   cost: 80,  unlocks: 'hangar', requires: ['sk_rocket_t2'], waveReq: 40, x: 100, y: 310 },
 
   // --- DEFENSE ---
   sk_hull:     { name: 'Huelle',         desc: '+5% Station HP pro Stufe',          cat: 'defense',  type: 'small', perLevel: 5,  baseCost: 10, costStep: 5,  requires: [], x: 520, y: 100 },
@@ -3394,12 +3394,21 @@ class Game {
     document.getElementById('hudPhase').textContent = 'KAMPF';
     playMusic('combat');
 
-    this.waveEnemyCount = this.wave === 1 ? 1 : 1 + Math.floor(this.wave * 0.8);
+    this.isBossWave = this.wave % 10 === 0 && this.wave > 0;
+    this.bossTimer = 0;
+    this.bossActive = false;
+    this.bossSpawned = false;
+
+    if (this.isBossWave) {
+      this.waveEnemyCount = 3 + Math.floor(this.wave * 0.3); // small escorts
+      this.showBanner(`WELLE ${this.wave} — BOSSWELLE!`);
+    } else {
+      this.waveEnemyCount = this.wave === 1 ? 1 : 1 + Math.floor(this.wave * 0.8);
+      this.showBanner(`WELLE ${this.wave} — KAMPF!`);
+    }
     this.waveEnemiesSpawned = 0;
     this.waveEnemiesDefeated = 0;
     this.spawnTimer = 0;
-
-    this.showBanner(`WELLE ${this.wave} — KAMPF!`);
   }
 
   spawnEnemy() {
@@ -3452,12 +3461,78 @@ class Game {
     this.waveEnemiesSpawned++;
   }
 
+  spawnBoss() {
+    const angle = Math.random() * Math.PI * 2;
+    const dist = Math.max(this.W, this.H) * 0.65;
+    const bossHP = (80 + this.wave * 15) * 3;
+    const speed = 40 + this.wave * 0.5; // slow approach
+
+    this.enemies.push({
+      x: this.stationCenter.x + Math.cos(angle) * dist,
+      y: this.stationCenter.y + Math.sin(angle) * dist,
+      hp: bossHP,
+      maxHP: bossHP,
+      speed: speed,
+      damage: (3 + this.wave * 0.5),
+      radius: 30,
+      tier: 4,
+      armor: 0.15 + this.wave * 0.005,
+      shield: 0,
+      maxShield: 0,
+      vsuReward: Math.floor(30 + this.wave * 3),
+      hitFlash: 0,
+      driveDisabled: 0,
+      weaponDisabled: 0,
+      aiState: 'APPROACH',
+      firingRange: 200,
+      fireTimer: 0,
+      fireRate: 5 + this.wave * 0.3,
+      shotsInPass: 0,
+      maxShotsPerPass: 99,
+      flybyAngle: 0,
+      curveSide: 0,
+      turnTimer: 0,
+      rotation: angle + Math.PI,
+      strafeOffset: 0,
+      isBoss: true,
+    });
+    this.bossSpawned = true;
+    this.bossActive = true;
+    this.bossTimer = 30;
+    this.showBanner('BOSS NÄHERT SICH — 30s!');
+  }
+
   updateCombat(dt) {
     // Spawn enemies
     this.spawnTimer -= dt;
     if (this.spawnTimer <= 0 && this.waveEnemiesSpawned < this.waveEnemyCount) {
       this.spawnEnemy();
       this.spawnTimer = 0.8 - Math.min(0.45, this.wave * 0.02);
+    }
+
+    // Boss wave: spawn boss after all small enemies are spawned
+    if (this.isBossWave && !this.bossSpawned && this.waveEnemiesSpawned >= this.waveEnemyCount) {
+      this.spawnBoss();
+    }
+
+    // Boss timer countdown
+    if (this.bossActive) {
+      this.bossTimer -= dt;
+      // Update HUD with boss timer
+      const timerEl = document.getElementById('hudPhase');
+      if (timerEl) timerEl.textContent = `BOSS ${Math.ceil(this.bossTimer)}s`;
+      // Check if boss still alive
+      const bossAlive = this.enemies.some(e => e.isBoss);
+      if (!bossAlive) {
+        this.bossActive = false;
+      } else if (this.bossTimer <= 0) {
+        // Station captured — game over
+        this.bossActive = false;
+        this.showBanner('STATION GEENTERT!');
+        this.stationHP = 0;
+        this.triggerGameOver();
+        return;
+      }
     }
 
     // Update enemies with AI state machine + system hit timers
@@ -3743,8 +3818,10 @@ class Game {
       return p.life > 0;
     });
 
-    // Check wave complete
-    if (this.waveEnemiesSpawned >= this.waveEnemyCount && this.enemies.length === 0 && this.enemyProjectiles.length === 0) {
+    // Check wave complete — boss wave needs boss dead too
+    const allSpawned = this.waveEnemiesSpawned >= this.waveEnemyCount;
+    const bossHandled = !this.isBossWave || (this.bossSpawned && !this.bossActive);
+    if (allSpawned && bossHandled && this.enemies.length === 0 && this.enemyProjectiles.length === 0) {
       this.waveCompleted();
     }
 
@@ -3920,6 +3997,8 @@ class Game {
     document.getElementById('goWaves').textContent = this.wave;
     document.getElementById('goEP').textContent = epEarned;
     document.getElementById('goKills').textContent = this.kills;
+    document.getElementById('goTitle').textContent = this.stationHP <= 0 && this.bossActive ? 'Station Geentert' : this.stationHP <= 0 ? 'Station Zerstört' : 'Run Beendet';
+    document.getElementById('goSubtitle').textContent = this.bossActive ? '// BOSS HAT STATION GEENTERT //' : '// RUN BEENDET //';
     document.getElementById('gameOverScreen').style.display = 'flex';
     document.getElementById('buildUI').style.display = 'none';
     document.getElementById('combatControls').style.display = 'none';
@@ -4959,8 +5038,8 @@ class Game {
     }
 
     // HP bar
-    const barW = enemy.radius * 2.5;
-    const barH = 3;
+    const barW = enemy.isBoss ? enemy.radius * 3 : enemy.radius * 2.5;
+    const barH = enemy.isBoss ? 5 : 3;
     const barX = enemy.x - barW / 2;
     const barY = enemy.y - enemy.radius * 1.4 - 6;
     const hpRatio = enemy.hp / enemy.maxHP;
@@ -4969,6 +5048,14 @@ class Game {
     ctx.fillRect(barX, barY, barW, barH);
     ctx.fillStyle = hpRatio > 0.5 ? '#88FF44' : (hpRatio > 0.25 ? '#FFD700' : '#FF3344');
     ctx.fillRect(barX, barY, barW * hpRatio, barH);
+
+    // Boss label
+    if (enemy.isBoss) {
+      ctx.font = 'bold 10px "Share Tech Mono"';
+      ctx.fillStyle = '#FF3344';
+      ctx.textAlign = 'center';
+      ctx.fillText('BOSS', enemy.x, barY - 4);
+    }
 
     // AI state indicator
     if (enemy.aiState === ENEMY_STATE.FIRING) {
