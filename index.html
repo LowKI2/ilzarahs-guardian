@@ -1423,6 +1423,38 @@ canvas {
   color: var(--text-dim);
 }
 
+.settings-small-btn {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 6px 16px;
+  background: rgba(44,52,64,0.6);
+  border: 1px solid var(--amber-dim);
+  color: var(--amber);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s;
+  min-height: 32px;
+}
+
+.settings-small-btn:hover {
+  background: rgba(212,130,10,0.15);
+  border-color: var(--amber);
+  color: var(--amber-bright);
+}
+
+.settings-small-btn.danger {
+  color: rgba(255,51,68,0.7);
+  border-color: rgba(255,51,68,0.3);
+}
+
+.settings-small-btn.danger:hover {
+  background: rgba(255,51,68,0.1);
+  border-color: rgba(255,51,68,0.6);
+  color: #FF3344;
+}
+
 .settings-slider {
   -webkit-appearance: none;
   appearance: none;
@@ -1576,7 +1608,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.5.3 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.5.4 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -1720,6 +1752,17 @@ canvas {
           <span class="settings-label">Schadenszahlen</span>
           <input type="range" class="settings-slider" id="sliderDmgNums" min="0" max="100" value="100">
           <span class="settings-val" id="valDmgNums">100%</span>
+        </div>
+      </div>
+      <div class="settings-group">
+        <div class="settings-group-title">Sonstiges</div>
+        <div class="settings-row">
+          <span class="settings-label">Tutorial erneut anzeigen</span>
+          <button class="settings-small-btn" id="btnReplayTutorial">Tutorial</button>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Gesamten Fortschritt zurücksetzen</span>
+          <button class="settings-small-btn danger" id="btnResetProgress">Reset</button>
         </div>
       </div>
     </div>
@@ -2183,6 +2226,31 @@ class Game {
     });
     document.getElementById('btnSettingsBack').addEventListener('click', () => this.backToMenu());
     document.getElementById('btnSettingsBack').addEventListener('touchend', (e) => { e.preventDefault(); this.backToMenu(); });
+
+    // Settings: Tutorial replay & progress reset
+    const replayTutFn = () => { playSound('click'); localStorage.removeItem('ilzarah_tutorialDone'); this.showTutorial(); };
+    document.getElementById('btnReplayTutorial').addEventListener('click', replayTutFn);
+    document.getElementById('btnReplayTutorial').addEventListener('touchend', (e) => { e.preventDefault(); replayTutFn(); });
+
+    const resetProgressFn = () => {
+      playSound('click');
+      if (!confirm('Willst du wirklich deinen gesamten Fortschritt zurücksetzen?\n\nAlle EP, Skills und freigeschaltete Technologien gehen verloren!')) return;
+      if (!confirm('Bist du sicher? Das kann NICHT rückgängig gemacht werden!')) return;
+      localStorage.removeItem('ilzarah_totalEP');
+      localStorage.removeItem('ilzarah_skillLevels');
+      localStorage.removeItem('ilzarah_unlockedTech');
+      localStorage.removeItem('ilzarah_runState');
+      localStorage.removeItem('ilzarah_tutorialDone');
+      this.totalEP = 0;
+      this.skillLevels = {};
+      this.unlockedTech = new Set();
+      this.clearRunState();
+      this.showBanner('Fortschritt zurückgesetzt!');
+      playSound('confirm');
+    };
+    document.getElementById('btnResetProgress').addEventListener('click', resetProgressFn);
+    document.getElementById('btnResetProgress').addEventListener('touchend', (e) => { e.preventDefault(); resetProgressFn(); });
+
     // Pause menu
     const pauseToggle = () => { playSound('click'); this.togglePause(); };
     document.getElementById('btnPauseMenu').addEventListener('click', pauseToggle);
