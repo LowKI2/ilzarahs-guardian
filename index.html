@@ -1698,7 +1698,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.9.3 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.9.4 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -1859,6 +1859,24 @@ canvas {
         <div class="settings-row">
           <span class="settings-label">Gesamten Fortschritt zurücksetzen</span>
           <button class="settings-small-btn danger" id="btnResetProgress">Reset</button>
+        </div>
+      </div>
+      <div class="settings-group">
+        <div class="settings-group-title">Savegame</div>
+        <div class="settings-row">
+          <span class="settings-label">Spielstand exportieren</span>
+          <button class="settings-small-btn" id="btnExportSave">Export</button>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Spielstand importieren</span>
+          <button class="settings-small-btn" id="btnImportSave">Import</button>
+        </div>
+        <div id="saveCodeBox" style="display:none;margin-top:4px;">
+          <textarea id="saveCodeText" style="width:100%;height:60px;background:rgba(20,24,32,0.9);color:var(--amber);border:1px solid var(--amber-dim);border-radius:3px;font-family:var(--font-mono);font-size:10px;padding:6px;resize:none;" readonly></textarea>
+          <div style="display:flex;gap:6px;margin-top:4px;">
+            <button class="settings-small-btn" id="btnCopySave" style="flex:1">Kopieren</button>
+            <button class="settings-small-btn" id="btnCloseSaveBox" style="flex:1">Schließen</button>
+          </div>
         </div>
       </div>
     </div>
@@ -2352,6 +2370,87 @@ class Game {
     };
     document.getElementById('btnResetProgress').addEventListener('click', resetProgressFn);
     document.getElementById('btnResetProgress').addEventListener('touchend', (e) => { e.preventDefault(); resetProgressFn(); });
+
+    // Savegame export/import
+    const SAVE_KEYS = ['ilzarah_totalEP', 'ilzarah_totalEPSpent', 'ilzarah_skillLevels', 'ilzarah_unlockedTech', 'ilzarah_bestWave', 'ilzarah_runState', 'ilzarah_tutorialDone'];
+
+    const exportFn = () => {
+      playSound('click');
+      const data = {};
+      for (const key of SAVE_KEYS) {
+        const val = localStorage.getItem(key);
+        if (val !== null) data[key] = val;
+      }
+      const json = JSON.stringify(data);
+      const code = btoa(unescape(encodeURIComponent(json)));
+      const box = document.getElementById('saveCodeBox');
+      const txt = document.getElementById('saveCodeText');
+      txt.value = code;
+      txt.removeAttribute('readonly');
+      txt.setAttribute('readonly', '');
+      box.style.display = 'block';
+    };
+    document.getElementById('btnExportSave').addEventListener('click', exportFn);
+    document.getElementById('btnExportSave').addEventListener('touchend', (e) => { e.preventDefault(); exportFn(); });
+
+    const importFn = () => {
+      playSound('click');
+      const box = document.getElementById('saveCodeBox');
+      const txt = document.getElementById('saveCodeText');
+      txt.value = '';
+      txt.removeAttribute('readonly');
+      box.style.display = 'block';
+      txt.placeholder = 'Savegame-Code hier einfügen...';
+      txt.focus();
+
+      // Change copy button to "Laden"
+      const loadBtn = document.getElementById('btnCopySave');
+      loadBtn.textContent = 'Laden';
+      loadBtn.onclick = () => {
+        try {
+          const json = decodeURIComponent(escape(atob(txt.value.trim())));
+          const data = JSON.parse(json);
+          if (!confirm('Aktuellen Spielstand mit dem importierten überschreiben?')) return;
+          for (const key of SAVE_KEYS) localStorage.removeItem(key);
+          for (const [key, val] of Object.entries(data)) {
+            if (SAVE_KEYS.includes(key)) localStorage.setItem(key, val);
+          }
+          // Reload state
+          this.totalEP = parseInt(localStorage.getItem('ilzarah_totalEP') || '0', 10) || 0;
+          this.totalEPSpent = parseInt(localStorage.getItem('ilzarah_totalEPSpent') || '0', 10) || 0;
+          this.bestWave = parseInt(localStorage.getItem('ilzarah_bestWave') || '0', 10) || 0;
+          try { this.skillLevels = JSON.parse(localStorage.getItem('ilzarah_skillLevels') || '{}'); } catch(e) { this.skillLevels = {}; }
+          try { this.unlockedTech = new Set(JSON.parse(localStorage.getItem('ilzarah_unlockedTech') || '[]')); } catch(e) { this.unlockedTech = new Set(); }
+          box.style.display = 'none';
+          playSound('confirm');
+          this.showBanner('Spielstand importiert!');
+        } catch (e) {
+          alert('Ungültiger Savegame-Code!');
+        }
+      };
+    };
+    document.getElementById('btnImportSave').addEventListener('click', importFn);
+    document.getElementById('btnImportSave').addEventListener('touchend', (e) => { e.preventDefault(); importFn(); });
+
+    const copyFn = () => {
+      const txt = document.getElementById('saveCodeText');
+      navigator.clipboard.writeText(txt.value).then(() => {
+        this.showBanner('Code kopiert!');
+      }).catch(() => {
+        txt.select();
+        document.execCommand('copy');
+        this.showBanner('Code kopiert!');
+      });
+    };
+    document.getElementById('btnCopySave').addEventListener('click', copyFn);
+    document.getElementById('btnCopySave').addEventListener('touchend', (e) => { e.preventDefault(); copyFn(); });
+
+    document.getElementById('btnCloseSaveBox').addEventListener('click', () => {
+      document.getElementById('saveCodeBox').style.display = 'none';
+      const loadBtn = document.getElementById('btnCopySave');
+      loadBtn.textContent = 'Kopieren';
+      loadBtn.onclick = copyFn;
+    });
 
     // Pause menu
     const pauseToggle = () => { playSound('click'); this.togglePause(); };
