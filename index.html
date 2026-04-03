@@ -1655,7 +1655,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.7.4 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.7.5 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -4149,7 +4149,7 @@ class Game {
     const atkInfo = document.getElementById('upgStationAttack');
     if (atkInfo) {
       const dpsText = dpsParts.length > 0 ? dpsParts.join(' | ') + ' DPS' : 'Keine Waffen';
-      atkInfo.textContent = `${this.station.name} +${Math.round(this.station.dmgBonus * 100)}% — ${dpsText}`;
+      atkInfo.textContent = `${this.station.name} +${Math.round(this.station.dmgBonus * 100)}% — ${dpsText} | Pierce ${(pierceChance * 100).toFixed(0)}% | Sys ${sysHitChance.toFixed(0)}%`;
     }
 
     // Defense panel info
@@ -4157,7 +4157,7 @@ class Game {
     if (defInfo) {
       const usedE = this.getUsedEnergy();
       const poolE = this.getEnergyPool();
-      defInfo.innerHTML = `${this.station.name} — <span style="color:${usedE > poolE * 0.8 ? '#FF5028' : 'var(--ilzarah)'}">Energie ${usedE}/${poolE}%</span> | Kern ${this.shieldRegenRate.toFixed(0)}/s | Pierce ${(pierceChance * 100).toFixed(0)}% | Sys ${sysHitChance.toFixed(0)}%`;
+      defInfo.innerHTML = `${this.station.name} — <span style="color:${usedE > poolE * 0.8 ? '#FF5028' : 'var(--ilzarah)'}">Energie ${usedE}/${poolE}%</span> | Kern ${this.shieldRegenRate.toFixed(0)}/s`;
     }
   }
 
