@@ -1655,7 +1655,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.7.3 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.7.4 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -4224,16 +4224,21 @@ class Game {
       if (!station) { this.clearRunState(); return false; }
 
       this.station = station;
-      this.stationHP = data.stationHP;
-      this.stationMaxHP = data.stationMaxHP;
-      this.stationShield = data.stationShield;
-      this.stationMaxShield = data.stationMaxShield;
-      this.shieldRegenRate = data.shieldRegenRate;
+      this.applySkillTreeBonuses(); // recalculate HP/Shield/Regen from current station defs
+      // Restore current HP/Shield from save, but cap to current max
+      this.stationHP = Math.min(data.stationHP, this.stationMaxHP);
+      this.stationShield = Math.min(data.stationShield, this.stationMaxShield);
       this.vsu = data.vsu;
       this.ep = data.ep || 0;
       this.wave = data.wave;
       this.kills = data.kills;
-      this.runUpgrades = data.runUpgrades;
+      // Merge saved runUpgrades with defaults to handle new keys
+      const defaultUpgrades = {
+        dmg: 0, rof: 0, range: 0, pierce: 0, syshit: 0,
+        hull: 0, shield: 0, energy: 0, reserve: 0, energySave: 0,
+        vsuKill: 0, vsuWave: 0, epKill: 0, epWave: 0, repairEff: 0, repairCost: 0,
+      };
+      this.runUpgrades = { ...defaultUpgrades, ...(data.runUpgrades || {}) };
       this.ownedWeapons = data.ownedWeapons || {};
       this.repairUsed = data.repairUsed || false;
       this._reserveUsed = data._reserveUsed || false;
