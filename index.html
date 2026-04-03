@@ -755,6 +755,134 @@ canvas {
 .upg-buy:hover { background: rgba(212,130,10,0.15); border-color: var(--amber); }
 .upg-buy:disabled { opacity: 0.3; cursor: not-allowed; }
 
+/* -- Tutorial Overlay -- */
+#tutorialOverlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 400;
+}
+#tutorialOverlay.visible { display: flex; }
+
+.tut-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10,12,16,0.88);
+}
+
+.tut-card {
+  position: relative;
+  background: linear-gradient(165deg, rgba(30,36,48,0.97), rgba(20,24,32,0.99));
+  border: 1px solid var(--amber-dim);
+  border-radius: 8px;
+  padding: clamp(24px, 5vw, 40px);
+  max-width: 440px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 0 60px rgba(212,130,10,0.12), inset 0 1px 0 rgba(255,189,85,0.08);
+  animation: tutCardIn 0.35s ease-out;
+}
+
+@keyframes tutCardIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.tut-step-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.tut-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--steel-light);
+  border: 1px solid var(--text-dim);
+  transition: all 0.25s;
+}
+
+.tut-dot.active {
+  background: var(--amber);
+  border-color: var(--amber-bright);
+  box-shadow: 0 0 8px rgba(212,130,10,0.5);
+}
+
+.tut-dot.done {
+  background: var(--amber-dim);
+  border-color: var(--amber-dim);
+}
+
+.tut-icon {
+  font-size: clamp(36px, 8vw, 52px);
+  margin-bottom: 12px;
+  line-height: 1.2;
+}
+
+.tut-title {
+  font-family: var(--font-ui);
+  font-size: clamp(16px, 4vw, 22px);
+  color: var(--amber-bright);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin-bottom: 14px;
+  text-shadow: 0 0 20px rgba(255,189,85,0.3);
+}
+
+.tut-text {
+  font-family: var(--font-mono);
+  font-size: clamp(12px, 2.5vw, 14px);
+  color: var(--text);
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+
+.tut-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tut-btn {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 10px 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 44px;
+}
+
+.tut-btn-skip {
+  background: transparent;
+  border: 1px solid var(--text-dim);
+  color: var(--text-dim);
+}
+
+.tut-btn-skip:hover {
+  border-color: var(--text);
+  color: var(--text);
+}
+
+.tut-btn-next {
+  flex: 1;
+  background: rgba(212,130,10,0.12);
+  border: 1px solid var(--amber);
+  color: var(--amber-bright);
+}
+
+.tut-btn-next:hover {
+  background: rgba(212,130,10,0.25);
+  border-color: var(--amber-bright);
+  box-shadow: 0 0 16px rgba(255,189,85,0.25);
+}
+
 /* -- Game Over Screen -- */
 #gameOverScreen {
   position: absolute;
@@ -1513,6 +1641,21 @@ canvas {
   </div>
 
   <div id="tooltip"></div>
+
+  <!-- TUTORIAL OVERLAY -->
+  <div id="tutorialOverlay">
+    <div class="tut-backdrop"></div>
+    <div class="tut-card">
+      <div class="tut-step-indicator" id="tutStepIndicator"></div>
+      <div class="tut-icon" id="tutIcon"></div>
+      <h2 class="tut-title" id="tutTitle"></h2>
+      <p class="tut-text" id="tutText"></p>
+      <div class="tut-buttons">
+        <button class="tut-btn tut-btn-skip" id="btnTutSkip">Überspringen</button>
+        <button class="tut-btn tut-btn-next" id="btnTutNext">Weiter</button>
+      </div>
+    </div>
+  </div>
 
   <!-- TECH SCREEN -->
   <div id="techScreen">
@@ -2773,6 +2916,11 @@ class Game {
     this.saveRunState();
     playSound('confirm');
     playMusic('drifting');
+
+    // Show tutorial on first ever run
+    if (this.shouldShowTutorial()) {
+      this.showTutorial();
+    }
   }
 
   generateSlots() {
@@ -3846,6 +3994,88 @@ class Game {
       this.clearRunState();
       return false;
     }
+  }
+
+  // -- Tutorial --
+  static TUTORIAL_STEPS = [
+    {
+      icon: '\u2694\uFE0F',
+      title: 'Willkommen, Kommandant',
+      text: 'Du bist der letzte Verteidiger von Ilzarah. Piraten greifen deine Raumstation an — halte so viele Wellen wie möglich stand!'
+    },
+    {
+      icon: '\uD83D\uDD27',
+      title: 'Build-Phase',
+      text: 'Vor jeder Welle rüstest du deine Station aus. Tippe auf die Waffenslots, um Geschütze zu platzieren. Kaufe Upgrades mit VSU über die Kategorien am unteren Rand.'
+    },
+    {
+      icon: '\uD83D\uDE80',
+      title: 'Kampf-Phase',
+      text: 'Starte den Kampf mit dem KAMPF-Button. Deine Geschütze feuern automatisch auf anfliegende Piraten. Zerstörte Feinde droppen VSU und manchmal EP.'
+    },
+    {
+      icon: '\uD83C\uDF1F',
+      title: 'Progression',
+      text: 'Mit EP schaltest du im Technologie-Baum permanente Verbesserungen frei — neue Waffen, mehr Schaden, stärkere Schilde. EP bleiben über alle Runs erhalten!'
+    },
+    {
+      icon: '\uD83D\uDEE1\uFE0F',
+      title: 'Bereit?',
+      text: 'Platziere deine erste Waffe auf einem Slot und starte den Kampf. Viel Glück, Kommandant!'
+    }
+  ];
+
+  shouldShowTutorial() {
+    return !localStorage.getItem('ilzarah_tutorialDone');
+  }
+
+  showTutorial() {
+    this.tutorialStep = 0;
+    const overlay = document.getElementById('tutorialOverlay');
+    overlay.classList.add('visible');
+    this.renderTutorialStep();
+
+    document.getElementById('btnTutNext').onclick = () => {
+      playSound('click');
+      this.tutorialStep++;
+      if (this.tutorialStep >= Game.TUTORIAL_STEPS.length) {
+        this.closeTutorial();
+      } else {
+        this.renderTutorialStep();
+      }
+    };
+
+    document.getElementById('btnTutSkip').onclick = () => {
+      playSound('click');
+      this.closeTutorial();
+    };
+  }
+
+  renderTutorialStep() {
+    const steps = Game.TUTORIAL_STEPS;
+    const step = steps[this.tutorialStep];
+
+    document.getElementById('tutIcon').textContent = step.icon;
+    document.getElementById('tutTitle').textContent = step.title;
+    document.getElementById('tutText').textContent = step.text;
+
+    // Step indicator dots
+    const indicator = document.getElementById('tutStepIndicator');
+    indicator.innerHTML = '';
+    for (let i = 0; i < steps.length; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'tut-dot' + (i === this.tutorialStep ? ' active' : i < this.tutorialStep ? ' done' : '');
+      indicator.appendChild(dot);
+    }
+
+    // Button labels
+    const nextBtn = document.getElementById('btnTutNext');
+    nextBtn.textContent = this.tutorialStep === steps.length - 1 ? 'Los geht\'s!' : 'Weiter';
+  }
+
+  closeTutorial() {
+    document.getElementById('tutorialOverlay').classList.remove('visible');
+    localStorage.setItem('ilzarah_tutorialDone', '1');
   }
 
   showBanner(text) {
