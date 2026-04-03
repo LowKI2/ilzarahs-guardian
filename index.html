@@ -904,36 +904,6 @@ canvas {
   box-shadow: 0 0 16px rgba(255,189,85,0.25);
 }
 
-/* -- Turret Stats Overlay -- */
-#turretStatsOverlay {
-  position: absolute;
-  bottom: 74px;
-  right: 8px;
-  display: none;
-  align-items: flex-end;
-  z-index: 18;
-  pointer-events: none;
-  background: rgba(10,12,16,0.7);
-  border: 1px solid rgba(100,120,140,0.15);
-  border-radius: 3px;
-  padding: 3px 10px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-dim);
-  gap: 10px;
-  white-space: nowrap;
-}
-
-#turretStatsOverlay.visible { display: flex; }
-
-.ts-name {
-  color: var(--amber);
-}
-
-.ts-val {
-  color: var(--text);
-}
-
 /* -- Game Over Screen -- */
 #gameOverScreen {
   position: absolute;
@@ -1685,7 +1655,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.7.2 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.7.3 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -1740,8 +1710,6 @@ canvas {
   </div>
 
   <div id="waveBanner"></div>
-
-  <div id="turretStatsOverlay"></div>
 
   <div id="gameOverScreen">
     <h2 id="goTitle">Station Zerstort</h2>
@@ -2914,17 +2882,6 @@ class Game {
           btn.textContent = `${cost} VSU`;
           btn.disabled = this.vsu < cost;
         }
-      }
-    }
-
-    // Station info in panels
-    if (this.station) {
-      const atkInfo = document.getElementById('upgStationAttack');
-      if (atkInfo) atkInfo.textContent = `${this.station.name} — Schaden +${Math.round(this.station.dmgBonus * 100)}%`;
-      const defInfo = document.getElementById('upgStationDefense');
-      if (defInfo) {
-        const eSave = this.getUpgBonus('energySave');
-        defInfo.textContent = `${this.station.name} — Energie ${this.getEffectiveEnergyPool()}/${this.station.energyPool}% | Kern ${this.shieldRegenRate.toFixed(0)}/s`;
       }
     }
 
@@ -4165,56 +4122,43 @@ class Game {
   }
 
   updateTurretStats() {
-    const overlay = document.getElementById('turretStatsOverlay');
-    if (this.state !== 'build' && this.state !== 'combat') {
-      overlay.classList.remove('visible');
-      return;
-    }
+    if (!this.station || (this.state !== 'build' && this.state !== 'combat')) return;
 
     // Gather equipped turrets by type
     const turretMap = {};
     for (const slot of this.slots) {
       if (!slot.building) continue;
       const key = slot.building.weaponKey;
-      if (!turretMap[key]) turretMap[key] = { count: 0, def: WEAPONS[key], turret: slot.building };
+      if (!turretMap[key]) turretMap[key] = { count: 0, def: WEAPONS[key] };
       turretMap[key].count++;
     }
 
-    if (Object.keys(turretMap).length === 0) {
-      overlay.classList.remove('visible');
-      return;
-    }
-
-    const dmgMult = (1 + (this.station ? this.station.dmgBonus : 0)) * (1 + this.getTotalBonus('dmg') / 100);
+    const dmgMult = (1 + this.station.dmgBonus) * (1 + this.getTotalBonus('dmg') / 100);
     const rofMult = 1 + this.getTotalBonus('rof') / 100;
     const pierceChance = this.getTotalBonus('pierce') / 100;
     const sysHitChance = this.getTotalBonus('syshit');
 
-    let parts = [];
+    // DPS per turret type
+    let dpsParts = [];
     for (const [key, info] of Object.entries(turretMap)) {
-      const baseDmg = info.def.damage * dmgMult;
-      const effectiveRof = info.def.fireRate * rofMult;
-      const dps = baseDmg * effectiveRof * info.count;
-      parts.push(`<span class="ts-name">${info.def.name}${info.count > 1 ? ' x' + info.count : ''}</span>` +
-        `<span class="ts-val">${dps.toFixed(1)} DPS</span>`);
+      const dps = info.def.damage * dmgMult * info.def.fireRate * rofMult * info.count;
+      dpsParts.push(`${info.def.name}${info.count > 1 ? ' x' + info.count : ''} ${dps.toFixed(1)}`);
     }
-    const usedE = this.getUsedEnergy();
-    const poolE = this.getEnergyPool();
-    parts.push(
-      `<span class="ts-val" style="color:${usedE > poolE * 0.8 ? '#FF5028' : 'var(--ilzarah)'}">E ${usedE}/${poolE}%</span>`,
-      `<span class="ts-val">Pierce ${(pierceChance * 100).toFixed(0)}%</span>`,
-      `<span class="ts-val">Sys ${sysHitChance.toFixed(0)}%</span>`
-    );
 
-    overlay.innerHTML = parts.join('<span style="color:rgba(100,120,140,0.3)">|</span>');
-    // Position above whichever bottom panel is visible
-    const buildUI = document.getElementById('buildUI');
-    const combatCtrl = document.getElementById('combatControls');
-    let panelH = 0;
-    if (buildUI && buildUI.style.display !== 'none') panelH = buildUI.offsetHeight;
-    else if (combatCtrl && combatCtrl.style.display !== 'none') panelH = combatCtrl.offsetHeight;
-    overlay.style.bottom = (panelH + 8) + 'px';
-    overlay.classList.add('visible');
+    // Attack panel info
+    const atkInfo = document.getElementById('upgStationAttack');
+    if (atkInfo) {
+      const dpsText = dpsParts.length > 0 ? dpsParts.join(' | ') + ' DPS' : 'Keine Waffen';
+      atkInfo.textContent = `${this.station.name} +${Math.round(this.station.dmgBonus * 100)}% — ${dpsText}`;
+    }
+
+    // Defense panel info
+    const defInfo = document.getElementById('upgStationDefense');
+    if (defInfo) {
+      const usedE = this.getUsedEnergy();
+      const poolE = this.getEnergyPool();
+      defInfo.innerHTML = `${this.station.name} — <span style="color:${usedE > poolE * 0.8 ? '#FF5028' : 'var(--ilzarah)'}">Energie ${usedE}/${poolE}%</span> | Kern ${this.shieldRegenRate.toFixed(0)}/s | Pierce ${(pierceChance * 100).toFixed(0)}% | Sys ${sysHitChance.toFixed(0)}%`;
+    }
   }
 
   saveEP() {
