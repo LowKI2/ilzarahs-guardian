@@ -1698,7 +1698,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.9.1 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.9.2 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2915,7 +2915,8 @@ class Game {
       const atMax = def.maxLevel && this.runUpgrades[key] >= def.maxLevel;
       if (val) {
         const prefix = key === 'energySave' ? '-' : '+';
-        val.textContent = `${prefix}${this.getUpgBonus(key)}% (Lv.${this.runUpgrades[key]})`;
+        const total = this.getTotalBonus(key);
+        val.textContent = `${prefix}${total}% gesamt (Lv.${this.runUpgrades[key]})`;
       }
       if (btn) {
         if (atMax) {
