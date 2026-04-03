@@ -1725,7 +1725,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.9.14 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.9.15 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -3770,7 +3770,7 @@ class Game {
       hp: bossHP,
       maxHP: bossHP,
       speed: speed,
-      damage: (3 + this.wave * 0.5) * diff,
+      damage: (1 + this.wave * 0.15) * diff,
       radius: 30,
       tier: 4,
       armor: 0.15 + this.wave * 0.005,
@@ -3781,9 +3781,9 @@ class Game {
       driveDisabled: 0,
       weaponDisabled: 0,
       aiState: ENEMY_STATE.APPROACH,
-      firingRange: 200,
+      firingRange: 60, // docks at station
       fireTimer: 0,
-      fireRate: 5 + this.wave * 0.3,
+      fireRate: 1.5,
       shotsInPass: 0,
       maxShotsPerPass: 99,
       flybyAngle: 0,
@@ -3824,7 +3824,6 @@ class Game {
         this.bossActive = false;
       } else if (this.bossTimer <= 0) {
         // Station captured — game over
-        this.bossActive = false;
         this.showBanner('STATION GEENTERT!');
         this.stationHP = 0;
         this.triggerGameOver();
@@ -4168,6 +4167,39 @@ class Game {
 
     // Drive disabled: no movement
     const speedMult = enemy.driveDisabled > 0 ? 0 : 1;
+
+    // Boss special AI: approach station, then dock and deal hull damage directly
+    if (enemy.isBoss) {
+      if (dist > enemy.firingRange) {
+        // Approach station
+        enemy.x += Math.cos(angleToStation) * enemy.speed * speedMult * dt;
+        enemy.y += Math.sin(angleToStation) * enemy.speed * speedMult * dt;
+        enemy.rotation = angleToStation;
+      } else {
+        // Docked — hover at station, deal direct hull damage (ignores shield)
+        enemy.rotation = angleToStation;
+        enemy.fireTimer -= dt;
+        if (enemy.fireTimer <= 0 && enemy.weaponDisabled <= 0) {
+          enemy.fireTimer = 1 / enemy.fireRate;
+          // Direct hull damage, bypasses shield
+          this.stationHP -= enemy.damage;
+          this.shakeTimer = 0.15;
+          this.shakeIntensity = 4;
+          // Damage number on station
+          this.damageNumbers.push({
+            x: this.stationCenter.x + (Math.random() - 0.5) * 30,
+            y: this.stationCenter.y - 20,
+            value: 'ENTER ' + enemy.damage.toFixed(1),
+            life: 1.0, maxLife: 1.0, isCrit: true,
+          });
+          if (this.stationHP <= 0) {
+            this.stationHP = 0;
+            this.triggerGameOver();
+          }
+        }
+      }
+      return;
+    }
 
     switch (enemy.aiState) {
       case ENEMY_STATE.APPROACH: {
