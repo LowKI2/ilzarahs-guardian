@@ -1611,7 +1611,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.5.7 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.6.0 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -1987,41 +1987,41 @@ function stopMusic() {
 
 // -- Station Data --
 const STATIONS = [
-  { id: 0, name: "Crusader", hp: 800, shield: 200, energyCore: 8, dmgBonus: 0.15, crit: 0.05, slotCount: 4, locked: false, desc: "Offensiv", sprite: 0 },
-  { id: 1, name: "Starshield", hp: 1200, shield: 400, energyCore: 15, dmgBonus: 0.0, crit: 0.02, slotCount: 4, locked: false, desc: "Defensiv", sprite: 1 },
-  { id: 2, name: "Crusader Mk.II", hp: 900, shield: 250, energyCore: 10, dmgBonus: 0.30, crit: 0.12, slotCount: 6, locked: true, desc: "Offensiv+", sprite: 2 },
-  { id: 3, name: "Starshield Mk.II", hp: 1600, shield: 600, energyCore: 22, dmgBonus: 0.0, crit: 0.02, slotCount: 6, locked: true, desc: "Defensiv+", sprite: 3 },
-  { id: 4, name: "Nexus", hp: 1400, shield: 500, energyCore: 16, dmgBonus: 0.20, crit: 0.08, slotCount: 8, locked: true, desc: "Hybrid", sprite: 4 },
+  { id: 0, name: "Crusader", hp: 8000, shield: 2000, energyCore: 80, dmgBonus: 0.15, crit: 0.05, slotCount: 4, locked: false, desc: "Offensiv", sprite: 0 },
+  { id: 1, name: "Starshield", hp: 12000, shield: 4000, energyCore: 150, dmgBonus: 0.0, crit: 0.02, slotCount: 4, locked: false, desc: "Defensiv", sprite: 1 },
+  { id: 2, name: "Crusader Mk.II", hp: 9000, shield: 2500, energyCore: 100, dmgBonus: 0.30, crit: 0.12, slotCount: 6, locked: true, desc: "Offensiv+", sprite: 2 },
+  { id: 3, name: "Starshield Mk.II", hp: 16000, shield: 6000, energyCore: 220, dmgBonus: 0.0, crit: 0.02, slotCount: 6, locked: true, desc: "Defensiv+", sprite: 3 },
+  { id: 4, name: "Nexus", hp: 14000, shield: 5000, energyCore: 160, dmgBonus: 0.20, crit: 0.08, slotCount: 8, locked: true, desc: "Hybrid", sprite: 4 },
 ];
 
 // -- Weapon Definitions (all 10 RoF, damage adjusted for similar DPS) --
 const WEAPONS = {
   gun_t1: {
-    name: "Gun T1", cost: 35, range: 150, fireRate: 10, damage: 1.6, projSpeed: 700,
+    name: "Gun T1", cost: 35, range: 150, fireRate: 10, damage: 16, projSpeed: 700,
     color: "#44AAFF", desc: "Basis-Geschuetz", sprite: 'gun_t1',
     projSize: 2, projColor: '#44AAFF', splashRadius: 0,
     unlock: null, // immer verfuegbar
   },
   gun_t2: {
-    name: "Gun T2", cost: 55, range: 170, fireRate: 10, damage: 2.8, projSpeed: 750,
+    name: "Gun T2", cost: 55, range: 170, fireRate: 10, damage: 28, projSpeed: 750,
     color: "#33CCFF", desc: "Mittleres Geschuetz", sprite: 'gun_t2',
     projSize: 2.5, projColor: '#33CCFF', splashRadius: 0,
     unlock: 'gun_t2', // Tech-Tree Node
   },
   gun_t3: {
-    name: "Gun T3", cost: 100, range: 190, fireRate: 10, damage: 4.9, projSpeed: 800,
+    name: "Gun T3", cost: 100, range: 190, fireRate: 10, damage: 49, projSpeed: 800,
     color: "#00EEFF", desc: "Schweres Geschuetz", sprite: 'gun_t3',
     projSize: 3, projColor: '#00EEFF', splashRadius: 0,
     unlock: 'gun_t3',
   },
   rocket_t1: {
-    name: "Rocket T1", cost: 60, range: 200, fireRate: 2, damage: 10, projSpeed: 450,
+    name: "Rocket T1", cost: 60, range: 200, fireRate: 2, damage: 100, projSpeed: 450,
     color: "#4488FF", desc: "Lenkraketen", sprite: 'rocket_t1',
     projSize: 6, projColor: '#4488FF', splashRadius: 0,
     unlock: 'rocket_t1',
   },
   rocket_t2: {
-    name: "Rocket T2", cost: 90, range: 220, fireRate: 2, damage: 12, projSpeed: 500,
+    name: "Rocket T2", cost: 90, range: 220, fireRate: 2, damage: 120, projSpeed: 500,
     color: "#66AAFF", desc: "Verbesserte Lenkraketen", sprite: 'rocket_t2',
     projSize: 6, projColor: '#66AAFF', splashRadius: 0,
     unlock: 'rocket_t2',
@@ -3242,7 +3242,7 @@ class Game {
   spawnEnemy() {
     const angle = Math.random() * Math.PI * 2;
     const dist = Math.max(this.W, this.H) * 0.65;
-    const baseHP = 12 + this.wave * 3;
+    const baseHP = 120 + this.wave * 30;
 
     // Pirate tier based on wave
     let tier = 0;
@@ -3264,7 +3264,7 @@ class Game {
       hp: baseHP * hpMultiplier,
       maxHP: baseHP * hpMultiplier,
       speed: speed,
-      damage: (1.5 + this.wave * 0.3) * dmgMultiplier,
+      damage: (15 + this.wave * 3) * dmgMultiplier,
       radius: (12 + tier * 2) * sizeMultiplier,
       tier: tier,
       armor: 0.05 + tier * 0.08, // armor scales with tier
