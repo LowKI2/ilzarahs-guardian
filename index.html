@@ -1725,7 +1725,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.9.10 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.9.11 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -3773,7 +3773,7 @@ class Game {
       hitFlash: 0,
       driveDisabled: 0,
       weaponDisabled: 0,
-      aiState: 'APPROACH',
+      aiState: ENEMY_STATE.APPROACH,
       firingRange: 200,
       fireTimer: 0,
       fireRate: 5 + this.wave * 0.3,
