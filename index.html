@@ -1655,7 +1655,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.8.1 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.8.2 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2037,11 +2037,11 @@ function stopMusic() {
 
 // -- Station Data --
 const STATIONS = [
-  { id: 0, name: "Crusader", hp: 800, shield: 200, energyCore: 8, dmgBonus: 0.15, slotCount: 4, energyPool: 100, locked: false, desc: "Offensiv", sprite: 0 },
-  { id: 1, name: "Starshield", hp: 1200, shield: 400, energyCore: 15, dmgBonus: 0.0, slotCount: 4, energyPool: 100, locked: false, desc: "Defensiv", sprite: 1 },
-  { id: 2, name: "Crusader Mk.II", hp: 900, shield: 250, energyCore: 10, dmgBonus: 0.30, slotCount: 6, energyPool: 150, locked: true, desc: "Offensiv+", sprite: 2 },
-  { id: 3, name: "Starshield Mk.II", hp: 1600, shield: 600, energyCore: 22, dmgBonus: 0.0, slotCount: 6, energyPool: 150, locked: true, desc: "Defensiv+", sprite: 3 },
-  { id: 4, name: "Nexus", hp: 1400, shield: 500, energyCore: 16, dmgBonus: 0.20, slotCount: 8, energyPool: 200, locked: true, desc: "Hybrid", sprite: 4 },
+  { id: 0, name: "Crusader", hp: 800, shield: 200, energyCore: 8, dmgBonus: 0.15, slotCount: 4, energyPool: 100, tier: 0, waveReq: 0, desc: "Offensiv", sprite: 0 },
+  { id: 1, name: "Starshield", hp: 1200, shield: 400, energyCore: 15, dmgBonus: 0.0, slotCount: 4, energyPool: 100, tier: 0, waveReq: 0, desc: "Defensiv", sprite: 1 },
+  { id: 2, name: "Crusader Mk.II", hp: 900, shield: 250, energyCore: 10, dmgBonus: 0.30, slotCount: 6, energyPool: 150, tier: 1, waveReq: 50, desc: "Offensiv+", sprite: 2 },
+  { id: 3, name: "Starshield Mk.II", hp: 1600, shield: 600, energyCore: 22, dmgBonus: 0.0, slotCount: 6, energyPool: 150, tier: 1, waveReq: 50, desc: "Defensiv+", sprite: 3 },
+  { id: 4, name: "Nexus", hp: 1400, shield: 500, energyCore: 16, dmgBonus: 0.20, slotCount: 8, energyPool: 200, tier: 2, waveReq: 100, desc: "Hybrid", sprite: 4 },
 ];
 
 // -- Weapon Definitions (all 10 RoF, damage adjusted for similar DPS) --
@@ -3015,8 +3015,9 @@ class Game {
     const grid = document.getElementById('stationGrid');
     grid.innerHTML = '';
     STATIONS.forEach(s => {
+      const isLocked = this.bestWave < s.waveReq;
       const card = document.createElement('div');
-      card.className = 'station-card' + (s.locked ? ' locked' : '');
+      card.className = 'station-card' + (isLocked ? ' locked' : '');
 
       const spriteImg = IMAGES.stations[s.sprite];
       const imgSrc = spriteImg ? spriteImg.src : '';
@@ -3024,14 +3025,16 @@ class Game {
       card.innerHTML = `
         <div class="station-preview"><img src="${imgSrc}" alt="${s.name}"></div>
         <div class="station-name">${s.name}</div>
+        ${isLocked ? `<div class="station-stat"><span class="label">Welle ${s.waveReq} erreichen</span></div>` : `
         <div class="station-stat"><span class="label">HP</span><span class="val def">${s.hp}</span></div>
         <div class="station-stat"><span class="label">Schild</span><span class="val def">${s.shield}</span></div>
         <div class="station-stat"><span class="label">Energiekern</span><span class="val cyan">${s.energyCore}/s</span></div>
         <div class="station-stat"><span class="label">Damage</span><span class="val dmg">+${Math.round(s.dmgBonus*100)}%</span></div>
         <div class="station-stat"><span class="label">Energie</span><span class="val cyan">${s.energyPool}%</span></div>
         <div class="station-slots">${s.slotCount} WAFFEN-SLOTS</div>
+        `}
       `;
-      if (!s.locked) {
+      if (!isLocked) {
         const selectFn = () => { playSound('click'); this.selectStation(s); };
         card.addEventListener('click', selectFn);
         card.addEventListener('touchend', (e) => { e.preventDefault(); selectFn(); });
@@ -3411,10 +3414,22 @@ class Game {
     this.spawnTimer = 0;
   }
 
+  // Difficulty & reward scaling based on station tier
+  getDifficultyMult() {
+    if (!this.station) return 1;
+    return 1 + this.station.tier * 0.5; // tier 0: 1x, tier 1: 1.5x, tier 2: 2x
+  }
+
+  getRewardMult() {
+    if (!this.station) return 1;
+    return 1 + this.station.tier * 0.4; // tier 0: 1x, tier 1: 1.4x, tier 2: 1.8x
+  }
+
   spawnEnemy() {
     const angle = Math.random() * Math.PI * 2;
     const dist = Math.max(this.W, this.H) * 0.65;
-    const baseHP = 12 + this.wave * 3;
+    const diff = this.getDifficultyMult();
+    const baseHP = (12 + this.wave * 3) * diff;
 
     // Pirate tier based on wave
     let tier = 0;
@@ -3427,7 +3442,8 @@ class Game {
     const hpMultiplier = 1 + tier * 0.5;
     const dmgMultiplier = 1 + tier * 0.3;
     const sizeMultiplier = 1 + tier * 0.15;
-    const vsuReward = (8 + this.wave) * (1 + tier * 0.5);
+    const rew = this.getRewardMult();
+    const vsuReward = (8 + this.wave) * (1 + tier * 0.5) * rew;
     const firingRange = 140 + tier * 20;
 
     this.enemies.push({
@@ -3436,7 +3452,7 @@ class Game {
       hp: baseHP * hpMultiplier,
       maxHP: baseHP * hpMultiplier,
       speed: speed,
-      damage: (1.5 + this.wave * 0.3) * dmgMultiplier,
+      damage: (1.5 + this.wave * 0.3) * dmgMultiplier * diff,
       radius: (12 + tier * 2) * sizeMultiplier,
       tier: tier,
       armor: 0.05 + tier * 0.08, // armor scales with tier
@@ -3464,8 +3480,9 @@ class Game {
   spawnBoss() {
     const angle = Math.random() * Math.PI * 2;
     const dist = Math.max(this.W, this.H) * 0.65;
-    const bossHP = (80 + this.wave * 15) * 3;
-    const speed = 40 + this.wave * 0.5; // slow approach
+    const diff = this.getDifficultyMult();
+    const bossHP = (80 + this.wave * 15) * 3 * diff;
+    const speed = 40 + this.wave * 0.5;
 
     this.enemies.push({
       x: this.stationCenter.x + Math.cos(angle) * dist,
@@ -3473,13 +3490,13 @@ class Game {
       hp: bossHP,
       maxHP: bossHP,
       speed: speed,
-      damage: (3 + this.wave * 0.5),
+      damage: (3 + this.wave * 0.5) * diff,
       radius: 30,
       tier: 4,
       armor: 0.15 + this.wave * 0.005,
       shield: 0,
       maxShield: 0,
-      vsuReward: Math.floor(30 + this.wave * 3),
+      vsuReward: Math.floor((30 + this.wave * 3) * this.getRewardMult()),
       hitFlash: 0,
       driveDisabled: 0,
       weaponDisabled: 0,
@@ -4008,13 +4025,14 @@ class Game {
   }
 
   waveCompleted() {
-    const vsuBase = 20 + this.wave * 5;
+    const rew = this.getRewardMult();
+    const vsuBase = (20 + this.wave * 5) * rew;
     const vsuEarned = Math.floor(vsuBase * (1 + this.getTotalBonus('vsuWave') / 100));
     this.vsu += vsuEarned;
 
     if (this.wave % 5 === 0) {
       const epWaveBonus = 1 + this.getTotalBonus('epWave') / 100;
-      const epMilestone = Math.floor(this.wave * 3 * epWaveBonus);
+      const epMilestone = Math.floor(this.wave * 3 * epWaveBonus * rew);
       this.ep += epMilestone;
       this.totalEP += epMilestone;
       this.saveEP();
