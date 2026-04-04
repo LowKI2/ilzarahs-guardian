@@ -1860,7 +1860,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.13.2 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.13.3 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2657,8 +2657,12 @@ class Game {
       this.totalEPSpent = 0;
       this.bestWave = 0;
       this.skillLevels = {};
+      for (const key of Object.keys(SKILL_TREE)) {
+        if (SKILL_TREE[key].type === 'small' || SKILL_TREE[key].type === 'medium') this.skillLevels[key] = 0;
+      }
       this.unlockedTech = new Set();
       this.clearRunState();
+      if (this._skillSnapshot) this._snapshotSkills();
       this.showBanner('Fortschritt zurückgesetzt!');
       playSound('confirm');
     };
@@ -3067,16 +3071,19 @@ class Game {
     if (!await this.showConfirm(`Willst du alle Skills zurücksetzen?\n\nDu erhältst ${this.totalEPSpent} EP zurück.`, 'Zurücksetzen', 'Abbrechen')) return;
     this.totalEP += this.totalEPSpent;
     this.totalEPSpent = 0;
-    // Reset all small nodes
+    // Reset all small/medium nodes to 0
+    this.skillLevels = {};
     for (const key of Object.keys(SKILL_TREE)) {
       if (SKILL_TREE[key].type === 'small' || SKILL_TREE[key].type === 'medium') this.skillLevels[key] = 0;
     }
     // Reset all big nodes
     this.unlockedTech = new Set();
+    // Save immediately
     this.saveEP();
     localStorage.setItem('ilzarah_totalEPSpent', '0');
     localStorage.setItem('ilzarah_skillLevels', JSON.stringify(this.skillLevels));
-    localStorage.setItem('ilzarah_unlockedTech', JSON.stringify([...this.unlockedTech]));
+    localStorage.setItem('ilzarah_unlockedTech', JSON.stringify([]));
+    // Update UI
     document.getElementById('techEP').textContent = 'EP: ' + this.totalEP;
     document.getElementById('skTooltip').classList.remove('visible');
     this._snapshotSkills();
