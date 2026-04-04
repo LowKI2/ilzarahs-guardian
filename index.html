@@ -1725,7 +1725,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.9.16 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.9.17 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -1753,7 +1753,7 @@ canvas {
     <div class="upg-row"><div class="upg-info"><div class="upg-name">Hülle verstärken</div><div class="upg-val" id="upgValHull">+0%</div></div><button class="upg-buy" id="upgBuyHull">-- VSU</button></div>
     <div class="upg-row"><div class="upg-info"><div class="upg-name">Schild verstärken</div><div class="upg-val" id="upgValShield">+0%</div></div><button class="upg-buy" id="upgBuyShield">-- VSU</button></div>
     <div class="upg-row"><div class="upg-info"><div class="upg-name">Energie erhöhen</div><div class="upg-val" id="upgValEnergy">+0%</div></div><button class="upg-buy" id="upgBuyEnergy">-- VSU</button></div>
-    <div class="upg-row"><div class="upg-info"><div class="upg-name">Notreserve</div><div class="upg-val" id="upgValReserve">+0%</div></div><button class="upg-buy" id="upgBuyReserve">-- VSU</button></div>
+    <div class="upg-row"><div class="upg-info"><div class="upg-name">Reparaturdrohnen</div><div class="upg-val" id="upgValReserve">+0%</div></div><button class="upg-buy" id="upgBuyReserve">-- VSU</button></div>
     <div class="upg-row"><div class="upg-info"><div class="upg-name">Bauplatz erweitern</div><div class="upg-val" id="upgValEnergySave">-0%</div></div><button class="upg-buy" id="upgBuyEnergySave">-- VSU</button></div>
   </div>
 
@@ -2242,7 +2242,7 @@ const SKILL_TREE = {
   sk_hull:     { name: 'Huelle',         desc: '+5% Station HP pro Stufe',          cat: 'defense',  type: 'small', perLevel: 5,  baseCost: 10, costStep: 5,  requires: [], x: 520, y: 100 },
   sk_shield:   { name: 'Schild',         desc: '+5% Schildkapazitaet pro Stufe',    cat: 'defense',  type: 'small', perLevel: 5,  baseCost: 10, costStep: 5,  requires: [], x: 600, y: 160 },
   sk_energy:   { name: 'Energie',        desc: '+4% Schildregeneration pro Stufe',  cat: 'defense',  type: 'small', perLevel: 4,  baseCost: 10, costStep: 5,  requires: [], x: 440, y: 160 },
-  sk_reserve:  { name: 'Notreserve',     desc: '+2% Ueberlebens-Chance bei Tod',    cat: 'defense',  type: 'small', perLevel: 2,  baseCost: 20, costStep: 10, requires: ['sk_hull'], x: 520, y: 230 },
+  sk_reserve:  { name: 'Reparaturdrohnen', desc: '+20% Reparaturdrohnen-Leistung',   cat: 'defense',  type: 'small', perLevel: 20, baseCost: 20, costStep: 10, requires: ['sk_hull'], x: 520, y: 230 },
   sk_missile_def:{ name: 'Raketenabwehr',desc: 'Tuerme schiessen Raketen ab',       cat: 'defense',  type: 'big',   cost: 60,  unlocks: 'missile_def', requires: ['sk_hull'], waveReq: 18, x: 420, y: 60 },
   sk_core_t2:  { name: 'Energy Core T2', desc: '+50% Energiekern-Leistung',         cat: 'defense',  type: 'big',   cost: 80,  unlocks: 'core_t2', requires: ['sk_energy'], waveReq: 30, x: 440, y: 280 },
   sk_shield_t2:{ name: 'Schild T2',     desc: '+30% Schildkapazitaet',              cat: 'defense',  type: 'big',   cost: 100, unlocks: 'shield_t2', requires: ['sk_core_t2'], waveReq: 42, x: 560, y: 310 },
@@ -2960,7 +2960,7 @@ class Game {
     hull:      { label: 'Hülle verstärken',   cat: 'defense',  perLevel: 5 },
     shield:    { label: 'Schild verstärken',  cat: 'defense',  perLevel: 5 },
     energy:    { label: 'Energie erhöhen',    cat: 'defense',  perLevel: 4 },
-    reserve:   { label: 'Notreserve',         cat: 'defense',  perLevel: 2 },
+    reserve:   { label: 'Reparaturdrohnen',    cat: 'defense',  perLevel: 20 },
     energySave:{ label: 'Bauplatz erweitern', cat: 'defense',  perLevel: 5, maxLevel: 6 },
     vsuKill:   { label: 'VSU bei Abschuss',   cat: 'resource', perLevel: 3 },
     vsuWave:   { label: 'VSU bei Wellenende', cat: 'resource', perLevel: 3 },
@@ -3307,7 +3307,7 @@ class Game {
     this.wave = 1;
     this.kills = 0;
     this.repairUsed = false;
-    this._reserveUsed = false;
+
 
     // In-Run upgrades (VSU, temporary per run)
     this.runUpgrades = {
@@ -3844,6 +3844,12 @@ class Game {
       this.stationShield = Math.min(this.stationMaxShield, this.stationShield + this.shieldRegenRate * dt);
     }
 
+    // Repair drones: hull regen during combat (base 5 HP/s + upgrade bonus)
+    if (this.stationHP > 0 && this.stationHP < this.stationMaxHP) {
+      const repairRate = 5 * (1 + this.getTotalBonus('reserve') / 100);
+      this.stationHP = Math.min(this.stationMaxHP, this.stationHP + repairRate * dt);
+    }
+
     // Remove dead enemies
     this.enemies = this.enemies.filter(e => e.hp > 0);
 
@@ -4357,16 +4363,6 @@ class Game {
     }
 
     if (this.stationHP <= 0) {
-      // Notreserve: chance to survive with 1 HP (once per wave)
-      const reserveChance = this.getTotalBonus('reserve') / 100;
-      if (!this._reserveUsed && reserveChance > 0 && Math.random() < reserveChance) {
-        this._reserveUsed = true;
-        this.stationHP = 1;
-        this.showBanner('NOTRESERVE!');
-        this.shakeTimer = 0.5;
-        this.shakeIntensity = 8;
-        return;
-      }
       this.stationHP = 0;
       this.triggerGameOver();
     }
@@ -4423,7 +4419,7 @@ class Game {
     }
     this.state = 'build';
     this.repairUsed = false;
-    this._reserveUsed = false;
+
     document.getElementById('buildUI').style.display = 'flex';
     document.getElementById('combatControls').style.display = 'none';
     document.getElementById('hudPhase').textContent = 'VORBEREITEN';
@@ -4711,7 +4707,7 @@ class Game {
       runUpgrades: { ...this.runUpgrades },
       ownedWeapons: { ...this.ownedWeapons },
       repairUsed: this.repairUsed,
-      _reserveUsed: this._reserveUsed,
+
       unlockedTech: [...this.unlockedTech],
       state: this.state,
     };
@@ -4753,7 +4749,7 @@ class Game {
       this.runUpgrades = { ...defaultUpgrades, ...(data.runUpgrades || {}) };
       this.ownedWeapons = data.ownedWeapons || {};
       this.repairUsed = data.repairUsed || false;
-      this._reserveUsed = data._reserveUsed || false;
+
       this.unlockedTech = new Set(data.unlockedTech || []);
       this.enemies = [];
       this.projectiles = [];
