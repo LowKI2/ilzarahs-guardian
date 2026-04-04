@@ -1765,7 +1765,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.12.5 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.12.6 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -3306,12 +3306,19 @@ class Game {
       if (key === 'pierce') stationBase = this.station.basePierce || 0;
       else if (key === 'syshit') stationBase = this.station.baseSys || 0;
     }
-    return runBonus + skBonus + stationBase;
+    let total = runBonus + skBonus + stationBase;
+    // Hard caps
+    if (key === 'pierce') total = Math.min(total, 80);
+    if (key === 'syshit') total = Math.min(total, 60);
+    return total;
   }
 
   buyUpgrade(key) {
     const def = Game.UPG_DEFS[key];
     if (def.maxLevel && this.runUpgrades[key] >= def.maxLevel) return;
+    // Hard cap check: don't allow buying if already at cap
+    if (key === 'pierce' && this.getTotalBonus('pierce') >= 80) return;
+    if (key === 'syshit' && this.getTotalBonus('syshit') >= 60) return;
     const cost = this.getUpgCost(key);
     if (this.vsu < cost || this.state !== 'build') return;
     this.vsu -= cost;
@@ -3430,11 +3437,14 @@ class Game {
       const val = document.getElementById(`upgVal${suffix}`);
       const btn = document.getElementById(`upgBuy${suffix}`);
       const def = Game.UPG_DEFS[key];
-      const atMax = def.maxLevel && this.runUpgrades[key] >= def.maxLevel;
+      const atMax = (def.maxLevel && this.runUpgrades[key] >= def.maxLevel)
+        || (key === 'pierce' && this.getTotalBonus('pierce') >= 80)
+        || (key === 'syshit' && this.getTotalBonus('syshit') >= 60);
       if (val) {
         const prefix = '+';
         const total = this.getTotalBonus(key);
-        val.textContent = `${prefix}${total}% gesamt (Lv.${this.runUpgrades[key]})`;
+        const capInfo = (key === 'pierce') ? '/80' : (key === 'syshit') ? '/60' : '';
+        val.textContent = `${prefix}${total}%${capInfo} gesamt (Lv.${this.runUpgrades[key]})`;
       }
       if (btn) {
         if (atMax) {
