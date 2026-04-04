@@ -3446,8 +3446,6 @@ class Game {
     this.station = station;
     this.stationHP = station.hp;
     this.stationMaxHP = station.hp;
-    this.stationHP = station.hp;
-    this.stationMaxHP = station.hp;
     this.stationShield = station.shield;
     this.stationMaxShield = station.shield;
     this.shieldRegenRate = station.energyCore;
@@ -5054,13 +5052,7 @@ class Game {
 
       this.station = station;
       this.applySkillTreeBonuses(); // recalculate HP/Shield/Regen from current station defs
-      // Restore current HP/Shield from save, but cap to current max
-      this.stationHP = Math.min(data.stationHP, this.stationMaxHP);
-      this.stationShield = Math.min(data.stationShield, this.stationMaxShield);
-      this.vsu = data.vsu;
-      this.ep = data.ep || 0;
-      this.wave = data.wave;
-      this.kills = data.kills;
+
       // Merge saved runUpgrades with defaults to handle new keys
       const defaultUpgrades = {
         dmg: 0, rof: 0, range: 0, pierce: 0, syshit: 0,
@@ -5068,6 +5060,19 @@ class Game {
         vsuKill: 0, vsuWave: 0, epKill: 0, epWave: 0, repairEff: 0, repairCost: 0,
       };
       this.runUpgrades = { ...defaultUpgrades, ...(data.runUpgrades || {}) };
+
+      // Re-apply defense run upgrades so max HP/Shield/Regen include in-run purchases
+      this.applyDefenseUpgrades('hull');
+      this.applyDefenseUpgrades('shield');
+      this.applyDefenseUpgrades('energy');
+
+      // Restore current HP/Shield from save, capped to correct max
+      this.stationHP = Math.min(data.stationHP, this.stationMaxHP);
+      this.stationShield = Math.min(data.stationShield, this.stationMaxShield);
+      this.vsu = data.vsu;
+      this.ep = data.ep || 0;
+      this.wave = data.wave;
+      this.kills = data.kills;
       this.ownedWeapons = data.ownedWeapons || {};
       this.repairUsed = data.repairUsed || false;
 
