@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.15.5 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.15.6 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -6829,19 +6829,16 @@ class Game {
       const flareSize = 4 + progress * 10;
       const flareAlpha = progress * 0.8;
 
-      // Outer glow
-      const glow = ctx.createRadialGradient(mx, my, 0, mx, my, flareSize * 2);
-      glow.addColorStop(0, `rgba(170,85,255,${flareAlpha * 0.4})`);
-      glow.addColorStop(0.5, `rgba(200,120,255,${flareAlpha * 0.15})`);
-      glow.addColorStop(1, 'rgba(170,85,255,0)');
+      // Soft glow (fully gradient-based, no hard edges)
+      const r = flareSize * 2.5;
+      const glow = ctx.createRadialGradient(mx, my, 0, mx, my, r);
+      glow.addColorStop(0, `rgba(230,200,255,${flareAlpha * 0.9})`);
+      glow.addColorStop(0.15, `rgba(200,140,255,${flareAlpha * 0.6})`);
+      glow.addColorStop(0.4, `rgba(170,85,255,${flareAlpha * 0.25})`);
+      glow.addColorStop(0.7, `rgba(140,60,220,${flareAlpha * 0.08})`);
+      glow.addColorStop(1, 'rgba(120,40,200,0)');
       ctx.fillStyle = glow;
-      ctx.fillRect(mx - flareSize * 2, my - flareSize * 2, flareSize * 4, flareSize * 4);
-
-      // Core
-      ctx.beginPath();
-      ctx.arc(mx, my, flareSize * 0.5, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(220,180,255,${flareAlpha})`;
-      ctx.fill();
+      ctx.fillRect(mx - r, my - r, r * 2, r * 2);
 
       // Charge ring
       ctx.beginPath();
