@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.15.2 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.15.3 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2623,31 +2623,31 @@ const STATIONS = [
 // -- Weapon Definitions (all 10 RoF, damage adjusted for similar DPS) --
 const WEAPONS = {
   gun_t1: {
-    name: "Gun T1", cost: 35, energyCost: 20, range: 150, fireRate: 10, damage: 1.6, projSpeed: 700,
+    name: "Gun T1", cost: 35, energyCost: 20, range: 180, fireRate: 10, damage: 1.6, projSpeed: 700,
     color: "#44AAFF", desc: "Basis-Geschuetz", sprite: 'gun_t1',
     projSize: 2, projColor: '#44AAFF', splashRadius: 0,
     unlock: null, // immer verfuegbar
   },
   gun_t2: {
-    name: "Gun T2", cost: 55, energyCost: 30, range: 170, fireRate: 10, damage: 2.8, projSpeed: 750,
+    name: "Gun T2", cost: 55, energyCost: 30, range: 180, fireRate: 10, damage: 2.8, projSpeed: 750,
     color: "#33CCFF", desc: "Mittleres Geschuetz", sprite: 'gun_t2',
     projSize: 2.5, projColor: '#33CCFF', splashRadius: 0,
     unlock: 'gun_t2',
   },
   gun_t3: {
-    name: "Gun T3", cost: 100, energyCost: 45, range: 190, fireRate: 10, damage: 4.9, projSpeed: 800,
+    name: "Gun T3", cost: 100, energyCost: 45, range: 180, fireRate: 10, damage: 4.9, projSpeed: 800,
     color: "#00EEFF", desc: "Schweres Geschuetz", sprite: 'gun_t3',
     projSize: 3, projColor: '#00EEFF', splashRadius: 0,
     unlock: 'gun_t3',
   },
   rocket_t1: {
-    name: "Rocket T1", cost: 60, energyCost: 35, range: 200, fireRate: 2, damage: 10, projSpeed: 450,
+    name: "Rocket T1", cost: 60, energyCost: 35, range: 180, fireRate: 2, damage: 10, projSpeed: 450,
     color: "#4488FF", desc: "Lenkraketen", sprite: 'rocket_t1',
     projSize: 6, projColor: '#4488FF', splashRadius: 0,
     unlock: 'rocket_t1',
   },
   rocket_t2: {
-    name: "Rocket T2", cost: 90, energyCost: 50, range: 220, fireRate: 2, damage: 12, projSpeed: 500,
+    name: "Rocket T2", cost: 90, energyCost: 50, range: 180, fireRate: 2, damage: 12, projSpeed: 500,
     color: "#66AAFF", desc: "Verbesserte Lenkraketen", sprite: 'rocket_t2',
     projSize: 6, projColor: '#66AAFF', splashRadius: 0,
     unlock: 'rocket_t2',
@@ -2659,19 +2659,19 @@ const WEAPONS = {
     unlock: 'boltgun', chargeTime: 1.0,
   },
   railgun: {
-    name: "Railgun", cost: 130, energyCost: 55, range: 230, fireRate: 1, damage: 18, projSpeed: 1800,
+    name: "Railgun", cost: 130, energyCost: 55, range: 180, fireRate: 1, damage: 18, projSpeed: 1800,
     color: "#CC66FF", desc: "Schwere Schienenkanone", sprite: 'railgun',
     projSize: 4, projColor: '#CC66FF', splashRadius: 0,
     unlock: 'railgun', chargeTime: 1.5,
   },
   laser: {
-    name: "Laser", cost: 55, energyCost: 25, range: 160, fireRate: 30, damage: 0.35, projSpeed: 0,
+    name: "Laser", cost: 55, energyCost: 25, range: 180, fireRate: 30, damage: 0.35, projSpeed: 0,
     color: "#FF3333", desc: "Dauerfeuer-Laser (−50% Schildregen)", sprite: 'laser',
     projSize: 0, projColor: '#FF3333', splashRadius: 0,
     unlock: 'laser', isLaser: true, laserBeams: 1, shieldRegenDrain: 0.50,
   },
   doublelaser: {
-    name: "Doppellaser", cost: 95, energyCost: 40, range: 175, fireRate: 30, damage: 0.35, projSpeed: 0,
+    name: "Doppellaser", cost: 95, energyCost: 40, range: 180, fireRate: 30, damage: 0.35, projSpeed: 0,
     color: "#FF4444", desc: "Dualer Dauerfeuer-Laser (−75% Schildregen)", sprite: 'doublelaser',
     projSize: 0, projColor: '#FF4444', splashRadius: 0,
     unlock: 'doublelaser', isLaser: true, laserBeams: 2, shieldRegenDrain: 0.75,
