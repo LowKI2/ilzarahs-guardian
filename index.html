@@ -1752,7 +1752,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.11.3 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.12.0 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -1964,6 +1964,10 @@ const ASSET_PATHS = {
     'gun_t1': 'assets/sprites/weapons/gun_t1.png',
     'gun_t2': 'assets/sprites/weapons/gun_t2.png',
     'gun_t3': 'assets/sprites/weapons/gun_t3.png',
+    'boltgun': 'assets/sprites/weapons/boltgun.png',
+    'railgun': 'assets/sprites/weapons/railgun.png',
+    'laser': 'assets/sprites/weapons/laser.png',
+    'doublelaser': 'assets/sprites/weapons/doublelaser.png',
   },
   ui: {
     menuBg: 'assets/ui/menu_background.jpg',
@@ -2242,6 +2246,30 @@ const WEAPONS = {
     projSize: 6, projColor: '#66AAFF', splashRadius: 0,
     unlock: 'rocket_t2',
   },
+  boltgun: {
+    name: "Boltgun", cost: 75, energyCost: 35, range: 180, fireRate: 1, damage: 9, projSpeed: 1200,
+    color: "#AA55FF", desc: "Aufladende Bolzenkanone", sprite: 'boltgun',
+    projSize: 3.5, projColor: '#AA55FF', splashRadius: 0,
+    unlock: 'boltgun', chargeTime: 1.0,
+  },
+  railgun: {
+    name: "Railgun", cost: 130, energyCost: 55, range: 230, fireRate: 1, damage: 18, projSpeed: 1800,
+    color: "#CC66FF", desc: "Schwere Schienenkanone", sprite: 'railgun',
+    projSize: 4, projColor: '#CC66FF', splashRadius: 0,
+    unlock: 'railgun', chargeTime: 1.5,
+  },
+  laser: {
+    name: "Laser", cost: 55, energyCost: 25, range: 160, fireRate: 30, damage: 0.35, projSpeed: 0,
+    color: "#FF3333", desc: "Dauerfeuer-Laser", sprite: 'laser',
+    projSize: 0, projColor: '#FF3333', splashRadius: 0,
+    unlock: 'laser', isLaser: true, laserBeams: 1,
+  },
+  doublelaser: {
+    name: "Doppellaser", cost: 95, energyCost: 40, range: 175, fireRate: 30, damage: 0.35, projSpeed: 0,
+    color: "#FF4444", desc: "Dualer Dauerfeuer-Laser", sprite: 'doublelaser',
+    projSize: 0, projColor: '#FF4444', splashRadius: 0,
+    unlock: 'doublelaser', isLaser: true, laserBeams: 2,
+  },
 };
 
 // -- Turret Fire Arc (180° = each turret covers its outward half) --
@@ -2301,6 +2329,10 @@ const SKILL_TREE = {
   sk_rocket_t2:{ name: 'Rocket T2',     desc: 'Verbesserte Raketen',          cat: 'unlock', type: 'big', cost: 70,  unlocks: 'rocket_t2', requires: ['sk_rocket_t1'], waveReq: 35, epReqCat: 'attack', epReqAmount: 60 },
   sk_shield_t2:{ name: 'Schild T2',     desc: '+30% Schildkapazität',         cat: 'unlock', type: 'big', cost: 100, unlocks: 'shield_t2', requires: ['sk_core_t2'], waveReq: 42, epReqCat: 'defense', epReqAmount: 60 },
   sk_hangar:   { name: 'Hangar',         desc: 'Kampfschiff bekämpft Gegner',  cat: 'unlock', type: 'big', cost: 80,  unlocks: 'hangar', requires: ['sk_rocket_t2'], waveReq: 48, epReqCat: 'attack', epReqAmount: 80 },
+  sk_boltgun:  { name: 'Boltgun',       desc: 'Aufladende Bolzenkanone',      cat: 'unlock', type: 'big', cost: 35,  unlocks: 'boltgun', requires: [], waveReq: 12, epReqCat: 'attack', epReqAmount: 25 },
+  sk_railgun:  { name: 'Railgun',       desc: 'Schwere Schienenkanone',       cat: 'unlock', type: 'big', cost: 65,  unlocks: 'railgun', requires: ['sk_boltgun'], waveReq: 30, epReqCat: 'attack', epReqAmount: 50 },
+  sk_laser:    { name: 'Laser',         desc: 'Dauerfeuer-Laser',             cat: 'unlock', type: 'big', cost: 30,  unlocks: 'laser', requires: [], waveReq: 8, epReqCat: 'attack', epReqAmount: 15 },
+  sk_doublelaser:{ name: 'Doppellaser', desc: 'Dualer Dauerfeuer-Laser',      cat: 'unlock', type: 'big', cost: 55,  unlocks: 'doublelaser', requires: ['sk_laser'], waveReq: 25, epReqCat: 'attack', epReqAmount: 40 },
 };
 
 function normalizeAngle(a) {
@@ -4178,7 +4210,87 @@ class Game {
         turret.targetAngleCached = null;
       }
 
-      if (nearestEnemy && turret.cooldown <= 0) {
+      const wDef = WEAPONS[turret.weaponKey] || {};
+      const isChargeWeapon = !!wDef.chargeTime;
+      const isLaserWeapon = !!wDef.isLaser;
+
+      // --- LASER WEAPONS: continuous beam damage, no projectiles ---
+      if (isLaserWeapon) {
+        turret.laserTarget = null;
+        if (nearestEnemy) {
+          turret.laserTarget = nearestEnemy;
+          const rofMult = 1 + this.getTotalBonus('rof') / 100;
+          const finalDmg = turret.damage * (1 + this.station.dmgBonus) * (1 + this.getTotalBonus('dmg') / 100);
+          const tickDmg = finalDmg * rofMult * dt;
+          const beams = wDef.laserBeams || 1;
+
+          // Very low pierce/sys per tick (divided by fireRate to compensate high RoF)
+          let pierceChance = (this.getTotalBonus('pierce') / 100) * 0.03;
+          let sysChance = this.getTotalBonus('syshit') * 0.03;
+
+          for (let b = 0; b < beams; b++) {
+            nearestEnemy.hp -= tickDmg;
+            nearestEnemy.hitFlash = 0.05;
+            if (Math.random() < pierceChance * dt * turret.fireRate) {
+              nearestEnemy.hp -= tickDmg * 2;
+            }
+            if (Math.random() < sysChance / 100 * dt * turret.fireRate && nearestEnemy.hp > 0) {
+              const systems = ['DRIVE', 'WEAPON', 'SHIELD'];
+              const sysHit = systems[Math.floor(Math.random() * systems.length)];
+              if (sysHit === 'DRIVE') nearestEnemy.driveDisabled = 8;
+              else if (sysHit === 'WEAPON') nearestEnemy.weaponDisabled = 6;
+              else if (sysHit === 'SHIELD') nearestEnemy.maxShield = 0;
+              this.damageNumbers.push({ x: nearestEnemy.x, y: nearestEnemy.y - 30, value: sysHit + '!', life: 1.2, maxLife: 1.2, isCrit: true });
+            }
+          }
+
+          if (nearestEnemy.hp <= 0) {
+            this.kills++;
+            this.vsu += Math.floor(nearestEnemy.vsuReward * (1 + this.getTotalBonus('vsuKill') / 100));
+            this.waveEnemiesDefeated++;
+            playSound('torpedoexplosion');
+            this.explosions.push({ x: nearestEnemy.x, y: nearestEnemy.y, life: 0.8, maxLife: 0.8, size: 40 + nearestEnemy.tier * 8 });
+            this.wrecks.push({ x: nearestEnemy.x, y: nearestEnemy.y, rotation: nearestEnemy.rotation || Math.random() * Math.PI * 2, tier: nearestEnemy.tier, delay: 0, spawnAge: 0, life: 5.0, maxLife: 5.0, looted: false, vsuReward: nearestEnemy.tier >= 3 ? 10 : 5 + Math.floor(Math.random() * 6) });
+          }
+        }
+      }
+      // --- CHARGE WEAPONS (boltgun/railgun): charge up then fire ---
+      else if (isChargeWeapon) {
+        if (nearestEnemy && turret.cooldown <= 0) {
+          turret.chargeProgress = (turret.chargeProgress || 0) + dt;
+          if (turret.chargeProgress >= wDef.chargeTime) {
+            // Fire!
+            turret.chargeProgress = 0;
+            const rofMult = 1 + this.getTotalBonus('rof') / 100;
+            turret.cooldown = 0.15; // short recovery after shot
+            const finalDmg = turret.damage * (1 + this.station.dmgBonus) * (1 + this.getTotalBonus('dmg') / 100);
+            const muzzleDist = (this.isMobile ? 36 : 42) * 0.5;
+            const muzzleX = slot.x + Math.cos(turret.barrelAngle) * muzzleDist;
+            const muzzleY = slot.y + Math.sin(turret.barrelAngle) * muzzleDist;
+            const pAngle = turret.barrelAngle;
+
+            this.projectiles.push({
+              x: muzzleX, y: muzzleY,
+              vx: Math.cos(pAngle) * turret.projSpeed,
+              vy: Math.sin(pAngle) * turret.projSpeed,
+              targetEnemy: nearestEnemy,
+              speed: turret.projSpeed,
+              damage: finalDmg,
+              isCrit: false, trail: [],
+              size: turret.projSize, color: turret.projColor,
+              angle: pAngle,
+              maxRange: turret.range * (1 + this.getTotalBonus('range') / 100) * 1.5,
+              traveled: 0, weaponKey: turret.weaponKey,
+            });
+            playSound('gatling');
+            this.particles.push({ x: muzzleX, y: muzzleY, vx: 0, vy: 0, life: 0.2, maxLife: 0.2, isMuzzleFlash: true, angle: turret.barrelAngle, muzzleType: Math.floor(Math.random() * 3), size: 20 });
+          }
+        } else {
+          turret.chargeProgress = 0;
+        }
+      }
+      // --- STANDARD WEAPONS (guns/rockets) ---
+      else if (nearestEnemy && turret.cooldown <= 0) {
         const rofMult = 1 + this.getTotalBonus('rof') / 100;
         turret.cooldown = 1 / (turret.fireRate * rofMult);
         const finalDmg = turret.damage * (1 + this.station.dmgBonus) * (1 + this.getTotalBonus('dmg') / 100);
@@ -4259,7 +4371,8 @@ class Game {
       p.y += p.vy * dt;
       p.traveled = (p.traveled || 0) + step;
 
-      p.trail.push({ x: p.x, y: p.y, life: 0.06, angle: p.angle });
+      const trailDur = (p.weaponKey === 'boltgun' || p.weaponKey === 'railgun') ? 0.12 : 0.06;
+      p.trail.push({ x: p.x, y: p.y, life: trailDur, angle: p.angle });
       p.trail = p.trail.filter(t => { t.life -= dt; return t.life > 0; });
 
       // Remove if out of range
@@ -4298,16 +4411,19 @@ class Game {
         let dmg = p.damage;
         const isRocket = p.weaponKey && p.weaponKey.startsWith('rocket');
         const isGun = p.weaponKey && p.weaponKey.startsWith('gun');
+        const isBolt = p.weaponKey === 'boltgun' || p.weaponKey === 'railgun';
         if (isRocket && hitEnemy.specialType === 'armored') dmg *= 2;
+        // Bolt/rail bonus vs armored (penetrating shot)
+        if (isBolt && hitEnemy.specialType === 'armored') dmg *= 1.5;
 
         // Specialist pierce bonuses (weapon-specific)
         let pierceTotal = this.getTotalBonus('pierce') / 100;
         if (isRocket) pierceTotal += this.getSkillBonus('sk_shrapnel') / 100;
-        if (isGun) pierceTotal += this.getSkillBonus('sk_hardened') / 100;
+        if (isGun || isBolt) pierceTotal += this.getSkillBonus('sk_hardened') / 100;
 
-        // Specialist sys-hit bonus (guns only)
+        // Specialist sys-hit bonus (guns and bolt/rail)
         let sysTotal = this.getTotalBonus('syshit');
-        if (isGun) sysTotal += this.getSkillBonus('sk_sys_guns');
+        if (isGun || isBolt) sysTotal += this.getSkillBonus('sk_sys_guns');
 
         const dmgResult = calculateDamage(dmg, p.isCrit, hitEnemy, sysTotal, pierceTotal);
         hitEnemy.shield -= dmgResult.shieldDmg;
@@ -5830,8 +5946,89 @@ class Game {
       ctx.stroke();
     }
 
+    // Charge flare for bolt/rail weapons (purple glow, opacity increasing)
+    const wDef = WEAPONS[b.weaponKey] || {};
+    if (wDef.chargeTime && b.chargeProgress > 0) {
+      const progress = Math.min(b.chargeProgress / wDef.chargeTime, 1);
+      const muzzleDist = (this.isMobile ? 36 : 42) * 0.5;
+      const mx = slot.x + Math.cos(b.barrelAngle) * muzzleDist;
+      const my = slot.y + Math.sin(b.barrelAngle) * muzzleDist;
+      const flareSize = 4 + progress * 10;
+      const flareAlpha = progress * 0.8;
+
+      // Outer glow
+      const glow = ctx.createRadialGradient(mx, my, 0, mx, my, flareSize * 2);
+      glow.addColorStop(0, `rgba(170,85,255,${flareAlpha * 0.4})`);
+      glow.addColorStop(0.5, `rgba(200,120,255,${flareAlpha * 0.15})`);
+      glow.addColorStop(1, 'rgba(170,85,255,0)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(mx - flareSize * 2, my - flareSize * 2, flareSize * 4, flareSize * 4);
+
+      // Core
+      ctx.beginPath();
+      ctx.arc(mx, my, flareSize * 0.5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(220,180,255,${flareAlpha})`;
+      ctx.fill();
+
+      // Charge ring
+      ctx.beginPath();
+      ctx.arc(slot.x, slot.y, slot.radius + 3, -Math.PI/2, -Math.PI/2 + Math.PI * 2 * progress);
+      ctx.strokeStyle = `rgba(170,85,255,${flareAlpha})`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    // Laser beam rendering (red line from muzzle to target)
+    if (wDef.isLaser && b.laserTarget && this.state === 'combat') {
+      const muzzleDist = (this.isMobile ? 36 : 42) * 0.5;
+      const mx = slot.x + Math.cos(b.barrelAngle) * muzzleDist;
+      const my = slot.y + Math.sin(b.barrelAngle) * muzzleDist;
+      const tx = b.laserTarget.x;
+      const ty = b.laserTarget.y;
+      const beams = wDef.laserBeams || 1;
+      const beamAngle = Math.atan2(ty - my, tx - mx);
+      const perpX = -Math.sin(beamAngle);
+      const perpY = Math.cos(beamAngle);
+
+      for (let i = 0; i < beams; i++) {
+        const offset = beams === 1 ? 0 : (i - 0.5) * 3;
+        const ox = perpX * offset;
+        const oy = perpY * offset;
+
+        // Glow
+        ctx.beginPath();
+        ctx.moveTo(mx + ox, my + oy);
+        ctx.lineTo(tx + ox, ty + oy);
+        ctx.strokeStyle = 'rgba(255,60,60,0.15)';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        // Core beam
+        ctx.beginPath();
+        ctx.moveTo(mx + ox, my + oy);
+        ctx.lineTo(tx + ox, ty + oy);
+        ctx.strokeStyle = `rgba(255,80,80,${0.6 + Math.random() * 0.3})`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Bright center
+        ctx.beginPath();
+        ctx.moveTo(mx + ox, my + oy);
+        ctx.lineTo(tx + ox, ty + oy);
+        ctx.strokeStyle = `rgba(255,200,200,${0.4 + Math.random() * 0.2})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+
+      // Hit point glow
+      ctx.beginPath();
+      ctx.arc(tx, ty, 4 + Math.random() * 2, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,100,100,0.4)';
+      ctx.fill();
+    }
+
     // Cooldown indicator
-    if (b.cooldown > 0) {
+    if (b.cooldown > 0 && !wDef.chargeTime) {
       const cdRatio = b.cooldown / (1 / b.fireRate);
       ctx.beginPath();
       ctx.arc(slot.x, slot.y, slot.radius + 2, -Math.PI/2, -Math.PI/2 + Math.PI * 2 * (1 - cdRatio));
@@ -5920,22 +6117,24 @@ class Game {
   renderProjectile(ctx, proj) {
     const angle = proj.angle || 0;
     const isRocket = proj.weaponKey && proj.weaponKey.startsWith('rocket');
-    const tracerLen = proj.isCrit ? 5 : (isRocket ? 6 : 3);
-    const tracerWidth = proj.isCrit ? 1 : (isRocket ? 2.5 : 0.6);
+    const isBolt = proj.weaponKey === 'boltgun' || proj.weaponKey === 'railgun';
+    const tracerLen = proj.isCrit ? 5 : (isBolt ? 8 : (isRocket ? 6 : 3));
+    const tracerWidth = proj.isCrit ? 1 : (isBolt ? 2 : (isRocket ? 2.5 : 0.6));
+    const trailLife = isBolt ? 0.12 : 0.06;
 
     // Trail segments (fading tracer trail)
     for (const t of proj.trail) {
-      const alpha = t.life / 0.06;
+      const alpha = t.life / trailLife;
       const tAngle = t.angle || angle;
       ctx.save();
       ctx.translate(t.x, t.y);
       ctx.rotate(tAngle);
-      ctx.globalAlpha = alpha * 0.25;
+      ctx.globalAlpha = alpha * (isBolt ? 0.4 : 0.25);
       ctx.beginPath();
       ctx.moveTo(-tracerLen * 0.6, 0);
       ctx.lineTo(0, 0);
-      ctx.strokeStyle = proj.isCrit ? '#FFD700' : (isRocket ? '#4488FF' : '#ffffff');
-      ctx.lineWidth = tracerWidth * 0.5;
+      ctx.strokeStyle = proj.isCrit ? '#FFD700' : (isBolt ? '#AA55FF' : (isRocket ? '#4488FF' : '#ffffff'));
+      ctx.lineWidth = tracerWidth * (isBolt ? 0.8 : 0.5);
       ctx.stroke();
       ctx.globalAlpha = 1;
       ctx.restore();
@@ -5947,21 +6146,21 @@ class Game {
     ctx.rotate(angle);
 
     // Subtle glow
-    ctx.shadowBlur = isRocket ? 6 : 4;
-    ctx.shadowColor = proj.isCrit ? '#FFD700' : (isRocket ? 'rgba(68,136,255,0.8)' : 'rgba(255,255,255,0.6)');
+    ctx.shadowBlur = isBolt ? 8 : (isRocket ? 6 : 4);
+    ctx.shadowColor = proj.isCrit ? '#FFD700' : (isBolt ? 'rgba(170,85,255,0.9)' : (isRocket ? 'rgba(68,136,255,0.8)' : 'rgba(255,255,255,0.6)'));
 
     // Tracer line
     ctx.beginPath();
     ctx.moveTo(-tracerLen, 0);
     ctx.lineTo(2, 0);
-    ctx.strokeStyle = proj.isCrit ? '#FFD700' : (isRocket ? 'rgba(68,136,255,0.95)' : 'rgba(255,255,255,0.9)');
+    ctx.strokeStyle = proj.isCrit ? '#FFD700' : (isBolt ? 'rgba(180,120,255,0.95)' : (isRocket ? 'rgba(68,136,255,0.95)' : 'rgba(255,255,255,0.9)'));
     ctx.lineWidth = tracerWidth;
     ctx.stroke();
 
     // Bright tip
     ctx.beginPath();
-    ctx.arc(1, 0, tracerWidth * 0.5, 0, Math.PI * 2);
-    ctx.fillStyle = isRocket ? '#88BBFF' : '#ffffff';
+    ctx.arc(1, 0, tracerWidth * (isBolt ? 0.7 : 0.5), 0, Math.PI * 2);
+    ctx.fillStyle = isBolt ? '#DDbbFF' : (isRocket ? '#88BBFF' : '#ffffff');
     ctx.fill();
 
     ctx.shadowBlur = 0;
