@@ -1860,7 +1860,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.13.1 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.13.2 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -1965,9 +1965,9 @@ canvas {
       <div class="sk-tooltip-desc" id="skTTDesc"></div>
       <div class="sk-tooltip-level" id="skTTLevel"></div>
       <div class="sk-tooltip-req" id="skTTReq"></div>
-      <div style="display:flex;gap:6px;width:100%">
-        <button class="sk-tooltip-btn" id="skTTReduce" style="display:none;flex:0 0 auto;padding:4px 10px;background:rgba(255,60,40,0.2);border-color:rgba(255,60,40,0.4);color:#FF5028;">−</button>
-        <button class="sk-tooltip-btn" id="skTTBuy" style="flex:1">Kaufen</button>
+      <div style="display:flex;gap:4px;width:100%">
+        <button class="sk-tooltip-btn" id="skTTReduce" style="display:none;flex:1;font-size:10px;padding:5px 4px;background:rgba(255,60,40,0.15);border-color:rgba(255,60,40,0.3);color:#FF5028;">−</button>
+        <button class="sk-tooltip-btn" id="skTTBuy" style="flex:1;font-size:10px;padding:5px 4px;">+</button>
       </div>
     </div>
     <div class="tech-respec-wrap">
@@ -3327,39 +3327,46 @@ class Game {
 
     const btn = document.getElementById('skTTBuy');
     if (owned) {
-      btn.textContent = 'Bereits freigeschaltet';
+      btn.textContent = 'Freigeschaltet';
       btn.disabled = true;
     } else if (!available) {
-      // Show specific reason
       const missingReqs = def.requires.filter(r => !this.isSkillUnlocked(r));
       if (def.waveReq && this.bestWave < def.waveReq) {
-        btn.textContent = `Welle ${def.waveReq} erreichen`;
+        btn.textContent = `Welle ${def.waveReq}`;
       } else if (missingReqs.length > 0) {
-        btn.textContent = `Braucht: ${missingReqs.map(r => SKILL_TREE[r].name).join(', ')}`;
+        btn.textContent = `${missingReqs.map(r => SKILL_TREE[r].name).join(', ')}`;
       } else {
-        btn.textContent = 'Voraussetzung fehlt';
+        btn.textContent = 'Gesperrt';
       }
       btn.disabled = true;
     } else {
-      btn.textContent = `Kaufen: ${cost} EP`;
+      btn.textContent = `+ ${cost} EP`;
       btn.disabled = this.totalEP < cost;
     }
-
     btn.onclick = btn.disabled ? null : () => this.buySkill(key);
 
-    // Reduce button — only for pending (unsaved) changes
+    // Reduce button — only for pending (unsaved) changes, shows refund
     const reduceBtn = document.getElementById('skTTReduce');
     let canReduce = false;
+    let refundAmount = 0;
     if (this._skillSnapshot) {
       if (def.type === 'big') {
         canReduce = this.unlockedTech.has(def.unlocks) && !this._skillSnapshot.unlockedTech.has(def.unlocks);
+        if (canReduce) refundAmount = def.cost;
       } else {
         const snapLvl = this._skillSnapshot.skillLevels[key] || 0;
         const curLvl = this.skillLevels[key] || 0;
         canReduce = curLvl > snapLvl;
+        if (canReduce) {
+          const prevLvl = curLvl - 1;
+          refundAmount = def.type === 'medium'
+            ? Math.round(def.baseCost * Math.pow(1.3, prevLvl))
+            : Math.round(def.baseCost + def.costStep * prevLvl);
+        }
       }
     }
     reduceBtn.style.display = canReduce ? '' : 'none';
+    reduceBtn.textContent = canReduce ? `− ${refundAmount} EP` : '−';
     reduceBtn.onclick = canReduce ? () => this.reduceSkill(key) : null;
 
     tt.classList.add('visible');
