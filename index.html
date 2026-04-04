@@ -1725,7 +1725,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.9.19 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.10.0 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -3322,6 +3322,7 @@ class Game {
     this.enemyProjectiles = [];
     this.particles = [];
     this.damageNumbers = [];
+    this.burnMarks = [];
     this.selectedWeapon = null;
     this.ownedWeapons = {}; // { gun_t1: 1, rocket_t1: 1, ... } — bought this run, free to re-equip
 
@@ -3850,6 +3851,31 @@ class Game {
       this.stationHP = Math.min(this.stationMaxHP, this.stationHP + repairRate * dt);
     }
 
+    // Station damage smoke/fire particles
+    if (this.stationHP > 0) {
+      const hpRatio = this.stationHP / this.stationMaxHP;
+      if (hpRatio < 0.7) {
+        const intensity = (1 - hpRatio / 0.7); // 0 at 70%, 1 at 0%
+        const spawnChance = intensity * 0.8;
+        if (Math.random() < spawnChance) {
+          const cx = this.stationCenter.x;
+          const cy = this.stationCenter.y;
+          const s = this.getStationSpriteSize() * 0.3;
+          const ox = (Math.random() - 0.5) * s;
+          const oy = (Math.random() - 0.5) * s;
+          const isFire = hpRatio < 0.4 && Math.random() < 0.5;
+          this.particles.push({
+            x: cx + ox, y: cy + oy,
+            vx: (Math.random() - 0.5) * 10,
+            vy: -15 - Math.random() * 25,
+            life: 0.8 + Math.random() * 0.8, maxLife: 1.6,
+            color: isFire ? '#FF4411' : '#666666',
+            size: isFire ? 2 + Math.random() * 3 : 3 + Math.random() * 4,
+          });
+        }
+      }
+    }
+
     // Remove dead enemies
     this.enemies = this.enemies.filter(e => e.hp > 0);
 
@@ -4360,6 +4386,35 @@ class Game {
       this.stationHP -= dmg;
       this.shakeTimer = 0.2;
       this.shakeIntensity = 4;
+
+      // Spawn debris from hit point
+      if (hitX !== undefined) {
+        const debrisCount = Math.min(6, Math.ceil(dmg * 2));
+        for (let i = 0; i < debrisCount; i++) {
+          const a = Math.random() * Math.PI * 2;
+          const spd = 40 + Math.random() * 80;
+          this.particles.push({
+            x: hitX, y: hitY,
+            vx: Math.cos(a) * spd, vy: Math.sin(a) * spd,
+            life: 0.6 + Math.random() * 0.6, maxLife: 1.2,
+            color: Math.random() < 0.3 ? '#FF6622' : '#888888', size: 1.5 + Math.random() * 2,
+          });
+        }
+      }
+
+      // Add burn mark at random station position
+      const hpRatio = this.stationHP / this.stationMaxHP;
+      if (hpRatio < 0.8 && Math.random() < 0.3) {
+        if (!this.burnMarks) this.burnMarks = [];
+        const s = this.getStationSpriteSize() * 0.35;
+        this.burnMarks.push({
+          ox: (Math.random() - 0.5) * s,
+          oy: (Math.random() - 0.5) * s,
+          size: 4 + Math.random() * 8,
+          alpha: 0.3 + Math.random() * 0.3,
+        });
+        if (this.burnMarks.length > 12) this.burnMarks.shift();
+      }
     }
 
     if (this.stationHP <= 0) {
@@ -4426,6 +4481,11 @@ class Game {
     playMusic('drifting');
 
     this.stationShield = this.stationMaxShield;
+
+    // Reduce burn marks between waves (partial repair)
+    if (this.burnMarks && this.burnMarks.length > 2) {
+      this.burnMarks.splice(0, Math.floor(this.burnMarks.length / 2));
+    }
 
     this.renderBuildButtons();
     this.updateUpgradeUI();
@@ -5138,10 +5198,48 @@ class Game {
       const spriteImg = IMAGES.stations[this.station.sprite];
       if (isDrawable(spriteImg)) {
         const s = this.getStationSpriteSize();
+        const hpRatio = this.stationMaxHP > 0 ? this.stationHP / this.stationMaxHP : 1;
         ctx.save();
         ctx.translate(cx, cy);
         ctx.rotate(this.stationRotation);
+
+        // Darken station sprite as HP drops
+        if (hpRatio < 0.8) {
+          ctx.globalAlpha = 0.5 + hpRatio * 0.625; // 1.0 at 80%, 0.5 at 0%
+        }
         ctx.drawImage(spriteImg, -s/2, -s/2, s, s);
+        ctx.globalAlpha = 1;
+
+        // Burn marks (rotate with station)
+        if (this.burnMarks && this.burnMarks.length > 0) {
+          for (const bm of this.burnMarks) {
+            const g = ctx.createRadialGradient(bm.ox, bm.oy, 0, bm.ox, bm.oy, bm.size);
+            g.addColorStop(0, `rgba(30,20,10,${bm.alpha})`);
+            g.addColorStop(0.6, `rgba(60,30,10,${bm.alpha * 0.5})`);
+            g.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = g;
+            ctx.fillRect(bm.ox - bm.size, bm.oy - bm.size, bm.size * 2, bm.size * 2);
+          }
+        }
+
+        // Hide small parts at low HP (simulate breaking off)
+        if (hpRatio < 0.5) {
+          const hideCount = Math.floor((1 - hpRatio / 0.5) * 4);
+          ctx.globalCompositeOperation = 'destination-out';
+          for (let i = 0; i < hideCount; i++) {
+            // Deterministic positions based on index
+            const angle = (i * 2.39996) % (Math.PI * 2); // golden angle
+            const dist = s * 0.3 + (i % 3) * s * 0.05;
+            const px = Math.cos(angle) * dist;
+            const py = Math.sin(angle) * dist;
+            const sz = 8 + (i % 3) * 4;
+            ctx.beginPath();
+            ctx.arc(px, py, sz, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.globalCompositeOperation = 'source-over';
+        }
+
         ctx.restore();
       } else {
         // Fallback hexagon
