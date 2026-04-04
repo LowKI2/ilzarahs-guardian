@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.15.3 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.15.4 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -4869,7 +4869,9 @@ class Game {
       // --- CHARGE WEAPONS (boltgun/railgun): charge up then fire ---
       else if (isChargeWeapon) {
         if (nearestEnemy && turret.cooldown <= 0) {
+          const wasCharging = (turret.chargeProgress || 0) > 0;
           turret.chargeProgress = (turret.chargeProgress || 0) + dt;
+          if (!wasCharging) playSound(turret.weaponKey === 'railgun' ? 'railgun' : 'boltgun');
           const chargeReduction = 1 - this.getSkillBonus('sk_bolt_charge') / 100;
           const effectiveChargeTime = wDef.chargeTime * Math.max(0.3, chargeReduction);
           if (turret.chargeProgress >= effectiveChargeTime) {
@@ -4897,7 +4899,6 @@ class Game {
               maxRange: turret.range * (1 + this.getTotalBonus('range') / 100) * 1.5,
               traveled: 0, weaponKey: turret.weaponKey,
             });
-            playSound(turret.weaponKey === 'railgun' ? 'railgun' : 'boltgun');
             this.particles.push({ x: muzzleX, y: muzzleY, vx: 0, vy: 0, life: 0.2, maxLife: 0.2, isMuzzleFlash: true, angle: turret.barrelAngle, muzzleType: Math.floor(Math.random() * 3), size: 20 });
           }
         } else {
