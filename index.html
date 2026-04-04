@@ -1725,7 +1725,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.9.15 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.9.16 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -1754,7 +1754,7 @@ canvas {
     <div class="upg-row"><div class="upg-info"><div class="upg-name">Schild verstärken</div><div class="upg-val" id="upgValShield">+0%</div></div><button class="upg-buy" id="upgBuyShield">-- VSU</button></div>
     <div class="upg-row"><div class="upg-info"><div class="upg-name">Energie erhöhen</div><div class="upg-val" id="upgValEnergy">+0%</div></div><button class="upg-buy" id="upgBuyEnergy">-- VSU</button></div>
     <div class="upg-row"><div class="upg-info"><div class="upg-name">Notreserve</div><div class="upg-val" id="upgValReserve">+0%</div></div><button class="upg-buy" id="upgBuyReserve">-- VSU</button></div>
-    <div class="upg-row"><div class="upg-info"><div class="upg-name">Energieverbrauch</div><div class="upg-val" id="upgValEnergySave">-0%</div></div><button class="upg-buy" id="upgBuyEnergySave">-- VSU</button></div>
+    <div class="upg-row"><div class="upg-info"><div class="upg-name">Bauplatz erweitern</div><div class="upg-val" id="upgValEnergySave">-0%</div></div><button class="upg-buy" id="upgBuyEnergySave">-- VSU</button></div>
   </div>
 
   <div class="upg-panel resource" id="upgPanelResource">
@@ -2961,7 +2961,7 @@ class Game {
     shield:    { label: 'Schild verstärken',  cat: 'defense',  perLevel: 5 },
     energy:    { label: 'Energie erhöhen',    cat: 'defense',  perLevel: 4 },
     reserve:   { label: 'Notreserve',         cat: 'defense',  perLevel: 2 },
-    energySave:{ label: 'Energieverbrauch',   cat: 'defense',  perLevel: 5, maxLevel: 6 },
+    energySave:{ label: 'Bauplatz erweitern', cat: 'defense',  perLevel: 5, maxLevel: 6 },
     vsuKill:   { label: 'VSU bei Abschuss',   cat: 'resource', perLevel: 3 },
     vsuWave:   { label: 'VSU bei Wellenende', cat: 'resource', perLevel: 3 },
     epKill:    { label: 'EP bei Abschuss',    cat: 'resource', perLevel: 2 },
@@ -3118,7 +3118,7 @@ class Game {
       const def = Game.UPG_DEFS[key];
       const atMax = def.maxLevel && this.runUpgrades[key] >= def.maxLevel;
       if (val) {
-        const prefix = key === 'energySave' ? '-' : '+';
+        const prefix = '+';
         const total = this.getTotalBonus(key);
         val.textContent = `${prefix}${total}% gesamt (Lv.${this.runUpgrades[key]})`;
       }
@@ -3280,7 +3280,7 @@ class Game {
         <div class="station-stat"><span class="label">Damage</span><span class="val dmg">+${Math.round(s.dmgBonus*100)}%</span></div>
         <div class="station-stat"><span class="label">Pierce</span><span class="val dmg">${s.basePierce}%</span></div>
         <div class="station-stat"><span class="label">Systemtreffer</span><span class="val dmg">${s.baseSys}%</span></div>
-        <div class="station-stat"><span class="label">Energie</span><span class="val cyan">${s.energyPool}%</span></div>
+        <div class="station-stat"><span class="label">Bauplatz</span><span class="val cyan">${s.energyPool}%</span></div>
         <div class="station-slots">${s.slotCount} WAFFEN-SLOTS</div>
         `}
       `;
@@ -3473,7 +3473,7 @@ class Game {
     energyInfo.className = 'slot-menu-energy';
     const remaining = this.getRemainingEnergy();
     const eFreed = slot.building ? (WEAPONS[slot.building.weaponKey].energyCost || 0) : 0;
-    energyInfo.innerHTML = `<span style="color:var(--ilzarah)">Energie: ${remaining + eFreed}/${this.getEnergyPool()}</span>`;
+    energyInfo.innerHTML = `<span style="color:var(--ilzarah)">Bauplatz: ${remaining + eFreed}/${this.getEnergyPool()}</span>`;
     items.appendChild(energyInfo);
 
     // Available weapons
@@ -3598,7 +3598,7 @@ class Game {
     const energyNeeded = eCost - eFreed;
 
     if (energyNeeded > this.getRemainingEnergy()) {
-      this.showBanner("NICHT GENUG ENERGIE!");
+      this.showBanner("NICHT GENUG BAUPLATZ!");
       return;
     }
 
@@ -4669,7 +4669,7 @@ class Game {
     if (defInfo) {
       const usedE = this.getUsedEnergy();
       const poolE = this.getEnergyPool();
-      defInfo.innerHTML = `${this.station.name} — HP ${Math.floor(this.stationHP)}/${this.stationMaxHP} | Schild ${Math.floor(this.stationShield)}/${this.stationMaxShield} | <span style="color:${usedE > poolE * 0.8 ? '#FF5028' : 'var(--ilzarah)'}">E ${usedE}/${poolE}%</span> | Kern ${this.shieldRegenRate.toFixed(0)}/s`;
+      defInfo.innerHTML = `${this.station.name} — HP ${Math.floor(this.stationHP)}/${this.stationMaxHP} | Schild ${Math.floor(this.stationShield)}/${this.stationMaxShield} | <span style="color:${usedE > poolE * 0.8 ? '#FF5028' : 'var(--ilzarah)'}">Bau ${usedE}/${poolE}%</span> | Kern ${this.shieldRegenRate.toFixed(0)}/s`;
     }
   }
 
