@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.15.4 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.15.5 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -6789,7 +6789,9 @@ class Game {
       }
       ctx.save();
       ctx.translate(slot.x, slot.y);
-      ctx.rotate(b.barrelAngle + Math.PI);
+      // New weapon sprites (bolt/rail/laser) face right, old ones face left
+      const needsFlip = !b.weaponKey || b.weaponKey.startsWith('gun') || b.weaponKey.startsWith('rocket');
+      ctx.rotate(b.barrelAngle + (needsFlip ? Math.PI : 0));
       if (this.state === 'build') {
         ctx.shadowBlur = 6;
         ctx.shadowColor = 'rgba(80,160,255,0.35)';
