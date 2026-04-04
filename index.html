@@ -2098,7 +2098,7 @@ canvas {
     <div class="pause-title">Pausiert</div>
     <button class="pause-btn" id="btnResume">Fortsetzen</button>
     <button class="pause-btn" id="btnPauseSettings">Einstellungen</button>
-    <button class="pause-btn danger" id="btnPauseQuit">Beenden</button>
+    <button class="pause-btn" id="btnPauseQuit">Titelbildschirm</button>
   </div>
 
   <!-- MAIN MENU -->
@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.14.6 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.14.7 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -5656,29 +5656,24 @@ class Game {
   }
 
   quitRun() {
+    // Save run state so it can be continued from main menu
+    this.saveRunState();
     this.paused = false;
-    this.clearRunState();
     document.getElementById('pauseMenu').classList.remove('visible');
-    const epKillBonus2 = 1 + this.getTotalBonus('epKill') / 100;
-    const epEarned = Math.floor((this.wave * 3 + this.kills * 0.3) * epKillBonus2);
-    this.totalEP += epEarned;
-    this.saveEP();
-    document.getElementById('goWaves').textContent = this.wave;
-    document.getElementById('goEP').textContent = epEarned;
-    document.getElementById('goKills').textContent = this.kills;
-    document.getElementById('goTitle').textContent = 'Run Beendet';
-    document.getElementById('goSubtitle').textContent = '// FREIWILLIG BEENDET //';
-    document.getElementById('gameOverScreen').style.display = 'flex';
     document.getElementById('buildUI').style.display = 'none';
     document.getElementById('combatControls').style.display = 'none';
     this.closeUpgPanel();
     document.getElementById('hud').style.display = 'none';
     document.getElementById('hudLower').style.display = 'none';
-    this.state = 'gameover';
+    document.getElementById('mainMenu').style.display = 'flex';
+    document.getElementById('btnContinueRun').style.display = '';
+    this.state = 'mainmenu';
     this.enemies = [];
     this.projectiles = [];
     this.enemyProjectiles = [];
-    stopMusic();
+    this.particles = [];
+    this.damageNumbers = [];
+    playMusic('drifting');
   }
 
   newRun() {
