@@ -87,6 +87,44 @@ canvas {
   .hud-value { font-size: 16px; }
 }
 
+/* -- Lower HUD Panel (HP, Shield bars + VSU) -- */
+#hudLower {
+  position: absolute;
+  bottom: 52px; left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(0deg, rgba(20,24,32,0.9) 0%, rgba(20,24,32,0.6) 100%);
+  border: 1px solid rgba(100,120,140,0.15);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-family: var(--font-mono);
+  z-index: 10;
+  pointer-events: none;
+  min-width: 220px;
+}
+.hl-bar-group { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+.hl-bar-wrap { display: flex; align-items: center; gap: 4px; }
+.hl-bar-label { font-size: 7px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; width: 34px; text-align: right; }
+.hl-bar-track { flex: 1; height: 6px; background: rgba(100,120,140,0.15); border-radius: 3px; overflow: hidden; min-width: 80px; }
+.hl-bar-fill { height: 100%; border-radius: 3px; transition: width 0.15s ease; }
+.hl-bar-fill.hp { background: linear-gradient(90deg, #FF2233, #FF5544); }
+.hl-bar-fill.shield { background: linear-gradient(90deg, #0088CC, #00BBEE); }
+.hl-bar-val { font-size: 10px; font-weight: 700; min-width: 32px; text-align: left; }
+.hl-bar-wrap:first-child .hl-bar-val { color: #FF3344; }
+.hl-bar-wrap:last-child .hl-bar-val { color: var(--ilzarah); }
+.hl-vsu { display: flex; flex-direction: column; align-items: center; padding: 0 4px; }
+.hl-vsu-label { font-size: 7px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+.hl-vsu-val { font-size: 16px; font-weight: 700; color: var(--amber-bright); }
+
+@media (min-width: 600px) {
+  #hudLower { min-width: 300px; padding: 8px 18px; gap: 16px; }
+  .hl-bar-track { height: 8px; min-width: 120px; }
+  .hl-bar-val { font-size: 12px; }
+  .hl-vsu-val { font-size: 20px; }
+}
+
 /* -- Main Menu Screen -- */
 #mainMenu {
   position: absolute;
@@ -2029,13 +2067,28 @@ canvas {
   <div id="hud">
     <div class="hud-item"><span class="hud-label">Phase</span><span class="hud-value" id="hudPhase">BUILD</span></div>
     <div class="hud-item"><span class="hud-label">Welle</span><span class="hud-value cyan" id="hudWave">1</span></div>
-    <div class="hud-item"><span class="hud-label">VSU</span><span class="hud-value" id="hudVSU">100</span></div>
-    <div class="hud-item"><span class="hud-label">HP</span><span class="hud-value red" id="hudHP">800</span></div>
-    <div class="hud-item"><span class="hud-label">Schild</span><span class="hud-value cyan" id="hudShield">200</span></div>
     <div class="hud-item"><span class="hud-label">Kills</span><span class="hud-value" id="hudKills">0</span></div>
     <div class="hud-item" id="hudTimerItem" style="display:none"><span class="hud-label">Zeit</span><span class="hud-value" id="hudTimer">30:00</span></div>
     <button id="btnFullscreen"></button>
     <button id="btnPauseMenu">☰</button>
+  </div>
+  <div id="hudLower">
+    <div class="hl-bar-group">
+      <div class="hl-bar-wrap">
+        <div class="hl-bar-label">HP</div>
+        <div class="hl-bar-track"><div class="hl-bar-fill hp" id="hudHPBar"></div></div>
+        <div class="hl-bar-val" id="hudHP">800</div>
+      </div>
+      <div class="hl-bar-wrap">
+        <div class="hl-bar-label">SCHILD</div>
+        <div class="hl-bar-track"><div class="hl-bar-fill shield" id="hudShieldBar"></div></div>
+        <div class="hl-bar-val" id="hudShield">200</div>
+      </div>
+    </div>
+    <div class="hl-vsu">
+      <span class="hl-vsu-label">VSU</span>
+      <span class="hl-vsu-val" id="hudVSU">100</span>
+    </div>
   </div>
 
   <div id="wavePreview"></div>
@@ -2060,7 +2113,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.14.0 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.14.1 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -4043,6 +4096,7 @@ class Game {
 
     document.getElementById('stationSelect').style.display = 'none';
     document.getElementById('hud').style.display = 'flex';
+    document.getElementById('hudLower').style.display = 'flex';
     document.getElementById('buildUI').style.display = 'flex';
     document.getElementById('combatControls').style.display = 'none';
     this.state = 'build';
@@ -5363,17 +5417,17 @@ class Game {
     this.totalEP += epEarned;
     this.saveEP();
 
-    document.getElementById('goWaves').textContent = this.wave;
-    document.getElementById('goEP').textContent = epEarned;
-    document.getElementById('goKills').textContent = this.kills;
-    document.getElementById('goTitle').textContent = this.stationHP <= 0 && this.bossActive ? 'Station Geentert' : this.stationHP <= 0 ? 'Station Zerstört' : 'Run Beendet';
-    document.getElementById('goSubtitle').textContent = this.bossActive ? '// BOSS HAT STATION GEENTERT //' : '// RUN BEENDET //';
-    document.getElementById('gameOverScreen').style.display = 'flex';
+    // Show scoreboard (always, not just timed mode)
+    this._gameOverReason = this.stationHP <= 0 && this.bossActive ? 'Station Geentert' : this.stationHP <= 0 ? 'Station Zerstört' : 'Run Beendet';
+    this._gameOverSubtitle = this.bossActive ? '// BOSS HAT STATION GEENTERT //' : '// RUN BEENDET //';
+    this._gameOverEP = epEarned;
     document.getElementById('buildUI').style.display = 'none';
     document.getElementById('combatControls').style.display = 'none';
     this.closeUpgPanel();
     document.getElementById('hud').style.display = 'none';
+    document.getElementById('hudLower').style.display = 'none';
     stopMusic();
+    this.showScoreboard();
   }
 
   showScoreboard() {
@@ -5399,6 +5453,10 @@ class Game {
     // Restore last used name
     const savedName = localStorage.getItem('ilzarah_playerName') || '';
     document.getElementById('sbNameInput').value = savedName;
+
+    // Adjust continue button text based on context
+    const continueBtn = document.getElementById('sbContinueBtn');
+    continueBtn.textContent = this.state === 'gameover' ? 'Weiter' : 'Weiterspielen';
 
     document.getElementById('scoreboardScreen').style.display = 'flex';
     document.getElementById('buildUI').style.display = 'none';
@@ -5496,10 +5554,24 @@ class Game {
   }
 
   continueAfterScoreboard() {
+    document.getElementById('scoreboardScreen').style.display = 'none';
+
+    // If game over: show game over screen instead of resuming
+    if (this.state === 'gameover') {
+      document.getElementById('goWaves').textContent = this.wave;
+      document.getElementById('goEP').textContent = this._gameOverEP || 0;
+      document.getElementById('goKills').textContent = this.kills;
+      document.getElementById('goTitle').textContent = this._gameOverReason || 'Run Beendet';
+      document.getElementById('goSubtitle').textContent = this._gameOverSubtitle || '// RUN BEENDET //';
+      document.getElementById('gameOverScreen').style.display = 'flex';
+      return;
+    }
+
+    // Timer expired mid-run: continue without time limit
     this.timedMode = false;
     this.paused = false;
-    document.getElementById('scoreboardScreen').style.display = 'none';
     document.getElementById('hud').style.display = 'flex';
+    document.getElementById('hudLower').style.display = 'flex';
     if (this.stateBeforePause === 'build') {
       document.getElementById('buildUI').style.display = 'flex';
     } else if (this.stateBeforePause === 'combat') {
@@ -5590,12 +5662,9 @@ class Game {
     const epEarned = Math.floor((this.wave * 3 + this.kills * 0.3) * epKillBonus2);
     this.totalEP += epEarned;
     this.saveEP();
-    document.getElementById('goWaves').textContent = this.wave;
-    document.getElementById('goEP').textContent = epEarned;
-    document.getElementById('goKills').textContent = this.kills;
-    document.getElementById('goTitle').textContent = 'Run Beendet';
-    document.getElementById('goSubtitle').textContent = '// FREIWILLIG BEENDET //';
-    document.getElementById('gameOverScreen').style.display = 'flex';
+    this._gameOverReason = 'Run Beendet';
+    this._gameOverSubtitle = '// FREIWILLIG BEENDET //';
+    this._gameOverEP = epEarned;
     document.getElementById('buildUI').style.display = 'none';
     document.getElementById('combatControls').style.display = 'none';
     this.closeUpgPanel();
@@ -5605,6 +5674,7 @@ class Game {
     this.projectiles = [];
     this.enemyProjectiles = [];
     stopMusic();
+    this.showScoreboard();
   }
 
   newRun() {
@@ -5718,6 +5788,14 @@ class Game {
     document.getElementById('hudHP').textContent = Math.floor(this.stationHP);
     document.getElementById('hudShield').textContent = Math.floor(this.stationShield);
     document.getElementById('hudKills').textContent = this.kills;
+
+    // Lower panel bars
+    const hpPct = this.stationMaxHP > 0 ? (this.stationHP / this.stationMaxHP * 100) : 0;
+    const shieldPct = this.stationMaxShield > 0 ? (this.stationShield / this.stationMaxShield * 100) : 0;
+    const hpBar = document.getElementById('hudHPBar');
+    const shieldBar = document.getElementById('hudShieldBar');
+    if (hpBar) hpBar.style.width = Math.max(0, Math.min(100, hpPct)) + '%';
+    if (shieldBar) shieldBar.style.width = Math.max(0, Math.min(100, shieldPct)) + '%';
 
     // Run timer display
     const timerItem = document.getElementById('hudTimerItem');
