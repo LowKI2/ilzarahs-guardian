@@ -1796,7 +1796,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.12.8 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.12.9 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2337,9 +2337,9 @@ const SKILL_TREE = {
   sk_fast_rockets:  { name: 'Schnelle Raketen',    desc: '+15% Raketengeschwindigkeit',     cat: 'attack', type: 'medium', perLevel: 15, baseCost: 20, costStep: 10, parentStat: 'sk_rof', requires: [] },
   sk_homing:        { name: 'Besseres Homing',     desc: '+20% Raketen-Lenkung',            cat: 'attack', type: 'medium', perLevel: 20, baseCost: 20, costStep: 10, parentStat: 'sk_rof', requires: [] },
   sk_tracking:      { name: 'Zielerfassung',       desc: '+15% Gun-Tracking-Speed',         cat: 'attack', type: 'medium', perLevel: 15, baseCost: 20, costStep: 10, parentStat: 'sk_rof', requires: [] },
-  sk_sys_guns:      { name: 'Präzisionsfeuer',     desc: '+3% Sys-Chance (Guns)',            cat: 'attack', type: 'medium', perLevel: 3,  baseCost: 25, costStep: 12, parentStat: 'sk_pierce', requires: [] },
+  sk_sys_guns:      { name: 'Präzisionsfeuer',     desc: '+3% Sys-Chance (Guns)',            cat: 'attack', type: 'medium', perLevel: 3,  baseCost: 25, costStep: 12, parentStat: 'sk_syshit', requires: [] },
   sk_shrapnel:      { name: 'Schrapnell',          desc: '+3% Pierce (Raketen)',             cat: 'attack', type: 'medium', perLevel: 3,  baseCost: 25, costStep: 12, parentStat: 'sk_pierce', requires: [] },
-  sk_hardened:      { name: 'Gehärtete Geschosse',  desc: '+3% Pierce (Guns)',               cat: 'attack', type: 'medium', perLevel: 3,  baseCost: 25, costStep: 12, parentStat: 'sk_dmg', requires: [] },
+  sk_hardened:      { name: 'Gehärtete Geschosse',  desc: '+3% Pierce (Guns)',               cat: 'attack', type: 'medium', perLevel: 3,  baseCost: 25, costStep: 12, parentStat: 'sk_pierce', requires: [] },
   sk_laser_eff:     { name: 'Laserkühlung',       desc: '−2% Laser-Schildregen-Verlust pro Stufe', cat: 'attack', type: 'medium', perLevel: 2, baseCost: 25, costStep: 12, parentStat: 'sk_energy', requires: [], needsUnlock: 'laser', maxLevel: 13 },
 
   // --- DEFENSE ---
