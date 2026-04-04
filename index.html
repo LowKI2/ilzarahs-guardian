@@ -2060,7 +2060,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.13.6 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.14.0 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2747,6 +2747,10 @@ const ENEMY_STATE = {
   TURN: 'turn',           // curve back for next pass
 };
 
+// -- Supabase Config --
+const SUPABASE_URL = 'https://reqpxedsthhtmhmymcnz.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJlcXB4ZWRzdGhodG1obXltY256Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMDg3MTAsImV4cCI6MjA5MDg4NDcxMH0.93HPNFl5AUtGi4CaaEnn4p3DsDTVj_ukGzRnXs2NO3g';
+
 // -- Game --
 class Game {
   constructor() {
@@ -2859,6 +2863,14 @@ class Game {
     });
     document.getElementById('btnSettingsBack').addEventListener('click', () => this.backToMenu());
     document.getElementById('btnSettingsBack').addEventListener('touchend', (e) => { e.preventDefault(); this.backToMenu(); });
+
+    // Scoreboard buttons
+    const sbSubmitFn = () => this.submitScore(document.getElementById('sbNameInput').value.trim());
+    document.getElementById('sbSubmitBtn').addEventListener('click', sbSubmitFn);
+    document.getElementById('sbSubmitBtn').addEventListener('touchend', (e) => { e.preventDefault(); sbSubmitFn(); });
+    const sbContinueFn = () => { playSound('confirm'); this.continueAfterScoreboard(); };
+    document.getElementById('sbContinueBtn').addEventListener('click', sbContinueFn);
+    document.getElementById('sbContinueBtn').addEventListener('touchend', (e) => { e.preventDefault(); sbContinueFn(); });
 
     // Settings: Tutorial replay & progress reset
     const replayTutFn = () => { playSound('click'); localStorage.removeItem('ilzarah_tutorialDone'); this.showTutorial(); };
@@ -5364,6 +5376,141 @@ class Game {
     stopMusic();
   }
 
+  showScoreboard() {
+    this.paused = true;
+    this.stateBeforePause = this.state;
+
+    // Calculate score
+    const rawScore = (this.wave * 150) + (this.kills * 8) + (this.ep * 3);
+    const epHandicap = 1000 / (1000 + this.totalEPSpent);
+    const finalScore = Math.round(rawScore * epHandicap);
+
+    document.getElementById('sbWaves').textContent = this.wave;
+    document.getElementById('sbKills').textContent = this.kills;
+    document.getElementById('sbEP').textContent = this.ep;
+    document.getElementById('sbHandicap').textContent = epHandicap.toFixed(3);
+    document.getElementById('sbFinalScore').textContent = finalScore;
+
+    // Reset submit button state
+    const submitBtn = document.getElementById('sbSubmitBtn');
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Eintragen';
+
+    // Restore last used name
+    const savedName = localStorage.getItem('ilzarah_playerName') || '';
+    document.getElementById('sbNameInput').value = savedName;
+
+    document.getElementById('scoreboardScreen').style.display = 'flex';
+    document.getElementById('buildUI').style.display = 'none';
+    document.getElementById('combatControls').style.display = 'none';
+    this.closeUpgPanel();
+    playSound('confirm');
+
+    this.fetchLeaderboard();
+  }
+
+  async submitScore(name) {
+    if (!name || name.length < 1) {
+      document.getElementById('sbNameInput').focus();
+      return;
+    }
+
+    const submitBtn = document.getElementById('sbSubmitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sende...';
+
+    localStorage.setItem('ilzarah_playerName', name);
+
+    const rawScore = (this.wave * 150) + (this.kills * 8) + (this.ep * 3);
+    const epHandicap = 1000 / (1000 + this.totalEPSpent);
+    const finalScore = Math.round(rawScore * epHandicap);
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/scores`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({
+          name: name.substring(0, 16),
+          score: finalScore,
+          waves: this.wave,
+          kills: this.kills,
+          station: this.station ? this.station.name : 'Unbekannt',
+          ep_spent: this.totalEPSpent,
+        }),
+      });
+
+      if (res.ok) {
+        submitBtn.textContent = 'Eingetragen!';
+        playSound('confirm');
+        this.fetchLeaderboard();
+      } else {
+        submitBtn.textContent = 'Fehler!';
+        submitBtn.disabled = false;
+      }
+    } catch (e) {
+      submitBtn.textContent = 'Offline!';
+      submitBtn.disabled = false;
+    }
+  }
+
+  async fetchLeaderboard() {
+    const container = document.getElementById('sbLeaderboardBody');
+    container.innerHTML = '<div class="sb-lb-loading">Lade Rangliste...</div>';
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/scores?select=name,score,waves,kills,station&order=score.desc&limit=20`, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+      });
+
+      if (!res.ok) throw new Error('fetch failed');
+
+      const rows = await res.json();
+      if (rows.length === 0) {
+        container.innerHTML = '<div class="sb-lb-loading">Noch keine Einträge</div>';
+        return;
+      }
+
+      let html = '<table class="sb-lb-table"><thead><tr><th>#</th><th>Name</th><th>Score</th><th>Wellen</th><th>Kills</th><th>Station</th></tr></thead><tbody>';
+      rows.forEach((r, i) => {
+        html += `<tr${i < 3 ? ' class="sb-lb-top"' : ''}><td>${i + 1}</td><td>${this.escapeHtml(r.name)}</td><td>${r.score}</td><td>${r.waves}</td><td>${r.kills}</td><td>${this.escapeHtml(r.station || '')}</td></tr>`;
+      });
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    } catch (e) {
+      container.innerHTML = '<div class="sb-lb-loading">Rangliste nicht verfügbar</div>';
+    }
+  }
+
+  escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  continueAfterScoreboard() {
+    this.timedMode = false;
+    this.paused = false;
+    document.getElementById('scoreboardScreen').style.display = 'none';
+    document.getElementById('hud').style.display = 'flex';
+    if (this.stateBeforePause === 'build') {
+      document.getElementById('buildUI').style.display = 'flex';
+    } else if (this.stateBeforePause === 'combat') {
+      document.getElementById('combatControls').style.display = 'flex';
+    }
+    this.state = this.stateBeforePause || 'build';
+    this.stateBeforePause = null;
+    this.updateHUD();
+    this.saveRunState();
+  }
+
   waveCompleted() {
     const rew = this.getRewardMult();
     const vsuBase = (20 + this.wave * 5) * rew;
@@ -5715,6 +5862,8 @@ class Game {
 
       unlockedTech: [...this.unlockedTech],
       state: this.state,
+      runTimer: this.runTimer,
+      timedMode: this.timedMode,
     };
     localStorage.setItem('ilzarah_runState', JSON.stringify(data));
   }
@@ -5761,6 +5910,8 @@ class Game {
       this.kills = data.kills;
       this.ownedWeapons = data.ownedWeapons || {};
       this.repairUsed = data.repairUsed || false;
+      this.runTimer = data.runTimer || 0;
+      this.timedMode = data.timedMode !== undefined ? data.timedMode : true;
 
       this.unlockedTech = new Set(data.unlockedTech || []);
       this.enemies = [];
