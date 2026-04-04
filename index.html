@@ -944,6 +944,70 @@ canvas {
   box-shadow: 0 0 16px rgba(255,189,85,0.25);
 }
 
+/* -- In-Game Confirm Dialog -- */
+#gameConfirm {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,12,16,0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+#gameConfirm.visible { display: flex; }
+.gc-box {
+  background: var(--steel);
+  border: 1px solid var(--amber-dim);
+  border-radius: 6px;
+  padding: 24px 28px;
+  max-width: 380px;
+  width: 90%;
+  box-shadow: 0 0 40px rgba(212,130,10,0.15);
+}
+.gc-text {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.6;
+  text-align: center;
+  margin-bottom: 20px;
+  white-space: pre-line;
+}
+.gc-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.gc-btn {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 8px 24px;
+  border-radius: 3px;
+  cursor: pointer;
+  min-width: 100px;
+  border: 1px solid;
+}
+.gc-yes {
+  background: rgba(212,130,10,0.2);
+  border-color: var(--amber);
+  color: var(--amber-bright);
+}
+.gc-yes:hover { background: rgba(212,130,10,0.35); }
+.gc-no {
+  background: rgba(100,120,140,0.15);
+  border-color: rgba(100,120,140,0.3);
+  color: var(--text-dim);
+}
+.gc-no:hover { background: rgba(100,120,140,0.25); color: var(--text); }
+.gc-btn.gc-danger {
+  background: rgba(255,51,68,0.2);
+  border-color: rgba(255,51,68,0.5);
+  color: #FF5028;
+}
+.gc-btn.gc-danger:hover { background: rgba(255,51,68,0.35); }
+
 /* -- Game Over Screen -- */
 #gameOverScreen {
   position: absolute;
@@ -1796,7 +1860,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.13.0 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.13.1 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -1910,6 +1974,17 @@ canvas {
       <button class="tech-confirm" id="btnSkillConfirm" style="display:none;background:rgba(40,160,60,0.25);border-color:rgba(40,160,60,0.6);color:#50DD50;">Bestätigen</button>
       <button class="tech-confirm" id="btnSkillDiscard" style="display:none;background:rgba(255,60,40,0.15);border-color:rgba(255,60,40,0.4);color:#FF5028;">Verwerfen</button>
       <button class="tech-respec" id="btnRespec">Neuverteilen</button>
+    </div>
+  </div>
+
+  <!-- IN-GAME CONFIRM DIALOG -->
+  <div id="gameConfirm">
+    <div class="gc-box">
+      <div class="gc-text" id="gcText"></div>
+      <div class="gc-buttons">
+        <button class="gc-btn gc-yes" id="gcYes">Ja</button>
+        <button class="gc-btn gc-no" id="gcNo">Abbrechen</button>
+      </div>
     </div>
   </div>
 
@@ -2567,10 +2642,10 @@ class Game {
     document.getElementById('btnReplayTutorial').addEventListener('click', replayTutFn);
     document.getElementById('btnReplayTutorial').addEventListener('touchend', (e) => { e.preventDefault(); replayTutFn(); });
 
-    const resetProgressFn = () => {
+    const resetProgressFn = async () => {
       playSound('click');
-      if (!confirm('Willst du wirklich deinen gesamten Fortschritt zurücksetzen?\n\nAlle EP, Skills und freigeschaltete Technologien gehen verloren!')) return;
-      if (!confirm('Bist du sicher? Das kann NICHT rückgängig gemacht werden!')) return;
+      if (!await this.showConfirm('Willst du wirklich deinen gesamten Fortschritt zurücksetzen?\n\nAlle EP, Skills und freigeschaltete Technologien gehen verloren!', 'Zurücksetzen', 'Abbrechen', true)) return;
+      if (!await this.showConfirm('Bist du sicher?\nDas kann NICHT rückgängig gemacht werden!', 'Endgültig löschen', 'Abbrechen', true)) return;
       localStorage.removeItem('ilzarah_totalEP');
       localStorage.removeItem('ilzarah_totalEPSpent');
       localStorage.removeItem('ilzarah_skillLevels');
@@ -2625,11 +2700,11 @@ class Game {
       // Change copy button to "Laden"
       const loadBtn = document.getElementById('btnCopySave');
       loadBtn.textContent = 'Laden';
-      loadBtn.onclick = () => {
+      loadBtn.onclick = async () => {
         try {
           const json = decodeURIComponent(escape(atob(txt.value.trim())));
           const data = JSON.parse(json);
-          if (!confirm('Aktuellen Spielstand mit dem importierten überschreiben?')) return;
+          if (!await this.showConfirm('Aktuellen Spielstand mit dem importierten überschreiben?', 'Überschreiben', 'Abbrechen', true)) return;
           for (const key of SAVE_KEYS) localStorage.removeItem(key);
           for (const [key, val] of Object.entries(data)) {
             if (SAVE_KEYS.includes(key)) localStorage.setItem(key, val);
@@ -2757,12 +2832,12 @@ class Game {
     this.loop(0);
   }
 
-  startFromMenu() {
+  async startFromMenu() {
     playSound('confirm');
 
     // If an active run exists, ask to end it first
     if (this.hasSavedRun()) {
-      const ok = confirm('Du hast einen laufenden Run. Wenn du einen neuen Run startest, wird der aktuelle beendet und abgerechnet. Fortfahren?');
+      const ok = await this.showConfirm('Du hast einen laufenden Run.\nWenn du einen neuen Run startest, wird der aktuelle beendet und abgerechnet.', 'Fortfahren', 'Abbrechen');
       if (!ok) return;
 
       const data = JSON.parse(localStorage.getItem('ilzarah_runState'));
@@ -2782,12 +2857,12 @@ class Game {
     this.renderStationSelect();
   }
 
-  showTechScreen() {
+  async showTechScreen() {
     playSound('click');
 
     // If an active run exists, ask to end it first
     if (this.hasSavedRun()) {
-      const ok = confirm('Du hast einen laufenden Run. Wenn du den Technologie-Baum öffnest, wird der Run beendet und abgerechnet. Fortfahren?');
+      const ok = await this.showConfirm('Du hast einen laufenden Run.\nWenn du den Technologie-Baum öffnest, wird der Run beendet und abgerechnet.', 'Fortfahren', 'Abbrechen');
       if (!ok) return;
 
       // Settle the run
@@ -2987,9 +3062,9 @@ class Game {
     this._showSkillTooltip(key); // refresh tooltip
   }
 
-  respecSkills() {
+  async respecSkills() {
     if (this.totalEPSpent <= 0) return;
-    if (!confirm(`Willst du alle Skills zurücksetzen?\n\nDu erhältst ${this.totalEPSpent} EP zurück.`)) return;
+    if (!await this.showConfirm(`Willst du alle Skills zurücksetzen?\n\nDu erhältst ${this.totalEPSpent} EP zurück.`, 'Zurücksetzen', 'Abbrechen')) return;
     this.totalEP += this.totalEPSpent;
     this.totalEPSpent = 0;
     // Reset all small nodes
@@ -3306,10 +3381,10 @@ class Game {
     this.state = 'settings';
   }
 
-  backToMenu() {
+  async backToMenu() {
     // Warn if unsaved skill changes
     if (this._hasSkillChanges()) {
-      if (!confirm('Du hast unbestätigte Änderungen im Skill-Tree. Verwerfen?')) return;
+      if (!await this.showConfirm('Du hast unbestätigte Änderungen im Skill-Tree.\nVerwerfen?', 'Verwerfen', 'Zurück')) return;
       this.discardSkills();
     }
     playSound('click');
@@ -5545,6 +5620,26 @@ class Game {
   closeTutorial() {
     document.getElementById('tutorialOverlay').classList.remove('visible');
     localStorage.setItem('ilzarah_tutorialDone', '1');
+  }
+
+  showConfirm(text, yesLabel = 'Ja', noLabel = 'Abbrechen', danger = false) {
+    return new Promise((resolve) => {
+      const overlay = document.getElementById('gameConfirm');
+      document.getElementById('gcText').textContent = text;
+      const yesBtn = document.getElementById('gcYes');
+      const noBtn = document.getElementById('gcNo');
+      yesBtn.textContent = yesLabel;
+      noBtn.textContent = noLabel;
+      yesBtn.className = danger ? 'gc-btn gc-danger' : 'gc-btn gc-yes';
+      overlay.classList.add('visible');
+      const cleanup = () => {
+        overlay.classList.remove('visible');
+        yesBtn.onclick = null;
+        noBtn.onclick = null;
+      };
+      yesBtn.onclick = () => { cleanup(); playSound('confirm'); resolve(true); };
+      noBtn.onclick = () => { cleanup(); playSound('click'); resolve(false); };
+    });
   }
 
   showBanner(text) {
