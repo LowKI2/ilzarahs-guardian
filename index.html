@@ -1072,6 +1072,192 @@ canvas {
   box-shadow: 0 0 20px rgba(255,189,85,0.3);
 }
 
+/* -- Scoreboard Screen -- */
+#scoreboardScreen {
+  position: absolute;
+  inset: 0;
+  background: rgba(20,24,32,0.95);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  z-index: 250;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+#scoreboardScreen h2 {
+  font-family: var(--font-ui);
+  font-size: clamp(24px, 6vw, 36px);
+  font-weight: 700;
+  color: var(--amber-bright);
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  margin: 20px 0 8px 0;
+  text-shadow: 0 0 30px rgba(255,189,85,0.4);
+}
+
+.sb-subtitle {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 20px;
+}
+
+.sb-breakdown {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.sb-stat {
+  text-align: center;
+  min-width: 70px;
+}
+
+.sb-stat .sb-val {
+  font-family: var(--font-mono);
+  font-size: clamp(18px, 4vw, 26px);
+  font-weight: 700;
+  color: var(--amber-bright);
+}
+
+.sb-stat .sb-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.sb-final {
+  font-family: var(--font-ui);
+  font-size: clamp(28px, 7vw, 42px);
+  font-weight: 700;
+  color: var(--ilzarah);
+  text-shadow: 0 0 20px rgba(0,200,255,0.4);
+  margin: 8px 0 20px 0;
+}
+
+.sb-name-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.sb-name-input {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 8px 14px;
+  background: rgba(30,34,44,0.9);
+  border: 1px solid var(--amber-dim);
+  color: var(--amber-bright);
+  border-radius: 3px;
+  outline: none;
+  width: 180px;
+  max-width: 40vw;
+}
+
+.sb-name-input:focus {
+  border-color: var(--amber-bright);
+  box-shadow: 0 0 10px rgba(255,189,85,0.2);
+}
+
+.sb-submit-btn, .sb-continue-btn {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 24px;
+  border: 1px solid var(--amber);
+  background: rgba(212,130,10,0.1);
+  color: var(--amber-bright);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  transition: all 0.2s;
+  pointer-events: auto;
+  min-height: 40px;
+  border-radius: 4px;
+}
+
+.sb-submit-btn:hover, .sb-continue-btn:hover {
+  background: rgba(212,130,10,0.25);
+  border-color: var(--amber-bright);
+  box-shadow: 0 0 16px rgba(255,189,85,0.25);
+}
+
+.sb-submit-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  box-shadow: none;
+}
+
+.sb-leaderboard {
+  width: 90%;
+  max-width: 500px;
+  margin: 16px 0;
+}
+
+.sb-leaderboard h3 {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--amber);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.sb-lb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.sb-lb-table th {
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 10px;
+  font-weight: 400;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--amber-dim);
+  text-align: left;
+}
+
+.sb-lb-table td {
+  color: var(--text);
+  padding: 4px 8px;
+  border-bottom: 1px solid rgba(212,130,10,0.1);
+}
+
+.sb-lb-table tr:nth-child(-n+3) td {
+  color: var(--amber-bright);
+}
+
+.sb-lb-table .sb-rank { color: var(--text-dim); width: 30px; }
+.sb-lb-table .sb-score-col { color: var(--ilzarah); text-align: right; }
+
+.sb-lb-loading {
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: center;
+  padding: 20px;
+}
+
+.sb-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  margin-bottom: 20px;
+}
+
+.hud-value.timer-warning { color: #FF3344; }
+
 /* -- Wave Banner -- */
 #waveBanner {
   position: absolute;
@@ -1847,6 +2033,7 @@ canvas {
     <div class="hud-item"><span class="hud-label">HP</span><span class="hud-value red" id="hudHP">800</span></div>
     <div class="hud-item"><span class="hud-label">Schild</span><span class="hud-value cyan" id="hudShield">200</span></div>
     <div class="hud-item"><span class="hud-label">Kills</span><span class="hud-value" id="hudKills">0</span></div>
+    <div class="hud-item" id="hudTimerItem" style="display:none"><span class="hud-label">Zeit</span><span class="hud-value" id="hudTimer">30:00</span></div>
     <button id="btnFullscreen"></button>
     <button id="btnPauseMenu">☰</button>
   </div>
@@ -1939,6 +2126,29 @@ canvas {
       <div class="go-stat"><div class="go-val" id="goKills">0</div><div class="go-label">Kills</div></div>
     </div>
     <button class="go-btn" id="btnNewRun">Hauptmenü</button>
+  </div>
+
+  <div id="scoreboardScreen">
+    <h2>Zeit Abgelaufen</h2>
+    <div class="sb-subtitle">// 30-MINUTEN WERTUNG //</div>
+    <div class="sb-breakdown">
+      <div class="sb-stat"><div class="sb-val" id="sbWaves">0</div><div class="sb-label">Wellen</div></div>
+      <div class="sb-stat"><div class="sb-val" id="sbKills">0</div><div class="sb-label">Kills</div></div>
+      <div class="sb-stat"><div class="sb-val" id="sbEP">0</div><div class="sb-label">EP</div></div>
+      <div class="sb-stat"><div class="sb-val" id="sbHandicap">1.00</div><div class="sb-label">Handicap</div></div>
+    </div>
+    <div class="sb-final" id="sbFinalScore">0</div>
+    <div class="sb-name-row">
+      <input class="sb-name-input" id="sbNameInput" type="text" maxlength="16" placeholder="Dein Name">
+      <button class="sb-submit-btn" id="sbSubmitBtn">Eintragen</button>
+    </div>
+    <div class="sb-leaderboard">
+      <h3>Top 20 Rangliste</h3>
+      <div id="sbLeaderboardBody"><div class="sb-lb-loading">Lade Rangliste...</div></div>
+    </div>
+    <div class="sb-buttons">
+      <button class="sb-continue-btn" id="sbContinueBtn">Weiterspielen</button>
+    </div>
   </div>
 
   <div id="tooltip"></div>
@@ -3796,7 +4006,9 @@ class Game {
     this.wave = 1;
     this.kills = 0;
     this.repairUsed = false;
-
+    this.runTimer = 0;
+    this.timedMode = true;
+    this.totalVSUSpent = 0;
 
     // In-Run upgrades (VSU, temporary per run)
     this.runUpgrades = {
@@ -5272,6 +5484,16 @@ class Game {
     // Skip game logic when paused
     if (this.paused) return;
 
+    // Run timer (ticks during build and combat)
+    if (this.timedMode && (this.state === 'build' || this.state === 'combat')) {
+      this.runTimer += dt;
+      if (this.runTimer >= 1800) {
+        this.runTimer = 1800;
+        this.showScoreboard();
+        return;
+      }
+    }
+
     // Station rotates only during combat (static in build phase)
     if (this.state === 'combat') {
       this.stationRotation += (Math.PI * 2 / 60) * dt;
@@ -5349,6 +5571,25 @@ class Game {
     document.getElementById('hudHP').textContent = Math.floor(this.stationHP);
     document.getElementById('hudShield').textContent = Math.floor(this.stationShield);
     document.getElementById('hudKills').textContent = this.kills;
+
+    // Run timer display
+    const timerItem = document.getElementById('hudTimerItem');
+    const timerEl = document.getElementById('hudTimer');
+    if (this.timedMode) {
+      timerItem.style.display = '';
+      const remaining = Math.max(0, 1800 - this.runTimer);
+      const mins = Math.floor(remaining / 60);
+      const secs = Math.floor(remaining % 60);
+      timerEl.textContent = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+      if (remaining < 300) {
+        timerEl.classList.add('timer-warning');
+      } else {
+        timerEl.classList.remove('timer-warning');
+      }
+    } else {
+      timerItem.style.display = 'none';
+    }
+
     this.updateTurretStats();
     this.updateWavePreview();
   }
