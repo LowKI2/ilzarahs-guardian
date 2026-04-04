@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.15.6 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.15.7 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -6844,7 +6844,7 @@ class Game {
       ctx.beginPath();
       ctx.arc(slot.x, slot.y, slot.radius + 3, -Math.PI/2, -Math.PI/2 + Math.PI * 2 * progress);
       ctx.strokeStyle = `rgba(170,85,255,${flareAlpha})`;
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 0.8;
       ctx.stroke();
     }
 
