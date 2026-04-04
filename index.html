@@ -1298,7 +1298,7 @@ canvas {
   opacity: 0.6;
 }
 
-/* -- Skill Tree Constellation Layout -- */
+/* -- Skill Tree Layout -- */
 .sk-viewport {
   flex: 1;
   position: relative;
@@ -1310,8 +1310,9 @@ canvas {
 .sk-canvas {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
   width: 100%;
+  position: relative;
 }
 
 .sk-section-label {
@@ -1320,7 +1321,37 @@ canvas {
   text-transform: uppercase;
   letter-spacing: 2px;
   color: var(--text-dim);
-  padding: 2px 0 0;
+  padding: 6px 0 3px;
+  text-align: center;
+}
+
+.sk-parent-row {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 4px 0;
+}
+
+.sk-spec-section {
+  position: relative;
+  padding: 4px 0;
+}
+
+.sk-spec-row {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  padding: 2px 0;
+}
+
+.sk-conn-svg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  pointer-events: none;
+  overflow: visible;
 }
 
 .sk-group {
@@ -1765,7 +1796,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.12.7 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.12.8 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -3025,14 +3056,20 @@ class Game {
       }
       canvas.appendChild(row);
     } else {
-      // Regular tabs: group small nodes with their specialist children
+      // Regular tabs: parent skills on top, specialists below with connection lines
       const smallNodes = [];
       const mediumNodes = [];
-      const standaloneSmall = [];
       for (const [key, def] of Object.entries(SKILL_TREE)) {
-        if (def.cat !== cat) continue;
+        if (def.cat !== cat && !(def.cat === cat && def.type === 'medium')) continue;
+        if (def.cat !== cat && def.type === 'medium') continue;
         if (def.type === 'small') smallNodes.push({ key, def });
         else if (def.type === 'medium') mediumNodes.push({ key, def });
+      }
+      // Also collect cross-tree medium nodes that belong to this tab
+      for (const [key, def] of Object.entries(SKILL_TREE)) {
+        if (def.type === 'medium' && def.cat === cat) {
+          if (!mediumNodes.find(m => m.key === key)) mediumNodes.push({ key, def });
+        }
       }
 
       // Group medium nodes by parentStat
@@ -3043,44 +3080,70 @@ class Game {
         childMap[p].push(m);
       }
 
-      // Render grouped rows: parent + children side by side
+      // --- PARENT ROW (top) ---
+      const parentLabel = document.createElement('div');
+      parentLabel.className = 'sk-section-label';
+      parentLabel.textContent = 'BASIS';
+      canvas.appendChild(parentLabel);
+
+      const parentRow = document.createElement('div');
+      parentRow.className = 'sk-parent-row';
+      const parentCardMap = {};
       for (const { key, def } of smallNodes) {
-        const children = childMap[key] || [];
-        if (children.length > 0) {
-          const group = document.createElement('div');
-          group.className = 'sk-group';
-
-          const parentDiv = document.createElement('div');
-          parentDiv.className = 'sk-group-parent';
-          parentDiv.appendChild(this._createSkillCard(key, def, cat));
-          group.appendChild(parentDiv);
-
-          const arrow = document.createElement('div');
-          arrow.className = 'sk-group-arrow';
-          arrow.textContent = '→';
-          group.appendChild(arrow);
-
-          const childDiv = document.createElement('div');
-          childDiv.className = 'sk-group-children';
-          for (const c of children) {
-            childDiv.appendChild(this._createSkillCard(c.key, c.def, cat));
-          }
-          group.appendChild(childDiv);
-
-          canvas.appendChild(group);
-        } else {
-          standaloneSmall.push({ key, def });
-        }
+        const card = this._createSkillCard(key, def, cat);
+        card.dataset.skillKey = key;
+        parentCardMap[key] = card;
+        parentRow.appendChild(card);
       }
+      canvas.appendChild(parentRow);
 
-      // Standalone small nodes without children
-      if (standaloneSmall.length > 0) {
-        const row = document.createElement('div');
-        row.className = 'sk-small-row';
-        for (const { key, def } of standaloneSmall) {
-          row.appendChild(this._createSkillCard(key, def, cat));
+      // --- SPECIALIST ROWS (below, grouped by parent) ---
+      // Collect all parents that have children (including cross-tree parents)
+      const parentKeys = new Set(mediumNodes.map(m => m.def.parentStat).filter(Boolean));
+
+      if (mediumNodes.length > 0) {
+        const specLabel = document.createElement('div');
+        specLabel.className = 'sk-section-label';
+        specLabel.textContent = 'SPEZIALISIERUNG';
+        canvas.appendChild(specLabel);
+
+        const specSection = document.createElement('div');
+        specSection.className = 'sk-spec-section';
+
+        // For each parent that has children, create a row
+        for (const parentKey of parentKeys) {
+          const children = childMap[parentKey] || [];
+          if (children.length === 0) continue;
+
+          const parentDef = SKILL_TREE[parentKey];
+          const parentName = parentDef ? parentDef.name : parentKey;
+
+          const rowLabel = document.createElement('div');
+          rowLabel.style.cssText = 'font-family:var(--font-mono);font-size:8px;color:var(--text-dim);text-align:center;padding:4px 0 1px;opacity:0.5;';
+          rowLabel.textContent = `↓ ${parentName}`;
+          specSection.appendChild(rowLabel);
+
+          const specRow = document.createElement('div');
+          specRow.className = 'sk-spec-row';
+          for (const c of children) {
+            const card = this._createSkillCard(c.key, c.def, cat);
+            specRow.appendChild(card);
+          }
+          specSection.appendChild(specRow);
         }
-        canvas.appendChild(row);
+
+        // Orphan medium nodes (no parentStat)
+        const orphans = childMap['_none'] || [];
+        if (orphans.length > 0) {
+          const specRow = document.createElement('div');
+          specRow.className = 'sk-spec-row';
+          for (const c of orphans) {
+            specRow.appendChild(this._createSkillCard(c.key, c.def, cat));
+          }
+          specSection.appendChild(specRow);
+        }
+
+        canvas.appendChild(specSection);
       }
     }
 
