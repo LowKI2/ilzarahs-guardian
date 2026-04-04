@@ -3515,16 +3515,20 @@ class Game {
       });
     }
 
-    // Pre-mount a Gun T1 on the first slot
-    if (this.slots.length > 0) {
+    // Pre-mount Gun T1 turrets: 1 for base stations, 2 on opposite slots for tier 1+
+    const gunCount = (this.station.tier >= 1 && this.slots.length >= 6) ? 2 : 1;
+    const mountSlots = [0];
+    if (gunCount >= 2) mountSlots.push(Math.floor(this.slots.length / 2)); // opposite slot
+    for (const idx of mountSlots) {
+      if (idx >= this.slots.length) continue;
       const wDef = WEAPONS.gun_t1;
       this.ownedWeapons['gun_t1'] = (this.ownedWeapons['gun_t1'] || 0) + 1;
-      this.slots[0].building = {
+      this.slots[idx].building = {
         weaponKey: 'gun_t1',
         ...wDef,
         cooldown: 0,
         targetEnemy: null,
-        barrelAngle: this.slots[0].angle,
+        barrelAngle: this.slots[idx].angle,
       };
     }
   }
@@ -6226,8 +6230,12 @@ class Game {
     const dt = Math.min((time - this.lastTime) / 1000, 0.05);
     this.lastTime = time;
 
-    this.update(dt);
-    this.render();
+    try {
+      this.update(dt);
+      this.render();
+    } catch (e) {
+      console.error('[GAME LOOP ERROR]', e);
+    }
 
     requestAnimationFrame((t) => this.loop(t));
   }
