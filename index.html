@@ -1721,7 +1721,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.10.3 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.10.4 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2221,9 +2221,9 @@ const SKILL_TREE = {
   // --- ATTACK ---
   sk_dmg:      { name: 'Basisschaden',   desc: '+5% Waffenschaden pro Stufe',     cat: 'attack',   type: 'small', perLevel: 5,  baseCost: 10, costStep: 5,  requires: [], x: 160, y: 100 },
   sk_rof:      { name: 'Feuerrate',      desc: '+4% Angriffsgeschwindigkeit',      cat: 'attack',   type: 'small', perLevel: 4,  baseCost: 10, costStep: 5,  requires: [], x: 240, y: 160 },
-  sk_pierce:   { name: 'Durchschuss',    desc: '+3% Chance auf Durchschlag',       cat: 'attack',   type: 'small', perLevel: 3,  baseCost: 15, costStep: 8,  requires: ['sk_dmg'], x: 80, y: 160 },
+  sk_pierce:   { name: 'Durchschuss',    desc: '+3% Chance auf Durchschlag',       cat: 'attack',   type: 'small', perLevel: 3,  baseCost: 15, costStep: 8,  requires: [], x: 80, y: 160 },
   sk_range:    { name: 'Reichweite',     desc: '+3% Waffenreichweite',             cat: 'attack',   type: 'small', perLevel: 3,  baseCost: 10, costStep: 5,  requires: [], x: 160, y: 220 },
-  sk_syshit:   { name: 'Systemtreffer', desc: '+2% Systemtreffer-Chance',          cat: 'attack',   type: 'small', perLevel: 2,  baseCost: 15, costStep: 8,  requires: ['sk_pierce'], x: 80, y: 240 },
+  sk_syshit:   { name: 'Systemtreffer', desc: '+2% Systemtreffer-Chance',          cat: 'attack',   type: 'small', perLevel: 2,  baseCost: 15, costStep: 8,  requires: [], x: 80, y: 240 },
   sk_rocket_t1:{ name: 'Rocket T1',     desc: 'Schnellfeuer-Raketen freischalten', cat: 'attack',   type: 'big',   cost: 40,  unlocks: 'rocket_t1', requires: [], waveReq: 10, x: 60, y: 60 },
   sk_gun_t2:   { name: 'Gun T2',        desc: 'Mittleres Geschuetz freischalten',  cat: 'attack',   type: 'big',   cost: 25,  unlocks: 'gun_t2', requires: [], waveReq: 15, x: 260, y: 60 },
   sk_gun_t3:   { name: 'Gun T3',        desc: 'Schweres Geschuetz freischalten',   cat: 'attack',   type: 'big',   cost: 50,  unlocks: 'gun_t3', requires: ['sk_gun_t2'], waveReq: 28, x: 320, y: 140 },
@@ -2236,7 +2236,7 @@ const SKILL_TREE = {
   sk_hull:     { name: 'Huelle',         desc: '+5% Station HP pro Stufe',          cat: 'defense',  type: 'small', perLevel: 5,  baseCost: 10, costStep: 5,  requires: [], x: 520, y: 100 },
   sk_shield:   { name: 'Schild',         desc: '+5% Schildkapazitaet pro Stufe',    cat: 'defense',  type: 'small', perLevel: 5,  baseCost: 10, costStep: 5,  requires: [], x: 600, y: 160 },
   sk_energy:   { name: 'Energie',        desc: '+4% Schildregeneration pro Stufe',  cat: 'defense',  type: 'small', perLevel: 4,  baseCost: 10, costStep: 5,  requires: [], x: 440, y: 160 },
-  sk_reserve:  { name: 'Reparaturdrohnen', desc: '+20% Reparaturdrohnen-Leistung',   cat: 'defense',  type: 'small', perLevel: 20, baseCost: 20, costStep: 10, requires: ['sk_hull'], x: 520, y: 230 },
+  sk_reserve:  { name: 'Reparaturdrohnen', desc: '+20% Reparaturdrohnen-Leistung',   cat: 'defense',  type: 'small', perLevel: 20, baseCost: 20, costStep: 10, requires: [], x: 520, y: 230 },
   sk_missile_def:{ name: 'Raketenabwehr',desc: 'Tuerme schiessen Raketen ab',       cat: 'defense',  type: 'big',   cost: 60,  unlocks: 'missile_def', requires: ['sk_hull'], waveReq: 18, x: 420, y: 60 },
   sk_core_t2:  { name: 'Energy Core T2', desc: '+50% Energiekern-Leistung',         cat: 'defense',  type: 'big',   cost: 80,  unlocks: 'core_t2', requires: ['sk_energy'], waveReq: 30, x: 440, y: 280 },
   sk_shield_t2:{ name: 'Schild T2',     desc: '+30% Schildkapazitaet',              cat: 'defense',  type: 'big',   cost: 100, unlocks: 'shield_t2', requires: ['sk_core_t2'], waveReq: 42, x: 560, y: 310 },
@@ -2244,10 +2244,10 @@ const SKILL_TREE = {
   // --- RESOURCES ---
   sk_vsu_kill: { name: 'VSU (Abschuss)', desc: '+3% VSU pro Gegner',                cat: 'resource', type: 'small', perLevel: 3,  baseCost: 10, costStep: 5,  requires: [], x: 740, y: 100 },
   sk_vsu_wave: { name: 'VSU (Welle)',    desc: '+3% VSU bei Wellenende',             cat: 'resource', type: 'small', perLevel: 3,  baseCost: 10, costStep: 5,  requires: [], x: 820, y: 160 },
-  sk_ep_kill:  { name: 'EP (Abschuss)',  desc: '+2% EP pro Gegner',                  cat: 'resource', type: 'small', perLevel: 2,  baseCost: 15, costStep: 8,  requires: ['sk_vsu_kill'], x: 660, y: 160 },
-  sk_ep_wave:  { name: 'EP (Welle)',     desc: '+2% EP bei Meilenstein',             cat: 'resource', type: 'small', perLevel: 2,  baseCost: 15, costStep: 8,  requires: ['sk_vsu_wave'], x: 820, y: 240 },
+  sk_ep_kill:  { name: 'EP (Abschuss)',  desc: '+2% EP pro Gegner',                  cat: 'resource', type: 'small', perLevel: 2,  baseCost: 15, costStep: 8,  requires: [], x: 660, y: 160 },
+  sk_ep_wave:  { name: 'EP (Welle)',     desc: '+2% EP bei Meilenstein',             cat: 'resource', type: 'small', perLevel: 2,  baseCost: 15, costStep: 8,  requires: [], x: 820, y: 240 },
   sk_repair_eff:{ name: 'Reparatureffizienz', desc: '+1% Reparatur-Menge',          cat: 'resource', type: 'small', perLevel: 1,  baseCost: 10, costStep: 5,  requires: [], x: 740, y: 240 },
-  sk_repair_cost:{ name: 'Reparaturkosten', desc: '-2 VSU Reparaturkosten',         cat: 'resource', type: 'small', perLevel: 2,  baseCost: 10, costStep: 5,  requires: ['sk_repair_eff'], x: 660, y: 300 },
+  sk_repair_cost:{ name: 'Reparaturkosten', desc: '-2 VSU Reparaturkosten',         cat: 'resource', type: 'small', perLevel: 2,  baseCost: 10, costStep: 5,  requires: [], x: 660, y: 300 },
   sk_start_vsu:{ name: 'Startkapital',   desc: '+25 Start-VSU pro Stufe',            cat: 'resource', type: 'small', perLevel: 25, baseCost: 10, costStep: 5,  requires: [], x: 660, y: 100 },
   sk_drone:    { name: 'Sammeldrohne',   desc: 'Drohne sammelt Wrack-VSU',           cat: 'resource', type: 'big',   cost: 60,  unlocks: 'drone', requires: ['sk_vsu_kill', 'sk_vsu_wave'], waveReq: 25, x: 820, y: 320 },
 };
