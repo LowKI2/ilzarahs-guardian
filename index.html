@@ -1297,29 +1297,72 @@ canvas {
 .sk-canvas {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
 }
 
 .sk-section-label {
   font-family: var(--font-ui);
-  font-size: 9px;
+  font-size: 8px;
   text-transform: uppercase;
   letter-spacing: 2px;
   color: var(--text-dim);
-  padding: 2px 0;
+  padding: 2px 0 0;
+}
+
+.sk-group {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  border: 1px solid rgba(100,120,140,0.1);
+  border-radius: 4px;
+  background: rgba(20,24,32,0.5);
+}
+
+.sk-group-parent {
+  flex: 0 0 auto;
+  min-width: 80px;
+  max-width: 100px;
+  display: flex;
+}
+
+.sk-group-parent .sk-card {
+  flex: 1;
+  border-radius: 3px 0 0 3px;
+  border-right: none;
+}
+
+.sk-group-arrow {
+  display: flex;
+  align-items: center;
+  color: rgba(100,120,140,0.3);
+  font-size: 10px;
+  padding: 0 2px;
+}
+
+.sk-group-children {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  padding: 3px 3px 3px 0;
+}
+
+.sk-group-children .sk-card {
+  flex: 1;
+  min-width: 75px;
 }
 
 .sk-small-row {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 4px;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 3px;
 }
 
 .sk-big-row {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 4px;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 3px;
 }
 
 .sk-card {
@@ -1327,11 +1370,11 @@ canvas {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 2px;
+  gap: 1px;
   background: rgba(20,24,32,0.9);
   border: 1px solid;
-  border-radius: 4px;
-  padding: 6px 4px;
+  border-radius: 3px;
+  padding: 4px 3px;
   cursor: pointer;
   transition: all 0.15s;
 }
@@ -1709,7 +1752,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.11.1 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.11.2 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2340,7 +2383,7 @@ class Game {
     // Persistent skill tree state (survives across runs)
     this.skillLevels = {}; // small nodes: { sk_dmg: 3, sk_rof: 1, ... }
     for (const key of Object.keys(SKILL_TREE)) {
-      if (SKILL_TREE[key].type === 'small') this.skillLevels[key] = 0;
+      if (SKILL_TREE[key].type === 'small' || SKILL_TREE[key].type === 'medium') this.skillLevels[key] = 0;
     }
     this.wave = 1;
     this.kills = 0;
@@ -2676,7 +2719,7 @@ class Game {
   getSkillCost(key) {
     const def = SKILL_TREE[key];
     if (def.type === 'big') return def.cost;
-    return Math.round(def.baseCost * Math.pow(1.3, this.skillLevels[key]));
+    return Math.round(def.baseCost * Math.pow(1.3, this.skillLevels[key] || 0));
   }
 
   getSkillBonus(key) {
@@ -2775,7 +2818,7 @@ class Game {
     this.totalEPSpent = 0;
     // Reset all small nodes
     for (const key of Object.keys(SKILL_TREE)) {
-      if (SKILL_TREE[key].type === 'small') this.skillLevels[key] = 0;
+      if (SKILL_TREE[key].type === 'small' || SKILL_TREE[key].type === 'medium') this.skillLevels[key] = 0;
     }
     // Reset all big nodes
     this.unlockedTech = new Set();
@@ -2837,39 +2880,59 @@ class Game {
       }
       canvas.appendChild(row);
     } else {
-      // Regular tabs: small nodes + medium (specialist) nodes
+      // Regular tabs: group small nodes with their specialist children
       const smallNodes = [];
       const mediumNodes = [];
+      const standaloneSmall = [];
       for (const [key, def] of Object.entries(SKILL_TREE)) {
         if (def.cat !== cat) continue;
         if (def.type === 'small') smallNodes.push({ key, def });
         else if (def.type === 'medium') mediumNodes.push({ key, def });
       }
 
-      if (smallNodes.length > 0) {
-        const label = document.createElement('div');
-        label.className = 'sk-section-label';
-        label.textContent = 'Allgemein';
-        canvas.appendChild(label);
-
-        const row = document.createElement('div');
-        row.className = 'sk-small-row';
-        for (const { key, def } of smallNodes) {
-          row.appendChild(this._createSkillCard(key, def, cat));
-        }
-        canvas.appendChild(row);
+      // Group medium nodes by parentStat
+      const childMap = {};
+      for (const m of mediumNodes) {
+        const p = m.def.parentStat || '_none';
+        if (!childMap[p]) childMap[p] = [];
+        childMap[p].push(m);
       }
 
-      if (mediumNodes.length > 0) {
-        const totalSmall = this.getCatInvestment(cat);
-        const label = document.createElement('div');
-        label.className = 'sk-section-label';
-        label.textContent = `Spezialisierung (${totalSmall} Punkte investiert)`;
-        canvas.appendChild(label);
+      // Render grouped rows: parent + children side by side
+      for (const { key, def } of smallNodes) {
+        const children = childMap[key] || [];
+        if (children.length > 0) {
+          const group = document.createElement('div');
+          group.className = 'sk-group';
 
+          const parentDiv = document.createElement('div');
+          parentDiv.className = 'sk-group-parent';
+          parentDiv.appendChild(this._createSkillCard(key, def, cat));
+          group.appendChild(parentDiv);
+
+          const arrow = document.createElement('div');
+          arrow.className = 'sk-group-arrow';
+          arrow.textContent = '→';
+          group.appendChild(arrow);
+
+          const childDiv = document.createElement('div');
+          childDiv.className = 'sk-group-children';
+          for (const c of children) {
+            childDiv.appendChild(this._createSkillCard(c.key, c.def, cat));
+          }
+          group.appendChild(childDiv);
+
+          canvas.appendChild(group);
+        } else {
+          standaloneSmall.push({ key, def });
+        }
+      }
+
+      // Standalone small nodes without children
+      if (standaloneSmall.length > 0) {
         const row = document.createElement('div');
-        row.className = 'sk-big-row';
-        for (const { key, def } of mediumNodes) {
+        row.className = 'sk-small-row';
+        for (const { key, def } of standaloneSmall) {
           row.appendChild(this._createSkillCard(key, def, cat));
         }
         canvas.appendChild(row);
@@ -2918,15 +2981,16 @@ class Game {
     } else if (def.type === 'medium') {
       const lvl = this.skillLevels[key] || 0;
       const maxLvl = this.getMaxSpecialistLevel(key);
-      const parentName = def.parentStat ? (SKILL_TREE[def.parentStat]?.name || '') : '';
+      const atMax = def.maxLevel ? lvl >= def.maxLevel : (maxLvl > 0 && lvl >= maxLvl);
       const parentLvl = def.parentStat ? (this.skillLevels[def.parentStat] || 0) : 0;
       const nextReq = (lvl + 1) * 5;
+      const needsUnlockText = def.needsUnlock && !this.unlockedTech.has(def.needsUnlock) ? `Braucht ${def.needsUnlock}` : '';
       card.innerHTML = `
-        <div class="sk-card-level">${lvl}/${maxLvl}</div>
+        <div class="sk-card-level">${lvl}</div>
         <div class="sk-card-name">${def.name}</div>
         <div class="sk-card-desc">${def.desc}</div>
-        <div class="sk-card-wave">${parentName} ${parentLvl}/${nextReq}</div>
-        <div class="sk-card-cost">${lvl >= maxLvl && maxLvl > 0 ? 'MAX' : cost + ' EP'}</div>`;
+        ${needsUnlockText ? `<div class="sk-card-wave">${needsUnlockText}</div>` : `<div class="sk-card-wave">${parentLvl}/${nextReq} Pkt</div>`}
+        <div class="sk-card-cost">${atMax ? 'MAX' : cost + ' EP'}</div>`;
     } else {
       // Big (unlock) nodes
       const catLabels = { attack: 'ANG', defense: 'VER', resource: 'RES' };
