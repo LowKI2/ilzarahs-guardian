@@ -1080,29 +1080,13 @@ canvas {
   .upg-buy { font-size: 10px; padding: 5px 12px; min-height: 32px; }
 
   /* Skill tree: no scroll needed with percentage positions */
-  .sk-viewport {
-    overflow: hidden;
-  }
-
-  .sk-canvas {
-    min-height: 280px;
-  }
-
   .sk-tab { font-size: 10px; padding: 8px 4px; letter-spacing: 1px; }
   .sk-tab-info { font-size: 7px; }
 
-  /* Bigger touch targets for nodes */
-  .sk-node.small {
-    width: 38px; height: 38px;
-    font-size: 12px;
-  }
+  .sk-card { padding: 5px 6px; }
+  .sk-card-name { font-size: 8px; }
+  .sk-card-desc { font-size: 7px; }
 
-  .sk-node.big {
-    width: 50px; height: 50px;
-    font-size: 18px;
-  }
-
-  /* Tooltip: centered, slightly wider on mobile */
   .sk-tooltip {
     width: calc(100% - 32px);
     max-width: 280px;
@@ -1305,115 +1289,127 @@ canvas {
   position: relative;
   overflow: auto;
   -webkit-overflow-scrolling: touch;
+  padding: 8px;
 }
 
 .sk-canvas {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   width: 100%;
-  height: 100%;
-  min-height: 300px;
 }
 
-.sk-canvas svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.sk-canvas svg line {
-  stroke-width: 1.5;
-  stroke-linecap: round;
-}
-
-.sk-canvas svg line.locked { opacity: 0.15; }
-.sk-canvas svg line.active { opacity: 0.6; }
-
-/* Category labels */
-.sk-cat-label {
-  position: absolute;
+.sk-section-label {
   font-family: var(--font-ui);
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 9px;
   text-transform: uppercase;
   letter-spacing: 2px;
-  opacity: 0.5;
-  z-index: 2;
+  color: var(--text-dim);
+  padding: 2px 0;
 }
 
-.sk-cat-label.attack { color: #FF5028; }
-.sk-cat-label.defense { color: #00B4DC; }
-.sk-cat-label.resource { color: #50C850; }
+.sk-small-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
 
-/* Nodes */
-.sk-node {
-  position: absolute;
-  z-index: 3;
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
+.sk-big-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.sk-card {
   display: flex;
   align-items: center;
-  justify-content: center;
-  transform: translate(-50%, -50%);
+  gap: 6px;
+  background: rgba(20,24,32,0.9);
+  border: 1px solid;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex: 1;
+  min-width: 0;
 }
 
-.sk-node:hover { transform: translate(-50%, -50%) scale(1.15); }
+.sk-card:hover {
+  filter: brightness(1.2);
+}
 
-/* Small nodes (infinite, circular) */
-.sk-node.small {
-  width: 32px; height: 32px;
-  border-radius: 50%;
-  border: 2px solid;
-  background: rgba(20,24,32,0.9);
+.sk-card.locked {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.sk-card.locked:hover { filter: none; }
+
+.sk-card.buyable {
+  animation: sk-pulse 1.5s ease-in-out infinite;
+}
+
+.sk-card.attack { border-color: rgba(255,80,40,0.4); }
+.sk-card.defense { border-color: rgba(0,180,220,0.4); }
+.sk-card.resource { border-color: rgba(80,200,80,0.4); }
+
+.sk-card.attack.owned { border-color: #FF5028; box-shadow: 0 0 6px rgba(255,80,40,0.3); }
+.sk-card.defense.owned { border-color: #00B4DC; box-shadow: 0 0 6px rgba(0,180,220,0.3); }
+.sk-card.resource.owned { border-color: #50C850; box-shadow: 0 0 6px rgba(80,200,80,0.3); }
+
+.sk-card-level {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
+  min-width: 20px;
+  text-align: center;
 }
 
-.sk-node.small.attack { border-color: rgba(255,80,40,0.5); color: #FF5028; }
-.sk-node.small.defense { border-color: rgba(0,180,220,0.5); color: #00B4DC; }
-.sk-node.small.resource { border-color: rgba(80,200,80,0.5); color: #50C850; }
+.sk-card.attack .sk-card-level { color: #FF5028; }
+.sk-card.defense .sk-card-level { color: #00B4DC; }
+.sk-card.resource .sk-card-level { color: #50C850; }
 
-.sk-node.small.owned { box-shadow: 0 0 8px rgba(255,189,85,0.3); }
-.sk-node.small.attack.owned { border-color: #FF5028; box-shadow: 0 0 8px rgba(255,80,40,0.4); }
-.sk-node.small.defense.owned { border-color: #00B4DC; box-shadow: 0 0 8px rgba(0,180,220,0.4); }
-.sk-node.small.resource.owned { border-color: #50C850; box-shadow: 0 0 8px rgba(80,200,80,0.4); }
-
-.sk-node.small.buyable {
-  animation: sk-pulse 1.5s ease-in-out infinite;
+.sk-card-info {
+  flex: 1;
+  min-width: 0;
 }
 
-/* Big nodes (one-time, hexagonal-ish) */
-.sk-node.big {
-  width: 44px; height: 44px;
-  border-radius: 8px;
-  border: 2px solid;
-  background: rgba(20,24,32,0.9);
-  font-size: 16px;
+.sk-card-name {
+  font-family: var(--font-ui);
+  font-size: 9px;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.sk-node.big.attack { border-color: rgba(255,80,40,0.4); color: #FF5028; }
-.sk-node.big.defense { border-color: rgba(0,180,220,0.4); color: #00B4DC; }
-.sk-node.big.resource { border-color: rgba(80,200,80,0.4); color: #50C850; }
-
-.sk-node.big.owned {
-  background: rgba(20,24,32,0.6);
-}
-.sk-node.big.attack.owned { border-color: #FF5028; box-shadow: 0 0 12px rgba(255,80,40,0.5); }
-.sk-node.big.defense.owned { border-color: #00B4DC; box-shadow: 0 0 12px rgba(0,180,220,0.5); }
-.sk-node.big.resource.owned { border-color: #50C850; box-shadow: 0 0 12px rgba(80,200,80,0.5); }
-
-.sk-node.big.buyable {
-  animation: sk-pulse 1.5s ease-in-out infinite;
+.sk-card-desc {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.sk-node.locked {
-  opacity: 0.2;
-  cursor: default;
+.sk-card-cost {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--amber-dim);
+  white-space: nowrap;
 }
-.sk-node.locked:hover { transform: translate(-50%, -50%); }
+
+.sk-card.big .sk-card-level {
+  font-size: 14px;
+}
+
+.sk-card-wave {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--text-dim);
+}
 
 @keyframes sk-pulse {
   0%, 100% { box-shadow: 0 0 4px rgba(255,189,85,0.2); }
@@ -1725,7 +1721,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.10.2 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.10.3 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -1822,9 +1818,7 @@ canvas {
       <button class="sk-tab resource" data-cat="resource">Ressourcen<span class="sk-tab-info" id="skTabInfoResource"></span></button>
     </div>
     <div class="sk-viewport" id="skViewport">
-      <div class="sk-canvas" id="skCanvas">
-        <svg id="skLines"></svg>
-      </div>
+      <div class="sk-canvas" id="skCanvas"></div>
     </div>
     <div class="sk-tooltip" id="skTooltip">
       <div class="sk-tooltip-name" id="skTTName"></div>
@@ -2774,80 +2768,49 @@ class Game {
 
   renderSkillTree() {
     const canvas = document.getElementById('skCanvas');
-    const svg = document.getElementById('skLines');
     const cat = this.activeSkillTab || 'attack';
 
-    // Remove old nodes (keep svg)
-    canvas.querySelectorAll('.sk-node, .sk-cat-label').forEach(el => el.remove());
-    svg.innerHTML = '';
+    canvas.innerHTML = '';
 
-    const positions = Game.TAB_POSITIONS[cat] || {};
-    const colors = { attack: '#FF5028', defense: '#00B4DC', resource: '#50C850' };
-
-    // SVG needs viewBox for percentage-based lines
-    svg.setAttribute('viewBox', '0 0 100 100');
-    svg.setAttribute('preserveAspectRatio', 'none');
-
-    // Draw connection lines first
+    // Collect small and big nodes for this category
+    const smallNodes = [];
+    const bigNodes = [];
     for (const [key, def] of Object.entries(SKILL_TREE)) {
       if (def.cat !== cat) continue;
-      const pos = positions[key];
-      if (!pos) continue;
-      for (const req of def.requires) {
-        const reqDef = SKILL_TREE[req];
-        if (reqDef.cat !== cat) continue;
-        const fromPos = positions[req];
-        if (!fromPos) continue;
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', fromPos.x);
-        line.setAttribute('y1', fromPos.y);
-        line.setAttribute('x2', pos.x);
-        line.setAttribute('y2', pos.y);
-
-        const fromOwned = this.isSkillUnlocked(req);
-        line.setAttribute('stroke', colors[cat]);
-        line.className.baseVal = fromOwned ? 'active' : 'locked';
-        svg.appendChild(line);
-      }
+      if (def.type === 'small') smallNodes.push({ key, def });
+      else bigNodes.push({ key, def });
     }
 
-    // Draw nodes
-    for (const [key, def] of Object.entries(SKILL_TREE)) {
-      if (def.cat !== cat) continue;
-      const pos = positions[key];
-      if (!pos) continue;
+    // Small nodes section
+    if (smallNodes.length > 0) {
+      const label = document.createElement('div');
+      label.className = 'sk-section-label';
+      label.textContent = 'Upgrades';
+      canvas.appendChild(label);
 
-      const el = document.createElement('div');
-      const owned = this.isSkillUnlocked(key);
-      const available = this.isSkillAvailable(key);
-      const canAfford = this.totalEP >= this.getSkillCost(key);
-      const buyable = available && canAfford && !(def.type === 'big' && owned);
-
-      el.className = `sk-node ${def.type} ${def.cat}`;
-      if (owned) el.classList.add('owned');
-      if (buyable) el.classList.add('buyable');
-      if (!available && !owned) el.classList.add('locked');
-
-      el.style.left = pos.x + '%';
-      el.style.top = pos.y + '%';
-
-      if (def.type === 'small') {
-        el.textContent = this.skillLevels[key] || 0;
-      } else {
-        el.textContent = owned ? '✓' : '★';
+      const row = document.createElement('div');
+      row.className = 'sk-small-row';
+      for (const { key, def } of smallNodes) {
+        row.appendChild(this._createSkillCard(key, def, cat));
       }
+      canvas.appendChild(row);
+    }
 
-      el.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this._showSkillTooltip(key);
-      });
-      el.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        this._showSkillTooltip(key);
-      });
+    // Big nodes section
+    if (bigNodes.length > 0) {
+      const label = document.createElement('div');
+      label.className = 'sk-section-label';
+      label.textContent = 'Freischaltungen';
+      canvas.appendChild(label);
 
-      canvas.appendChild(el);
+      const row = document.createElement('div');
+      row.className = 'sk-big-row';
+      // Sort by waveReq
+      bigNodes.sort((a, b) => (a.def.waveReq || 0) - (b.def.waveReq || 0));
+      for (const { key, def } of bigNodes) {
+        row.appendChild(this._createSkillCard(key, def, cat));
+      }
+      canvas.appendChild(row);
     }
 
     // Update tab info
@@ -2859,8 +2822,48 @@ class Game {
         else if (this.isSkillUnlocked(k)) spent++;
       }
       const el = document.getElementById(`skTabInfo${c.charAt(0).toUpperCase() + c.slice(1)}`);
-      if (el) el.textContent = spent > 0 ? `${spent} Punkte` : '';
+      if (el) el.textContent = spent > 0 ? `${spent}` : '';
     }
+  }
+
+  _createSkillCard(key, def, cat) {
+    const owned = this.isSkillUnlocked(key);
+    const available = this.isSkillAvailable(key);
+    const cost = this.getSkillCost(key);
+    const canAfford = this.totalEP >= cost;
+    const buyable = available && canAfford && !(def.type === 'big' && owned);
+
+    const card = document.createElement('div');
+    card.className = `sk-card ${def.type} ${cat}`;
+    if (owned) card.classList.add('owned');
+    if (buyable) card.classList.add('buyable');
+    if (!available && !owned) card.classList.add('locked');
+
+    if (def.type === 'small') {
+      const lvl = this.skillLevels[key] || 0;
+      card.innerHTML = `
+        <span class="sk-card-level">${lvl}</span>
+        <span class="sk-card-info">
+          <span class="sk-card-name">${def.name}</span>
+          <span class="sk-card-desc">${def.desc}</span>
+        </span>
+        <span class="sk-card-cost">${cost} EP</span>`;
+    } else {
+      card.innerHTML = `
+        <span class="sk-card-level">${owned ? '✓' : '★'}</span>
+        <span class="sk-card-info">
+          <span class="sk-card-name">${def.name}</span>
+          <span class="sk-card-desc">${def.desc}</span>
+          ${def.waveReq ? `<span class="sk-card-wave">Welle ${def.waveReq}${this.bestWave >= def.waveReq ? ' ✓' : ''}</span>` : ''}
+        </span>
+        <span class="sk-card-cost">${owned ? '—' : cost + ' EP'}</span>`;
+    }
+
+    const fn = (e) => { e.stopPropagation(); this._showSkillTooltip(key); };
+    card.addEventListener('click', fn);
+    card.addEventListener('touchend', (e) => { e.preventDefault(); fn(e); });
+
+    return card;
   }
 
   _showSkillTooltip(key) {
