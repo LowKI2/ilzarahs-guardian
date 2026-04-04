@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.15.1 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.15.2 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -6264,7 +6264,7 @@ class Game {
     if (this.mines) {
       for (const mine of this.mines) {
         if (!mine.alive) continue;
-        mine.pulsePhase += dt * 3;
+        mine.pulsePhase += 0.05;
         const pulse = 0.4 + Math.sin(mine.pulsePhase) * 0.2;
         const sz = 5;
 
@@ -6399,7 +6399,7 @@ class Game {
     };
     for (const h of this.hitEffects) {
       const sheet = HIT_SHEETS[h.type];
-      if (!sheet || !sheet.img || !sheet.img.complete) continue;
+      if (!sheet || !sheet.img || !sheet.img.complete || !sheet.img.naturalWidth) continue;
       const t = 1 - h.life / h.maxLife;
       const alpha = t < 0.05 ? t / 0.05 : Math.max(0, 1 - t * 0.3);
       const frameW = Math.floor(sheet.img.naturalWidth / sheet.cols);
@@ -7301,9 +7301,13 @@ class Game {
 
     try {
       this.update(dt);
+    } catch (e) {
+      console.error('[UPDATE ERROR]', e);
+    }
+    try {
       this.render();
     } catch (e) {
-      console.error('[GAME LOOP ERROR]', e);
+      console.error('[RENDER ERROR]', e);
     }
 
     requestAnimationFrame((t) => this.loop(t));
