@@ -1725,7 +1725,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.9.18 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.9.19 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -4665,7 +4665,8 @@ class Game {
     if (defInfo) {
       const usedE = this.getUsedEnergy();
       const poolE = this.getEnergyPool();
-      defInfo.innerHTML = `${this.station.name} — HP ${Math.floor(this.stationHP)}/${this.stationMaxHP} | Schild ${Math.floor(this.stationShield)}/${this.stationMaxShield} | <span style="color:${usedE > poolE * 0.8 ? '#FF5028' : 'var(--ilzarah)'}">Bau ${usedE}/${poolE}%</span> | Kern ${this.shieldRegenRate.toFixed(0)}/s`;
+      const repairRate = (5 * (1 + this.getTotalBonus('reserve') / 100)).toFixed(1);
+      defInfo.innerHTML = `${this.station.name} — HP ${Math.floor(this.stationHP)}/${this.stationMaxHP} | Schild ${Math.floor(this.stationShield)}/${this.stationMaxShield} | Rep ${repairRate}/s | <span style="color:${usedE > poolE * 0.8 ? '#FF5028' : 'var(--ilzarah)'}">Bau ${usedE}/${poolE}%</span> | Kern ${this.shieldRegenRate.toFixed(0)}/s`;
     }
   }
 
