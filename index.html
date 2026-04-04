@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.15.7 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.15.8 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2653,13 +2653,13 @@ const WEAPONS = {
     unlock: 'rocket_t2',
   },
   boltgun: {
-    name: "Boltgun", cost: 75, energyCost: 35, range: 180, fireRate: 1, damage: 9, projSpeed: 1200,
+    name: "Boltgun", cost: 75, energyCost: 35, range: 180, fireRate: 1, damage: 22, projSpeed: 1200,
     color: "#AA55FF", desc: "Aufladende Bolzenkanone", sprite: 'boltgun',
     projSize: 3.5, projColor: '#AA55FF', splashRadius: 0,
     unlock: 'boltgun', chargeTime: 1.0,
   },
   railgun: {
-    name: "Railgun", cost: 130, energyCost: 55, range: 180, fireRate: 1, damage: 18, projSpeed: 1800,
+    name: "Railgun", cost: 130, energyCost: 55, range: 180, fireRate: 1, damage: 45, projSpeed: 1800,
     color: "#CC66FF", desc: "Schwere Schienenkanone", sprite: 'railgun',
     projSize: 4, projColor: '#CC66FF', splashRadius: 0,
     unlock: 'railgun', chargeTime: 1.5,
@@ -6796,7 +6796,10 @@ class Game {
         ctx.shadowBlur = 6;
         ctx.shadowColor = 'rgba(80,160,255,0.35)';
       }
-      ctx.drawImage(spriteImg, -drawW/2, -drawH/2, drawW, drawH);
+      // Pivot offset: new weapons have turret base further back
+      const isBoltType = b.weaponKey === 'boltgun' || b.weaponKey === 'railgun' || b.weaponKey === 'laser' || b.weaponKey === 'doublelaser';
+      const pivotX = isBoltType ? -drawW * 0.15 : -drawW / 2; // shift pivot toward rear
+      ctx.drawImage(spriteImg, pivotX, -drawH/2, drawW, drawH);
       ctx.restore();
     } else {
       // Fallback circle
