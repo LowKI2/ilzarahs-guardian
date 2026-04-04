@@ -90,16 +90,16 @@ canvas {
 /* -- Lower HUD Panel (HP, Shield bars + VSU) -- */
 #hudLower {
   position: absolute;
-  bottom: 44px; left: 0; right: 0;
+  bottom: 0; left: 0; right: 0;
   display: none;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: linear-gradient(0deg, rgba(20,24,32,0.92) 0%, rgba(20,24,32,0.6) 100%);
-  border-top: 1px solid rgba(100,120,140,0.12);
+  background: linear-gradient(0deg, rgba(20,24,32,0.95) 0%, rgba(20,24,32,0.7) 100%);
+  border-top: 1px solid rgba(100,120,140,0.15);
   padding: 5px 12px;
   font-family: var(--font-mono);
-  z-index: 10;
+  z-index: 9;
   pointer-events: none;
 }
 .hl-bar-wrap { display: flex; align-items: center; gap: 4px; flex: 1; max-width: 200px; }
@@ -2112,7 +2112,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.14.2 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.14.3 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -6021,6 +6021,7 @@ class Game {
       document.getElementById('mainMenu').style.display = 'none';
       document.getElementById('stationSelect').style.display = 'none';
       document.getElementById('hud').style.display = 'flex';
+      document.getElementById('hudLower').style.display = 'flex';
       document.getElementById('buildUI').style.display = 'flex';
       document.getElementById('combatControls').style.display = 'none';
       this.state = 'build';
