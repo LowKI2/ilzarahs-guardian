@@ -1725,7 +1725,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.10.0 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.10.1 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -3851,26 +3851,26 @@ class Game {
       this.stationHP = Math.min(this.stationMaxHP, this.stationHP + repairRate * dt);
     }
 
-    // Station damage smoke/fire particles
+    // Station damage smoke/fire particles — fine, numerous
     if (this.stationHP > 0) {
       const hpRatio = this.stationHP / this.stationMaxHP;
       if (hpRatio < 0.7) {
         const intensity = (1 - hpRatio / 0.7); // 0 at 70%, 1 at 0%
-        const spawnChance = intensity * 0.8;
-        if (Math.random() < spawnChance) {
-          const cx = this.stationCenter.x;
-          const cy = this.stationCenter.y;
-          const s = this.getStationSpriteSize() * 0.3;
+        const spawnCount = Math.floor(intensity * 4 * this.particleScale); // up to 4 per frame
+        const cx = this.stationCenter.x;
+        const cy = this.stationCenter.y;
+        const s = this.getStationSpriteSize() * 0.35;
+        for (let i = 0; i < spawnCount; i++) {
           const ox = (Math.random() - 0.5) * s;
           const oy = (Math.random() - 0.5) * s;
           const isFire = hpRatio < 0.4 && Math.random() < 0.5;
           this.particles.push({
             x: cx + ox, y: cy + oy,
-            vx: (Math.random() - 0.5) * 10,
-            vy: -15 - Math.random() * 25,
-            life: 0.8 + Math.random() * 0.8, maxLife: 1.6,
-            color: isFire ? '#FF4411' : '#666666',
-            size: isFire ? 2 + Math.random() * 3 : 3 + Math.random() * 4,
+            vx: (Math.random() - 0.5) * 8,
+            vy: -8 - Math.random() * 15,
+            life: 0.4 + Math.random() * 0.5, maxLife: 0.9,
+            color: isFire ? (Math.random() < 0.5 ? '#FF4411' : '#FF8822') : (Math.random() < 0.5 ? '#555555' : '#444444'),
+            size: isFire ? 0.8 + Math.random() * 1.2 : 1 + Math.random() * 1.5,
           });
         }
       }
@@ -4387,17 +4387,17 @@ class Game {
       this.shakeTimer = 0.2;
       this.shakeIntensity = 4;
 
-      // Spawn debris from hit point
+      // Spawn fine debris from hit point
       if (hitX !== undefined) {
-        const debrisCount = Math.min(6, Math.ceil(dmg * 2));
+        const debrisCount = Math.min(10, Math.ceil(dmg * 3));
         for (let i = 0; i < debrisCount; i++) {
           const a = Math.random() * Math.PI * 2;
-          const spd = 40 + Math.random() * 80;
+          const spd = 30 + Math.random() * 60;
           this.particles.push({
-            x: hitX, y: hitY,
+            x: hitX + (Math.random() - 0.5) * 6, y: hitY + (Math.random() - 0.5) * 6,
             vx: Math.cos(a) * spd, vy: Math.sin(a) * spd,
-            life: 0.6 + Math.random() * 0.6, maxLife: 1.2,
-            color: Math.random() < 0.3 ? '#FF6622' : '#888888', size: 1.5 + Math.random() * 2,
+            life: 0.3 + Math.random() * 0.5, maxLife: 0.8,
+            color: Math.random() < 0.3 ? '#FF6622' : (Math.random() < 0.5 ? '#777777' : '#555555'), size: 0.5 + Math.random() * 1.2,
           });
         }
       }
@@ -5241,6 +5241,7 @@ class Game {
         }
 
         ctx.restore();
+        ctx.globalCompositeOperation = 'source-over';
       } else {
         // Fallback hexagon
         ctx.beginPath();
