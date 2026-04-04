@@ -1765,7 +1765,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.12.2 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.12.3 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2278,15 +2278,15 @@ const WEAPONS = {
   },
   laser: {
     name: "Laser", cost: 55, energyCost: 25, range: 160, fireRate: 30, damage: 0.35, projSpeed: 0,
-    color: "#FF3333", desc: "Dauerfeuer-Laser", sprite: 'laser',
+    color: "#FF3333", desc: "Dauerfeuer-Laser (−50% Schildregen)", sprite: 'laser',
     projSize: 0, projColor: '#FF3333', splashRadius: 0,
-    unlock: 'laser', isLaser: true, laserBeams: 1,
+    unlock: 'laser', isLaser: true, laserBeams: 1, shieldRegenDrain: 0.50,
   },
   doublelaser: {
     name: "Doppellaser", cost: 95, energyCost: 40, range: 175, fireRate: 30, damage: 0.35, projSpeed: 0,
-    color: "#FF4444", desc: "Dualer Dauerfeuer-Laser", sprite: 'doublelaser',
+    color: "#FF4444", desc: "Dualer Dauerfeuer-Laser (−75% Schildregen)", sprite: 'doublelaser',
     projSize: 0, projColor: '#FF4444', splashRadius: 0,
-    unlock: 'doublelaser', isLaser: true, laserBeams: 2,
+    unlock: 'doublelaser', isLaser: true, laserBeams: 2, shieldRegenDrain: 0.75,
   },
 };
 
@@ -2309,6 +2309,7 @@ const SKILL_TREE = {
   sk_sys_guns:      { name: 'Präzisionsfeuer',     desc: '+3% Sys-Chance (Guns)',            cat: 'attack', type: 'medium', perLevel: 3,  baseCost: 25, costStep: 12, parentStat: 'sk_pierce', requires: [] },
   sk_shrapnel:      { name: 'Schrapnell',          desc: '+3% Pierce (Raketen)',             cat: 'attack', type: 'medium', perLevel: 3,  baseCost: 25, costStep: 12, parentStat: 'sk_pierce', requires: [] },
   sk_hardened:      { name: 'Gehärtete Geschosse',  desc: '+3% Pierce (Guns)',               cat: 'attack', type: 'medium', perLevel: 3,  baseCost: 25, costStep: 12, parentStat: 'sk_dmg', requires: [] },
+  sk_laser_eff:     { name: 'Laserkühlung',       desc: '−25% Laser-Schildregen-Verlust',  cat: 'attack', type: 'medium', perLevel: 25, baseCost: 30, costStep: 15, parentStat: 'sk_energy', requires: [], needsUnlock: 'laser', maxLevel: 1 },
 
   // --- DEFENSE ---
   sk_hull:     { name: 'Hülle',          desc: '+5% Station HP pro Stufe',          cat: 'defense',  type: 'small', perLevel: 5,  baseCost: 10, costStep: 5,  requires: [] },
@@ -4230,13 +4231,25 @@ class Game {
       if (enemy.hitFlash > 0) enemy.hitFlash -= dt;
     }
 
-    // Shield regeneration from energy core
+    // Shield regeneration from energy core (reduced by active lasers)
     if (this.stationShield < this.stationMaxShield && this.stationHP > 0) {
       let regenRate = this.shieldRegenRate;
       // Shield burst: bonus regen when shield is not full (recently hit)
       const burstBonus = this.getSkillBonus('sk_shield_burst');
       if (burstBonus > 0 && this.stationShield < this.stationMaxShield * 0.9) {
         regenRate *= (1 + burstBonus / 100);
+      }
+      // Laser drain: active lasers reduce shield regen
+      let laserDrain = 0;
+      for (const s of this.slots) {
+        if (s.building && s.building.laserTarget) {
+          const wd = WEAPONS[s.building.weaponKey];
+          if (wd && wd.shieldRegenDrain) laserDrain += wd.shieldRegenDrain;
+        }
+      }
+      if (laserDrain > 0) {
+        const effReduction = 1 - this.getSkillBonus('sk_laser_eff') / 100;
+        regenRate *= Math.max(0, 1 - laserDrain * effReduction);
       }
       this.stationShield = Math.min(this.stationMaxShield, this.stationShield + regenRate * dt);
     }
