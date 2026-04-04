@@ -1218,6 +1218,19 @@ canvas {
   left: 50%;
   transform: translateX(-50%);
   z-index: 6;
+  display: flex;
+  gap: 8px;
+}
+.tech-confirm {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 6px 16px;
+  border: 1px solid;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-radius: 3px;
+  min-height: 0;
 }
 
 .tech-respec {
@@ -1752,7 +1765,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.12.0 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.12.1 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -1857,9 +1870,14 @@ canvas {
       <div class="sk-tooltip-desc" id="skTTDesc"></div>
       <div class="sk-tooltip-level" id="skTTLevel"></div>
       <div class="sk-tooltip-req" id="skTTReq"></div>
-      <button class="sk-tooltip-btn" id="skTTBuy">Kaufen</button>
+      <div style="display:flex;gap:6px;width:100%">
+        <button class="sk-tooltip-btn" id="skTTReduce" style="display:none;flex:0 0 auto;padding:4px 10px;background:rgba(255,60,40,0.2);border-color:rgba(255,60,40,0.4);color:#FF5028;">−</button>
+        <button class="sk-tooltip-btn" id="skTTBuy" style="flex:1">Kaufen</button>
+      </div>
     </div>
     <div class="tech-respec-wrap">
+      <button class="tech-confirm" id="btnSkillConfirm" style="display:none;background:rgba(40,160,60,0.25);border-color:rgba(40,160,60,0.6);color:#50DD50;">Bestätigen</button>
+      <button class="tech-confirm" id="btnSkillDiscard" style="display:none;background:rgba(255,60,40,0.15);border-color:rgba(255,60,40,0.4);color:#FF5028;">Verwerfen</button>
       <button class="tech-respec" id="btnRespec">Neuverteilen</button>
     </div>
   </div>
@@ -2316,23 +2334,25 @@ const SKILL_TREE = {
   sk_repair_cost:{ name: 'Reparaturkosten', desc: '-2 VSU Reparaturkosten',         cat: 'resource', type: 'small', perLevel: 2,  baseCost: 10, costStep: 5,  requires: [] },
   sk_start_vsu:{ name: 'Startkapital',   desc: '+25 Start-VSU pro Stufe',            cat: 'resource', type: 'small', perLevel: 25, baseCost: 10, costStep: 5,  requires: [] },
 
-  // --- FREISCHALTUNGEN (moved to unlock tab, with EP investment requirements) ---
-  sk_mines:    { name: 'Annäherungsminen', desc: '3 Minen um die Station',     cat: 'unlock', type: 'big', cost: 20,  unlocks: 'mines', requires: [], waveReq: 5, epReqCat: 'defense', epReqAmount: 10 },
-  sk_rocket_t1:{ name: 'Rocket T1',     desc: 'Schnellfeuer-Raketen',        cat: 'unlock', type: 'big', cost: 40,  unlocks: 'rocket_t1', requires: [], waveReq: 10, epReqCat: 'attack', epReqAmount: 20 },
-  sk_gun_t2:   { name: 'Gun T2',        desc: 'Mittleres Geschütz',          cat: 'unlock', type: 'big', cost: 25,  unlocks: 'gun_t2', requires: [], waveReq: 15, epReqCat: 'attack', epReqAmount: 30 },
-  sk_arc1:     { name: 'Feuerwinkel I',  desc: '180° → 200°',                cat: 'unlock', type: 'big', cost: 40,  unlocks: 'arc1', requires: ['sk_gun_t2'], waveReq: 22, epReqCat: 'attack', epReqAmount: 40 },
-  sk_drone:    { name: 'Sammeldrohne',   desc: 'Drohne sammelt Wrack-VSU',    cat: 'unlock', type: 'big', cost: 60,  unlocks: 'drone', requires: [], waveReq: 25, epReqCat: 'resource', epReqAmount: 30 },
-  sk_gun_t3:   { name: 'Gun T3',        desc: 'Schweres Geschütz',           cat: 'unlock', type: 'big', cost: 50,  unlocks: 'gun_t3', requires: ['sk_gun_t2'], waveReq: 28, epReqCat: 'attack', epReqAmount: 50 },
-  sk_missile_def:{ name: 'Raketenabwehr',desc: 'Guns fangen Raketen ab',      cat: 'unlock', type: 'big', cost: 60,  unlocks: 'missile_def', requires: [], waveReq: 18, epReqCat: 'defense', epReqAmount: 25 },
-  sk_core_t2:  { name: 'Core T2',       desc: '+50% Energiekern',             cat: 'unlock', type: 'big', cost: 80,  unlocks: 'core_t2', requires: [], waveReq: 30, epReqCat: 'defense', epReqAmount: 40 },
-  sk_arc2:     { name: 'Feuerwinkel II', desc: '200° → 225°',                 cat: 'unlock', type: 'big', cost: 60,  unlocks: 'arc2', requires: ['sk_arc1'], waveReq: 35, epReqCat: 'attack', epReqAmount: 60 },
-  sk_rocket_t2:{ name: 'Rocket T2',     desc: 'Verbesserte Raketen',          cat: 'unlock', type: 'big', cost: 70,  unlocks: 'rocket_t2', requires: ['sk_rocket_t1'], waveReq: 35, epReqCat: 'attack', epReqAmount: 60 },
-  sk_shield_t2:{ name: 'Schild T2',     desc: '+30% Schildkapazität',         cat: 'unlock', type: 'big', cost: 100, unlocks: 'shield_t2', requires: ['sk_core_t2'], waveReq: 42, epReqCat: 'defense', epReqAmount: 60 },
-  sk_hangar:   { name: 'Hangar',         desc: 'Kampfschiff bekämpft Gegner',  cat: 'unlock', type: 'big', cost: 80,  unlocks: 'hangar', requires: ['sk_rocket_t2'], waveReq: 48, epReqCat: 'attack', epReqAmount: 80 },
-  sk_boltgun:  { name: 'Boltgun',       desc: 'Aufladende Bolzenkanone',      cat: 'unlock', type: 'big', cost: 35,  unlocks: 'boltgun', requires: [], waveReq: 12, epReqCat: 'attack', epReqAmount: 25 },
-  sk_railgun:  { name: 'Railgun',       desc: 'Schwere Schienenkanone',       cat: 'unlock', type: 'big', cost: 65,  unlocks: 'railgun', requires: ['sk_boltgun'], waveReq: 30, epReqCat: 'attack', epReqAmount: 50 },
-  sk_laser:    { name: 'Laser',         desc: 'Dauerfeuer-Laser',             cat: 'unlock', type: 'big', cost: 30,  unlocks: 'laser', requires: [], waveReq: 8, epReqCat: 'attack', epReqAmount: 15 },
-  sk_doublelaser:{ name: 'Doppellaser', desc: 'Dualer Dauerfeuer-Laser',      cat: 'unlock', type: 'big', cost: 55,  unlocks: 'doublelaser', requires: ['sk_laser'], waveReq: 25, epReqCat: 'attack', epReqAmount: 40 },
+  // --- FREISCHALTUNGEN — Reihenfolge: Rocket T1 → Bolt → Gun T2 → Laser → (mk2: Rocket T2, Gun T3) → (Nexus: Rail, Doublelaser) ---
+  sk_mines:      { name: 'Annäherungsminen', desc: '3 Minen um die Station',     cat: 'unlock', type: 'big', cost: 20,  unlocks: 'mines', requires: [], waveReq: 5, epReqCat: 'defense', epReqAmount: 10 },
+  sk_rocket_t1:  { name: 'Rocket T1',     desc: 'Schnellfeuer-Raketen',        cat: 'unlock', type: 'big', cost: 30,  unlocks: 'rocket_t1', requires: [], waveReq: 8, epReqCat: 'attack', epReqAmount: 15 },
+  sk_boltgun:    { name: 'Boltgun',       desc: 'Aufladende Bolzenkanone',      cat: 'unlock', type: 'big', cost: 35,  unlocks: 'boltgun', requires: [], waveReq: 12, epReqCat: 'attack', epReqAmount: 20 },
+  sk_laser:      { name: 'Laser',         desc: 'Dauerfeuer-Laser',             cat: 'unlock', type: 'big', cost: 30,  unlocks: 'laser', requires: [], waveReq: 15, epReqCat: 'attack', epReqAmount: 25 },
+  sk_gun_t2:     { name: 'Gun T2',        desc: 'Mittleres Geschütz',          cat: 'unlock', type: 'big', cost: 35,  unlocks: 'gun_t2', requires: [], waveReq: 18, epReqCat: 'attack', epReqAmount: 30 },
+  sk_missile_def:{ name: 'Raketenabwehr', desc: 'Guns fangen Raketen ab',      cat: 'unlock', type: 'big', cost: 50,  unlocks: 'missile_def', requires: [], waveReq: 20, epReqCat: 'defense', epReqAmount: 25 },
+  sk_arc1:       { name: 'Feuerwinkel I', desc: '180° → 200°',                 cat: 'unlock', type: 'big', cost: 40,  unlocks: 'arc1', requires: ['sk_gun_t2'], waveReq: 25, epReqCat: 'attack', epReqAmount: 40 },
+  sk_drone:      { name: 'Sammeldrohne',  desc: 'Drohne sammelt Wrack-VSU',    cat: 'unlock', type: 'big', cost: 60,  unlocks: 'drone', requires: [], waveReq: 25, epReqCat: 'resource', epReqAmount: 30 },
+  sk_core_t2:    { name: 'Core T2',      desc: '+50% Energiekern',             cat: 'unlock', type: 'big', cost: 80,  unlocks: 'core_t2', requires: [], waveReq: 30, epReqCat: 'defense', epReqAmount: 40 },
+  sk_arc2:       { name: 'Feuerwinkel II',desc: '200° → 225°',                 cat: 'unlock', type: 'big', cost: 60,  unlocks: 'arc2', requires: ['sk_arc1'], waveReq: 40, epReqCat: 'attack', epReqAmount: 60 },
+  sk_shield_t2:  { name: 'Schild T2',    desc: '+30% Schildkapazität',         cat: 'unlock', type: 'big', cost: 100, unlocks: 'shield_t2', requires: ['sk_core_t2'], waveReq: 42, epReqCat: 'defense', epReqAmount: 60 },
+  // --- ab Mk.II (Welle 50) ---
+  sk_rocket_t2:  { name: 'Rocket T2',    desc: 'Verbesserte Raketen',          cat: 'unlock', type: 'big', cost: 70,  unlocks: 'rocket_t2', requires: ['sk_rocket_t1'], waveReq: 50, epReqCat: 'attack', epReqAmount: 60 },
+  sk_gun_t3:     { name: 'Gun T3',       desc: 'Schweres Geschütz',            cat: 'unlock', type: 'big', cost: 60,  unlocks: 'gun_t3', requires: ['sk_gun_t2'], waveReq: 50, epReqCat: 'attack', epReqAmount: 55 },
+  sk_hangar:     { name: 'Hangar',        desc: 'Kampfschiff bekämpft Gegner',  cat: 'unlock', type: 'big', cost: 80,  unlocks: 'hangar', requires: ['sk_rocket_t2'], waveReq: 60, epReqCat: 'attack', epReqAmount: 80 },
+  // --- ab Nexus (Welle 100) ---
+  sk_railgun:    { name: 'Railgun',      desc: 'Schwere Schienenkanone',       cat: 'unlock', type: 'big', cost: 80,  unlocks: 'railgun', requires: ['sk_boltgun'], waveReq: 100, epReqCat: 'attack', epReqAmount: 80 },
+  sk_doublelaser:{ name: 'Doppellaser',  desc: 'Dualer Dauerfeuer-Laser',      cat: 'unlock', type: 'big', cost: 70,  unlocks: 'doublelaser', requires: ['sk_laser'], waveReq: 100, epReqCat: 'attack', epReqAmount: 80 },
 };
 
 function normalizeAngle(a) {
@@ -2484,6 +2504,12 @@ class Game {
     const respecFn = () => { playSound('click'); this.respecSkills(); };
     document.getElementById('btnRespec').addEventListener('click', respecFn);
     document.getElementById('btnRespec').addEventListener('touchend', (e) => { e.preventDefault(); respecFn(); });
+    const confirmFn = () => { this.confirmSkills(); };
+    document.getElementById('btnSkillConfirm').addEventListener('click', confirmFn);
+    document.getElementById('btnSkillConfirm').addEventListener('touchend', (e) => { e.preventDefault(); confirmFn(); });
+    const discardFn = () => { this.discardSkills(); };
+    document.getElementById('btnSkillDiscard').addEventListener('click', discardFn);
+    document.getElementById('btnSkillDiscard').addEventListener('touchend', (e) => { e.preventDefault(); discardFn(); });
 
     // Skill tree tabs
     this.activeSkillTab = 'attack';
@@ -2744,7 +2770,90 @@ class Game {
     document.getElementById('techScreen').style.display = 'flex';
     document.getElementById('techEP').textContent = 'EP: ' + this.totalEP;
     this.state = 'tech';
+    this._snapshotSkills();
+    this._updateSkillButtons();
     this.renderSkillTree();
+  }
+
+  _snapshotSkills() {
+    this._skillSnapshot = {
+      totalEP: this.totalEP,
+      totalEPSpent: this.totalEPSpent,
+      skillLevels: { ...this.skillLevels },
+      unlockedTech: new Set(this.unlockedTech),
+    };
+  }
+
+  _hasSkillChanges() {
+    if (!this._skillSnapshot) return false;
+    if (this.totalEP !== this._skillSnapshot.totalEP) return true;
+    for (const k of Object.keys(this.skillLevels)) {
+      if ((this.skillLevels[k] || 0) !== (this._skillSnapshot.skillLevels[k] || 0)) return true;
+    }
+    if (this.unlockedTech.size !== this._skillSnapshot.unlockedTech.size) return true;
+    for (const t of this.unlockedTech) {
+      if (!this._skillSnapshot.unlockedTech.has(t)) return true;
+    }
+    return false;
+  }
+
+  _updateSkillButtons() {
+    const hasChanges = this._hasSkillChanges();
+    document.getElementById('btnSkillConfirm').style.display = hasChanges ? '' : 'none';
+    document.getElementById('btnSkillDiscard').style.display = hasChanges ? '' : 'none';
+  }
+
+  confirmSkills() {
+    this.saveEP();
+    localStorage.setItem('ilzarah_skillLevels', JSON.stringify(this.skillLevels));
+    localStorage.setItem('ilzarah_unlockedTech', JSON.stringify([...this.unlockedTech]));
+    this._snapshotSkills();
+    this._updateSkillButtons();
+    document.getElementById('skTooltip').classList.remove('visible');
+    playSound('confirm');
+  }
+
+  discardSkills() {
+    if (!this._skillSnapshot) return;
+    this.totalEP = this._skillSnapshot.totalEP;
+    this.totalEPSpent = this._skillSnapshot.totalEPSpent;
+    this.skillLevels = { ...this._skillSnapshot.skillLevels };
+    this.unlockedTech = new Set(this._skillSnapshot.unlockedTech);
+    document.getElementById('techEP').textContent = 'EP: ' + this.totalEP;
+    this._updateSkillButtons();
+    document.getElementById('skTooltip').classList.remove('visible');
+    this.renderSkillTree();
+    playSound('click');
+  }
+
+  reduceSkill(key) {
+    if (!this._skillSnapshot) return;
+    const def = SKILL_TREE[key];
+    if (def.type === 'big') {
+      // Can only remove if it wasn't in the snapshot
+      if (this._skillSnapshot.unlockedTech.has(def.unlocks)) return;
+      if (!this.unlockedTech.has(def.unlocks)) return;
+      this.unlockedTech.delete(def.unlocks);
+      this.totalEP += def.cost;
+      this.totalEPSpent -= def.cost;
+    } else {
+      const snapshotLvl = this._skillSnapshot.skillLevels[key] || 0;
+      const currentLvl = this.skillLevels[key] || 0;
+      if (currentLvl <= snapshotLvl) return;
+      // Refund last level cost
+      const prevLvl = currentLvl - 1;
+      const refund = def.type === 'medium'
+        ? Math.round(def.baseCost * Math.pow(1.3, prevLvl))
+        : Math.round(def.baseCost + def.costStep * prevLvl);
+      this.skillLevels[key] = prevLvl;
+      this.totalEP += refund;
+      this.totalEPSpent -= refund;
+    }
+    document.getElementById('techEP').textContent = 'EP: ' + this.totalEP;
+    this._updateSkillButtons();
+    this.renderSkillTree();
+    this._showSkillTooltip(key);
+    playSound('click');
   }
 
   // -- Skill Tree Rendering --
@@ -2829,7 +2938,7 @@ class Game {
     if (def.type === 'big' && this.unlockedTech.has(def.unlocks)) return;
     this.totalEP -= cost;
     this.totalEPSpent += cost;
-    this.saveEP();
+    // Don't save yet — wait for confirm
 
     if (def.type === 'big') {
       this.unlockedTech.add(def.unlocks);
@@ -2838,6 +2947,7 @@ class Game {
     }
 
     document.getElementById('techEP').textContent = 'EP: ' + this.totalEP;
+    this._updateSkillButtons();
     playSound('confirm');
     this.renderSkillTree();
     this._showSkillTooltip(key); // refresh tooltip
@@ -2860,6 +2970,8 @@ class Game {
     localStorage.setItem('ilzarah_unlockedTech', JSON.stringify([...this.unlockedTech]));
     document.getElementById('techEP').textContent = 'EP: ' + this.totalEP;
     document.getElementById('skTooltip').classList.remove('visible');
+    this._snapshotSkills();
+    this._updateSkillButtons();
     playSound('confirm');
     this.renderSkillTree();
     this.showBanner('Skills zurückgesetzt!');
@@ -3094,6 +3206,21 @@ class Game {
 
     btn.onclick = btn.disabled ? null : () => this.buySkill(key);
 
+    // Reduce button — only for pending (unsaved) changes
+    const reduceBtn = document.getElementById('skTTReduce');
+    let canReduce = false;
+    if (this._skillSnapshot) {
+      if (def.type === 'big') {
+        canReduce = this.unlockedTech.has(def.unlocks) && !this._skillSnapshot.unlockedTech.has(def.unlocks);
+      } else {
+        const snapLvl = this._skillSnapshot.skillLevels[key] || 0;
+        const curLvl = this.skillLevels[key] || 0;
+        canReduce = curLvl > snapLvl;
+      }
+    }
+    reduceBtn.style.display = canReduce ? '' : 'none';
+    reduceBtn.onclick = canReduce ? () => this.reduceSkill(key) : null;
+
     tt.classList.add('visible');
 
     // Close on outside click
@@ -3114,6 +3241,11 @@ class Game {
   }
 
   backToMenu() {
+    // Warn if unsaved skill changes
+    if (this._hasSkillChanges()) {
+      if (!confirm('Du hast unbestätigte Änderungen im Skill-Tree. Verwerfen?')) return;
+      this.discardSkills();
+    }
     playSound('click');
     document.getElementById('techScreen').style.display = 'none';
     document.getElementById('settingsScreen').style.display = 'none';
