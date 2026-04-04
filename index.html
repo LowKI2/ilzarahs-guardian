@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.14.8 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.15.0 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2383,12 +2383,17 @@ const ASSET_PATHS = {
   fx: {
     explosionSheet: 'assets/fx/explosionship_grid.png',
     muzzleSheet: 'assets/fx/muzzle.png',
+    hitGatling: 'assets/fx/gatling_hit.png',
+    hitRocket: 'assets/fx/fire_explosion.png',
+    hitBolt: 'assets/fx/purple_clean.png',
   },
   sfx: {
     click: 'assets/audio/sfx/ui_click.mp3',
     confirm: 'assets/audio/sfx/ui_confirm.mp3',
     hover: 'assets/audio/sfx/ui_hover.mp3',
     gatling: 'assets/audio/sfx/gatling.mp3',
+    boltgun: 'assets/audio/sfx/boltgun.mp3',
+    railgun: 'assets/audio/sfx/railgun.mp3',
     rocketflight: 'assets/audio/sfx/rocketflight.mp3',
     rocketexplosion: 'assets/audio/sfx/rocketexplosion.mp3',
     torpedoexplosion: 'assets/audio/sfx/torpedoexplosion.mp3',
@@ -2851,6 +2856,7 @@ class Game {
     this.shieldHits = [];
     this.wrecks = [];     // {x, y, rotation, tier, life, maxLife}
     this.explosions = []; // {x, y, life, maxLife}
+    this.hitEffects = []; // {x, y, life, maxLife, type: 'gatling'|'rocket'|'bolt'}
     this.gridPulse = 0;
     this.ambientParticles = [];
     this.stationRotation = 0; // radians, 360° per 60s
@@ -4886,7 +4892,7 @@ class Game {
               maxRange: turret.range * (1 + this.getTotalBonus('range') / 100) * 1.5,
               traveled: 0, weaponKey: turret.weaponKey,
             });
-            playSound('gatling');
+            playSound(turret.weaponKey === 'railgun' ? 'railgun' : 'boltgun');
             this.particles.push({ x: muzzleX, y: muzzleY, vx: 0, vy: 0, life: 0.2, maxLife: 0.2, isMuzzleFlash: true, angle: turret.barrelAngle, muzzleType: Math.floor(Math.random() * 3), size: 20 });
           }
         } else {
@@ -5033,6 +5039,16 @@ class Game {
         hitEnemy.shield -= dmgResult.shieldDmg;
         hitEnemy.hp -= dmgResult.hullDmg;
         hitEnemy.hitFlash = 0.1;
+
+        // Hit effect spritesheet
+        const hitType = isBolt ? 'bolt' : isRocket ? 'rocket' : 'gatling';
+        this.hitEffects.push({
+          x: p.x, y: p.y,
+          life: hitType === 'bolt' ? 0.5 : hitType === 'rocket' ? 0.4 : 0.2,
+          maxLife: hitType === 'bolt' ? 0.5 : hitType === 'rocket' ? 0.4 : 0.2,
+          size: hitType === 'bolt' ? 30 : hitType === 'rocket' ? 22 : 10,
+          type: hitType,
+        });
 
         // Damage number
         const label = dmgResult.penetrated ? 'PEN ' : '';
@@ -5752,6 +5768,7 @@ class Game {
       w.life -= dt; return w.life > 0;
     });
     this.explosions = this.explosions.filter(e => { e.life -= dt; return e.life > 0; });
+    this.hitEffects = this.hitEffects.filter(h => { h.life -= dt; return h.life > 0; });
 
     if (this.bannerTimer > 0) {
       this.bannerTimer -= dt;
@@ -6366,6 +6383,33 @@ class Game {
     this.renderStationHPBar(ctx);
 
     ctx.restore();
+
+    // Hit effects — weapon-specific impact spritesheets
+    const HIT_SHEETS = {
+      gatling: { img: IMAGES.fx.hitGatling, cols: 4, rows: 2, frames: 8 },
+      rocket:  { img: IMAGES.fx.hitRocket,  cols: 4, rows: 4, frames: 16 },
+      bolt:    { img: IMAGES.fx.hitBolt,    cols: 8, rows: 4, frames: 32 },
+    };
+    for (const h of this.hitEffects) {
+      const sheet = HIT_SHEETS[h.type];
+      if (!sheet || !sheet.img || !sheet.img.complete) continue;
+      const t = 1 - h.life / h.maxLife;
+      const alpha = t < 0.05 ? t / 0.05 : Math.max(0, 1 - t * 0.3);
+      const frameW = Math.floor(sheet.img.naturalWidth / sheet.cols);
+      const frameH = Math.floor(sheet.img.naturalHeight / sheet.rows);
+      const frame = Math.min(Math.floor(t * sheet.frames), sheet.frames - 1);
+      const col = frame % sheet.cols;
+      const row = Math.floor(frame / sheet.cols);
+      const s = h.size;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.drawImage(
+        sheet.img,
+        col * frameW, row * frameH, frameW, frameH,
+        Math.round(h.x - s / 2), Math.round(h.y - s / 2), s, s
+      );
+      ctx.restore();
+    }
 
     // Explosions — rendered AFTER shake restore so they stay fixed
     const explSheet = IMAGES.fx.explosionSheet;
