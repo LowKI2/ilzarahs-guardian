@@ -1274,6 +1274,8 @@ canvas {
 .sk-tab.defense.active { color: #00B4DC; }
 .sk-tab.resource { color: rgba(80,200,80,0.5); }
 .sk-tab.resource.active { color: #50C850; }
+.sk-tab.unlock { color: rgba(255,189,85,0.5); }
+.sk-tab.unlock.active { color: var(--amber-bright); }
 
 .sk-tab-info {
   font-family: var(--font-mono);
@@ -1356,6 +1358,8 @@ canvas {
 .sk-card.attack.owned { border-color: #FF5028; box-shadow: 0 0 6px rgba(255,80,40,0.3); }
 .sk-card.defense.owned { border-color: #00B4DC; box-shadow: 0 0 6px rgba(0,180,220,0.3); }
 .sk-card.resource.owned { border-color: #50C850; box-shadow: 0 0 6px rgba(80,200,80,0.3); }
+.sk-card.unlock { border-color: rgba(255,189,85,0.4); }
+.sk-card.unlock.owned { border-color: var(--amber-bright); box-shadow: 0 0 6px rgba(255,189,85,0.3); }
 
 .sk-card-level {
   font-family: var(--font-mono);
@@ -1705,7 +1709,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.10.5 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.11.0 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -1797,9 +1801,10 @@ canvas {
       <span class="tech-ep" id="techEP">EP: 0</span>
     </div>
     <div class="sk-tabs">
-      <button class="sk-tab attack active" data-cat="attack">Angriff<span class="sk-tab-info" id="skTabInfoAttack"></span></button>
-      <button class="sk-tab defense" data-cat="defense">Verteidigung<span class="sk-tab-info" id="skTabInfoDefense"></span></button>
-      <button class="sk-tab resource" data-cat="resource">Ressourcen<span class="sk-tab-info" id="skTabInfoResource"></span></button>
+      <button class="sk-tab attack active" data-cat="attack">ANG<span class="sk-tab-info" id="skTabInfoAttack"></span></button>
+      <button class="sk-tab defense" data-cat="defense">VER<span class="sk-tab-info" id="skTabInfoDefense"></span></button>
+      <button class="sk-tab resource" data-cat="resource">RES<span class="sk-tab-info" id="skTabInfoResource"></span></button>
+      <button class="sk-tab unlock" data-cat="unlock">FREISCHALT.<span class="sk-tab-info" id="skTabInfoUnlock"></span></button>
     </div>
     <div class="sk-viewport" id="skViewport">
       <div class="sk-canvas" id="skCanvas"></div>
@@ -2208,32 +2213,47 @@ const SKILL_TREE = {
   sk_pierce:   { name: 'Durchschuss',    desc: '+3% Chance auf Durchschlag',       cat: 'attack',   type: 'small', perLevel: 3,  baseCost: 15, costStep: 8,  requires: [], x: 80, y: 160 },
   sk_range:    { name: 'Reichweite',     desc: '+3% Waffenreichweite',             cat: 'attack',   type: 'small', perLevel: 3,  baseCost: 10, costStep: 5,  requires: [], x: 160, y: 220 },
   sk_syshit:   { name: 'Systemtreffer', desc: '+2% Systemtreffer-Chance',          cat: 'attack',   type: 'small', perLevel: 2,  baseCost: 15, costStep: 8,  requires: [], x: 80, y: 240 },
-  sk_rocket_t1:{ name: 'Rocket T1',     desc: 'Schnellfeuer-Raketen freischalten', cat: 'attack',   type: 'big',   cost: 40,  unlocks: 'rocket_t1', requires: [], waveReq: 10, x: 60, y: 60 },
-  sk_gun_t2:   { name: 'Gun T2',        desc: 'Mittleres Geschuetz freischalten',  cat: 'attack',   type: 'big',   cost: 25,  unlocks: 'gun_t2', requires: [], waveReq: 15, x: 260, y: 60 },
-  sk_gun_t3:   { name: 'Gun T3',        desc: 'Schweres Geschuetz freischalten',   cat: 'attack',   type: 'big',   cost: 50,  unlocks: 'gun_t3', requires: ['sk_gun_t2'], waveReq: 28, x: 320, y: 140 },
-  sk_rocket_t2:{ name: 'Rocket T2',     desc: 'Verbesserte Raketen freischalten',  cat: 'attack',   type: 'big',   cost: 70,  unlocks: 'rocket_t2', requires: ['sk_rocket_t1', 'sk_gun_t3'], waveReq: 35, x: 200, y: 290 },
-  sk_arc1:     { name: 'Angriffsradius I',  desc: '180° → 200° Feuerwinkel',       cat: 'attack',   type: 'big',   cost: 40,  unlocks: 'arc1', requires: ['sk_gun_t2'], waveReq: 22, x: 320, y: 240 },
-  sk_arc2:     { name: 'Angriffsradius II', desc: '200° → 225° Feuerwinkel',       cat: 'attack',   type: 'big',   cost: 60,  unlocks: 'arc2', requires: ['sk_arc1'], waveReq: 35, x: 340, y: 310 },
-  sk_hangar:   { name: 'Hangar',         desc: 'Kampfschiff bekaempft Gegner',      cat: 'attack',   type: 'big',   cost: 80,  unlocks: 'hangar', requires: ['sk_rocket_t2'], waveReq: 48, x: 100, y: 310 },
+  // --- ATTACK SPECIALISTS (medium, need 5 general points per 1 specialist) ---
+  sk_fast_rockets:  { name: 'Schnelle Raketen',    desc: '+15% Raketengeschwindigkeit',     cat: 'attack', type: 'medium', perLevel: 15, baseCost: 20, costStep: 10, parentStat: 'sk_rof', requires: [] },
+  sk_homing:        { name: 'Besseres Homing',     desc: '+20% Raketen-Lenkung',            cat: 'attack', type: 'medium', perLevel: 20, baseCost: 20, costStep: 10, parentStat: 'sk_rof', requires: [] },
+  sk_tracking:      { name: 'Zielerfassung',       desc: '+15% Gun-Tracking-Speed',         cat: 'attack', type: 'medium', perLevel: 15, baseCost: 20, costStep: 10, parentStat: 'sk_rof', requires: [] },
+  sk_sys_guns:      { name: 'Präzisionsfeuer',     desc: '+3% Sys-Chance (Guns)',            cat: 'attack', type: 'medium', perLevel: 3,  baseCost: 25, costStep: 12, parentStat: 'sk_pierce', requires: [] },
+  sk_shrapnel:      { name: 'Schrapnell',          desc: '+3% Pierce (Raketen)',             cat: 'attack', type: 'medium', perLevel: 3,  baseCost: 25, costStep: 12, parentStat: 'sk_pierce', requires: [] },
+  sk_hardened:      { name: 'Gehärtete Geschosse',  desc: '+3% Pierce (Guns)',               cat: 'attack', type: 'medium', perLevel: 3,  baseCost: 25, costStep: 12, parentStat: 'sk_dmg', requires: [] },
 
   // --- DEFENSE ---
-  sk_hull:     { name: 'Huelle',         desc: '+5% Station HP pro Stufe',          cat: 'defense',  type: 'small', perLevel: 5,  baseCost: 10, costStep: 5,  requires: [], x: 520, y: 100 },
-  sk_shield:   { name: 'Schild',         desc: '+5% Schildkapazitaet pro Stufe',    cat: 'defense',  type: 'small', perLevel: 5,  baseCost: 10, costStep: 5,  requires: [], x: 600, y: 160 },
-  sk_energy:   { name: 'Energie',        desc: '+4% Schildregeneration pro Stufe',  cat: 'defense',  type: 'small', perLevel: 4,  baseCost: 10, costStep: 5,  requires: [], x: 440, y: 160 },
-  sk_reserve:  { name: 'Reparaturdrohnen', desc: '+20% Reparaturdrohnen-Leistung',   cat: 'defense',  type: 'small', perLevel: 20, baseCost: 20, costStep: 10, requires: [], x: 520, y: 230 },
-  sk_missile_def:{ name: 'Raketenabwehr',desc: 'Tuerme schiessen Raketen ab',       cat: 'defense',  type: 'big',   cost: 60,  unlocks: 'missile_def', requires: ['sk_hull'], waveReq: 18, x: 420, y: 60 },
-  sk_core_t2:  { name: 'Energy Core T2', desc: '+50% Energiekern-Leistung',         cat: 'defense',  type: 'big',   cost: 80,  unlocks: 'core_t2', requires: ['sk_energy'], waveReq: 30, x: 440, y: 280 },
-  sk_shield_t2:{ name: 'Schild T2',     desc: '+30% Schildkapazitaet',              cat: 'defense',  type: 'big',   cost: 100, unlocks: 'shield_t2', requires: ['sk_core_t2'], waveReq: 42, x: 560, y: 310 },
+  sk_hull:     { name: 'Hülle',          desc: '+5% Station HP pro Stufe',          cat: 'defense',  type: 'small', perLevel: 5,  baseCost: 10, costStep: 5,  requires: [] },
+  sk_shield:   { name: 'Schild',         desc: '+5% Schildkapazität pro Stufe',     cat: 'defense',  type: 'small', perLevel: 5,  baseCost: 10, costStep: 5,  requires: [] },
+  sk_energy:   { name: 'Energie',        desc: '+4% Schildregeneration pro Stufe',  cat: 'defense',  type: 'small', perLevel: 4,  baseCost: 10, costStep: 5,  requires: [] },
+  sk_reserve:  { name: 'Reparaturdrohnen', desc: '+20% Reparaturdrohnen-Leistung',  cat: 'defense',  type: 'small', perLevel: 20, baseCost: 20, costStep: 10, requires: [] },
+
+  // --- DEFENSE SPECIALISTS ---
+  sk_reactive_armor: { name: 'Reaktive Panzerung',  desc: '+10% Schild-Absorption',       cat: 'defense', type: 'medium', perLevel: 10, baseCost: 20, costStep: 10, parentStat: 'sk_shield', requires: [] },
+  sk_shield_burst:   { name: 'Schnellladung',       desc: '+15% Schild-Regen nach Treffer', cat: 'defense', type: 'medium', perLevel: 15, baseCost: 20, costStep: 10, parentStat: 'sk_energy', requires: [] },
+  sk_drone_eff:      { name: 'Drohnen-Effizienz',   desc: 'Rep x2 unter 30% HP',            cat: 'defense', type: 'medium', perLevel: 1,  baseCost: 25, costStep: 12, parentStat: 'sk_reserve', requires: [] },
+  sk_hull_armor:     { name: 'Verstärkte Hülle',    desc: '-10% Boss-Enter-Schaden',        cat: 'defense', type: 'medium', perLevel: 10, baseCost: 25, costStep: 12, parentStat: 'sk_hull', requires: [] },
 
   // --- RESOURCES ---
-  sk_vsu_kill: { name: 'VSU (Abschuss)', desc: '+3% VSU pro Gegner',                cat: 'resource', type: 'small', perLevel: 3,  baseCost: 10, costStep: 5,  requires: [], x: 740, y: 100 },
-  sk_vsu_wave: { name: 'VSU (Welle)',    desc: '+3% VSU bei Wellenende',             cat: 'resource', type: 'small', perLevel: 3,  baseCost: 10, costStep: 5,  requires: [], x: 820, y: 160 },
-  sk_ep_kill:  { name: 'EP (Abschuss)',  desc: '+2% EP pro Gegner',                  cat: 'resource', type: 'small', perLevel: 2,  baseCost: 15, costStep: 8,  requires: [], x: 660, y: 160 },
-  sk_ep_wave:  { name: 'EP (Welle)',     desc: '+2% EP bei Meilenstein',             cat: 'resource', type: 'small', perLevel: 2,  baseCost: 15, costStep: 8,  requires: [], x: 820, y: 240 },
-  sk_repair_eff:{ name: 'Reparatureffizienz', desc: '+1% Reparatur-Menge',          cat: 'resource', type: 'small', perLevel: 1,  baseCost: 10, costStep: 5,  requires: [], x: 740, y: 240 },
-  sk_repair_cost:{ name: 'Reparaturkosten', desc: '-2 VSU Reparaturkosten',         cat: 'resource', type: 'small', perLevel: 2,  baseCost: 10, costStep: 5,  requires: [], x: 660, y: 300 },
-  sk_start_vsu:{ name: 'Startkapital',   desc: '+25 Start-VSU pro Stufe',            cat: 'resource', type: 'small', perLevel: 25, baseCost: 10, costStep: 5,  requires: [], x: 660, y: 100 },
-  sk_drone:    { name: 'Sammeldrohne',   desc: 'Drohne sammelt Wrack-VSU',           cat: 'resource', type: 'big',   cost: 60,  unlocks: 'drone', requires: ['sk_vsu_kill', 'sk_vsu_wave'], waveReq: 25, x: 820, y: 320 },
+  sk_vsu_kill: { name: 'VSU (Abschuss)', desc: '+3% VSU pro Gegner',                cat: 'resource', type: 'small', perLevel: 3,  baseCost: 10, costStep: 5,  requires: [] },
+  sk_vsu_wave: { name: 'VSU (Welle)',    desc: '+3% VSU bei Wellenende',             cat: 'resource', type: 'small', perLevel: 3,  baseCost: 10, costStep: 5,  requires: [] },
+  sk_ep_kill:  { name: 'EP (Abschuss)',  desc: '+2% EP pro Gegner',                  cat: 'resource', type: 'small', perLevel: 2,  baseCost: 15, costStep: 8,  requires: [] },
+  sk_ep_wave:  { name: 'EP (Welle)',     desc: '+2% EP bei Meilenstein',             cat: 'resource', type: 'small', perLevel: 2,  baseCost: 15, costStep: 8,  requires: [] },
+  sk_repair_eff:{ name: 'Reparatureffizienz', desc: '+1% Reparatur-Menge',          cat: 'resource', type: 'small', perLevel: 1,  baseCost: 10, costStep: 5,  requires: [] },
+  sk_repair_cost:{ name: 'Reparaturkosten', desc: '-2 VSU Reparaturkosten',         cat: 'resource', type: 'small', perLevel: 2,  baseCost: 10, costStep: 5,  requires: [] },
+  sk_start_vsu:{ name: 'Startkapital',   desc: '+25 Start-VSU pro Stufe',            cat: 'resource', type: 'small', perLevel: 25, baseCost: 10, costStep: 5,  requires: [] },
+
+  // --- FREISCHALTUNGEN (moved to unlock tab, with EP investment requirements) ---
+  sk_rocket_t1:{ name: 'Rocket T1',     desc: 'Schnellfeuer-Raketen',        cat: 'unlock', type: 'big', cost: 40,  unlocks: 'rocket_t1', requires: [], waveReq: 10, epReqCat: 'attack', epReqAmount: 20 },
+  sk_gun_t2:   { name: 'Gun T2',        desc: 'Mittleres Geschütz',          cat: 'unlock', type: 'big', cost: 25,  unlocks: 'gun_t2', requires: [], waveReq: 15, epReqCat: 'attack', epReqAmount: 30 },
+  sk_arc1:     { name: 'Feuerwinkel I',  desc: '180° → 200°',                cat: 'unlock', type: 'big', cost: 40,  unlocks: 'arc1', requires: ['sk_gun_t2'], waveReq: 22, epReqCat: 'attack', epReqAmount: 40 },
+  sk_drone:    { name: 'Sammeldrohne',   desc: 'Drohne sammelt Wrack-VSU',    cat: 'unlock', type: 'big', cost: 60,  unlocks: 'drone', requires: [], waveReq: 25, epReqCat: 'resource', epReqAmount: 30 },
+  sk_gun_t3:   { name: 'Gun T3',        desc: 'Schweres Geschütz',           cat: 'unlock', type: 'big', cost: 50,  unlocks: 'gun_t3', requires: ['sk_gun_t2'], waveReq: 28, epReqCat: 'attack', epReqAmount: 50 },
+  sk_missile_def:{ name: 'Raketenabwehr',desc: 'Guns fangen Raketen ab',      cat: 'unlock', type: 'big', cost: 60,  unlocks: 'missile_def', requires: [], waveReq: 18, epReqCat: 'defense', epReqAmount: 25 },
+  sk_core_t2:  { name: 'Core T2',       desc: '+50% Energiekern',             cat: 'unlock', type: 'big', cost: 80,  unlocks: 'core_t2', requires: [], waveReq: 30, epReqCat: 'defense', epReqAmount: 40 },
+  sk_arc2:     { name: 'Feuerwinkel II', desc: '200° → 225°',                 cat: 'unlock', type: 'big', cost: 60,  unlocks: 'arc2', requires: ['sk_arc1'], waveReq: 35, epReqCat: 'attack', epReqAmount: 60 },
+  sk_rocket_t2:{ name: 'Rocket T2',     desc: 'Verbesserte Raketen',          cat: 'unlock', type: 'big', cost: 70,  unlocks: 'rocket_t2', requires: ['sk_rocket_t1'], waveReq: 35, epReqCat: 'attack', epReqAmount: 60 },
+  sk_shield_t2:{ name: 'Schild T2',     desc: '+30% Schildkapazität',         cat: 'unlock', type: 'big', cost: 100, unlocks: 'shield_t2', requires: ['sk_core_t2'], waveReq: 42, epReqCat: 'defense', epReqAmount: 60 },
+  sk_hangar:   { name: 'Hangar',         desc: 'Kampfschiff bekämpft Gegner',  cat: 'unlock', type: 'big', cost: 80,  unlocks: 'hangar', requires: ['sk_rocket_t2'], waveReq: 48, epReqCat: 'attack', epReqAmount: 80 },
 };
 
 function normalizeAngle(a) {
@@ -2667,6 +2687,37 @@ class Game {
     return (this.skillLevels[key] || 0) > 0;
   }
 
+  // Count total invested levels in a category (small nodes only)
+  getCatInvestment(cat) {
+    let total = 0;
+    for (const [k, d] of Object.entries(SKILL_TREE)) {
+      if (d.cat === cat && d.type === 'small') total += (this.skillLevels[k] || 0);
+    }
+    return total;
+  }
+
+  // Count total EP spent in a category (all node types)
+  getCatEPSpent(cat) {
+    let total = 0;
+    for (const [k, d] of Object.entries(SKILL_TREE)) {
+      if (d.cat !== cat && !(d.cat === 'unlock' && d.epReqCat === cat)) continue;
+      if (d.type === 'big' && this.unlockedTech.has(d.unlocks)) total += d.cost;
+      else if (d.type !== 'big') {
+        const lvl = this.skillLevels[k] || 0;
+        for (let i = 0; i < lvl; i++) total += Math.round(d.baseCost * Math.pow(1.3, i));
+      }
+    }
+    return total;
+  }
+
+  // Max specialist level allowed = floor(parent small node levels / 5)
+  getMaxSpecialistLevel(key) {
+    const def = SKILL_TREE[key];
+    if (def.type !== 'medium' || !def.parentStat) return 999;
+    const parentLvl = this.skillLevels[def.parentStat] || 0;
+    return Math.floor(parentLvl / 5);
+  }
+
   isSkillAvailable(key) {
     const def = SKILL_TREE[key];
     // Big node already owned
@@ -2677,6 +2728,15 @@ class Game {
     }
     // Big nodes: wave requirement
     if (def.waveReq && this.bestWave < def.waveReq) return false;
+    // Big nodes: EP investment requirement in category
+    if (def.epReqCat && def.epReqAmount) {
+      if (this.getCatEPSpent(def.epReqCat) < def.epReqAmount) return false;
+    }
+    // Medium (specialist) nodes: need parent stat investment
+    if (def.type === 'medium') {
+      const currentLvl = this.skillLevels[key] || 0;
+      if (currentLvl >= this.getMaxSpecialistLevel(key)) return false;
+    }
     return true;
   }
 
@@ -2756,45 +2816,58 @@ class Game {
 
     canvas.innerHTML = '';
 
-    // Collect small and big nodes for this category
-    const smallNodes = [];
-    const bigNodes = [];
-    for (const [key, def] of Object.entries(SKILL_TREE)) {
-      if (def.cat !== cat) continue;
-      if (def.type === 'small') smallNodes.push({ key, def });
-      else bigNodes.push({ key, def });
-    }
-
-    // Small nodes section
-    if (smallNodes.length > 0) {
-      const label = document.createElement('div');
-      label.className = 'sk-section-label';
-      label.textContent = 'Upgrades';
-      canvas.appendChild(label);
-
-      const row = document.createElement('div');
-      row.className = 'sk-small-row';
-      for (const { key, def } of smallNodes) {
-        row.appendChild(this._createSkillCard(key, def, cat));
+    if (cat === 'unlock') {
+      // Unlock tab: all big nodes sorted by waveReq
+      const bigNodes = [];
+      for (const [key, def] of Object.entries(SKILL_TREE)) {
+        if (def.type === 'big') bigNodes.push({ key, def });
       }
-      canvas.appendChild(row);
-    }
-
-    // Big nodes section
-    if (bigNodes.length > 0) {
-      const label = document.createElement('div');
-      label.className = 'sk-section-label';
-      label.textContent = 'Freischaltungen';
-      canvas.appendChild(label);
+      bigNodes.sort((a, b) => (a.def.waveReq || 0) - (b.def.waveReq || 0));
 
       const row = document.createElement('div');
       row.className = 'sk-big-row';
-      // Sort by waveReq
-      bigNodes.sort((a, b) => (a.def.waveReq || 0) - (b.def.waveReq || 0));
       for (const { key, def } of bigNodes) {
-        row.appendChild(this._createSkillCard(key, def, cat));
+        row.appendChild(this._createSkillCard(key, def, 'unlock'));
       }
       canvas.appendChild(row);
+    } else {
+      // Regular tabs: small nodes + medium (specialist) nodes
+      const smallNodes = [];
+      const mediumNodes = [];
+      for (const [key, def] of Object.entries(SKILL_TREE)) {
+        if (def.cat !== cat) continue;
+        if (def.type === 'small') smallNodes.push({ key, def });
+        else if (def.type === 'medium') mediumNodes.push({ key, def });
+      }
+
+      if (smallNodes.length > 0) {
+        const label = document.createElement('div');
+        label.className = 'sk-section-label';
+        label.textContent = 'Allgemein';
+        canvas.appendChild(label);
+
+        const row = document.createElement('div');
+        row.className = 'sk-small-row';
+        for (const { key, def } of smallNodes) {
+          row.appendChild(this._createSkillCard(key, def, cat));
+        }
+        canvas.appendChild(row);
+      }
+
+      if (mediumNodes.length > 0) {
+        const totalSmall = this.getCatInvestment(cat);
+        const label = document.createElement('div');
+        label.className = 'sk-section-label';
+        label.textContent = `Spezialisierung (${totalSmall} Punkte investiert)`;
+        canvas.appendChild(label);
+
+        const row = document.createElement('div');
+        row.className = 'sk-big-row';
+        for (const { key, def } of mediumNodes) {
+          row.appendChild(this._createSkillCard(key, def, cat));
+        }
+        canvas.appendChild(row);
+      }
     }
 
     // Update tab info
@@ -2802,12 +2875,18 @@ class Game {
       let spent = 0;
       for (const [k, d] of Object.entries(SKILL_TREE)) {
         if (d.cat !== c) continue;
-        if (d.type === 'small') spent += (this.skillLevels[k] || 0);
-        else if (this.isSkillUnlocked(k)) spent++;
+        spent += (this.skillLevels[k] || 0);
       }
       const el = document.getElementById(`skTabInfo${c.charAt(0).toUpperCase() + c.slice(1)}`);
       if (el) el.textContent = spent > 0 ? `${spent}` : '';
     }
+    // Unlock tab info
+    let unlockCount = 0;
+    for (const [k, d] of Object.entries(SKILL_TREE)) {
+      if (d.type === 'big' && this.unlockedTech.has(d.unlocks)) unlockCount++;
+    }
+    const unlockEl = document.getElementById('skTabInfoUnlock');
+    if (unlockEl) unlockEl.textContent = unlockCount > 0 ? `${unlockCount}` : '';
   }
 
   _createSkillCard(key, def, cat) {
@@ -2830,12 +2909,29 @@ class Game {
         <div class="sk-card-name">${def.name}</div>
         <div class="sk-card-desc">${def.desc}</div>
         <div class="sk-card-cost">${cost} EP</div>`;
+    } else if (def.type === 'medium') {
+      const lvl = this.skillLevels[key] || 0;
+      const maxLvl = this.getMaxSpecialistLevel(key);
+      const parentName = def.parentStat ? (SKILL_TREE[def.parentStat]?.name || '') : '';
+      const parentLvl = def.parentStat ? (this.skillLevels[def.parentStat] || 0) : 0;
+      const nextReq = (lvl + 1) * 5;
+      card.innerHTML = `
+        <div class="sk-card-level">${lvl}/${maxLvl}</div>
+        <div class="sk-card-name">${def.name}</div>
+        <div class="sk-card-desc">${def.desc}</div>
+        <div class="sk-card-wave">${parentName} ${parentLvl}/${nextReq}</div>
+        <div class="sk-card-cost">${lvl >= maxLvl && maxLvl > 0 ? 'MAX' : cost + ' EP'}</div>`;
     } else {
+      // Big (unlock) nodes
+      const catLabels = { attack: 'ANG', defense: 'VER', resource: 'RES' };
+      const epSpent = def.epReqCat ? this.getCatEPSpent(def.epReqCat) : 0;
+      const epReq = def.epReqAmount || 0;
       card.innerHTML = `
         <div class="sk-card-level">${owned ? '✓' : '★'}</div>
         <div class="sk-card-name">${def.name}</div>
         <div class="sk-card-desc">${def.desc}</div>
         ${def.waveReq ? `<div class="sk-card-wave">Welle ${def.waveReq}${this.bestWave >= def.waveReq ? ' ✓' : ''}</div>` : ''}
+        ${epReq ? `<div class="sk-card-wave">${catLabels[def.epReqCat] || ''} ${epSpent}/${epReq} EP${epSpent >= epReq ? ' ✓' : ''}</div>` : ''}
         <div class="sk-card-cost">${owned ? '—' : cost + ' EP'}</div>`;
     }
 
@@ -3825,12 +3921,22 @@ class Game {
 
     // Shield regeneration from energy core
     if (this.stationShield < this.stationMaxShield && this.stationHP > 0) {
-      this.stationShield = Math.min(this.stationMaxShield, this.stationShield + this.shieldRegenRate * dt);
+      let regenRate = this.shieldRegenRate;
+      // Shield burst: bonus regen when shield is not full (recently hit)
+      const burstBonus = this.getSkillBonus('sk_shield_burst');
+      if (burstBonus > 0 && this.stationShield < this.stationMaxShield * 0.9) {
+        regenRate *= (1 + burstBonus / 100);
+      }
+      this.stationShield = Math.min(this.stationMaxShield, this.stationShield + regenRate * dt);
     }
 
     // Repair drones: hull regen during combat (base 5 HP/s + upgrade bonus)
     if (this.stationHP > 0 && this.stationHP < this.stationMaxHP) {
-      const repairRate = 5 * (1 + this.getTotalBonus('reserve') / 100);
+      let repairRate = 5 * (1 + this.getTotalBonus('reserve') / 100);
+      // Drone efficiency: double repair below 30% HP
+      if (this.getSkillBonus('sk_drone_eff') > 0 && this.stationHP / this.stationMaxHP < 0.3) {
+        repairRate *= 2;
+      }
       this.stationHP = Math.min(this.stationMaxHP, this.stationHP + repairRate * dt);
     }
 
@@ -3919,7 +4025,8 @@ class Game {
         let diff = turret.targetAngleCached - turret.barrelAngle;
         while (diff > Math.PI) diff -= Math.PI * 2;
         while (diff < -Math.PI) diff += Math.PI * 2;
-        turret.barrelAngle += diff * Math.min(1, dt * 8);
+        const trackBonus = 1 + this.getSkillBonus('sk_tracking') / 100;
+        turret.barrelAngle += diff * Math.min(1, dt * 8 * trackBonus);
       } else {
         turret.targetAngleCached = null;
       }
@@ -3937,12 +4044,17 @@ class Game {
         // Projectile fires exactly along barrel direction
         const pAngle = turret.barrelAngle;
 
+        // Specialist bonuses for projectile speed
+        const isRocketWeapon = turret.weaponKey && turret.weaponKey.startsWith('rocket');
+        const speedBonus = isRocketWeapon ? (1 + this.getSkillBonus('sk_fast_rockets') / 100) : 1;
+        const projSpd = turret.projSpeed * speedBonus;
+
         this.projectiles.push({
           x: muzzleX, y: muzzleY,
-          vx: Math.cos(pAngle) * turret.projSpeed,
-          vy: Math.sin(pAngle) * turret.projSpeed,
+          vx: Math.cos(pAngle) * projSpd,
+          vy: Math.sin(pAngle) * projSpd,
           targetEnemy: nearestEnemy,
-          speed: turret.projSpeed,
+          speed: projSpd,
           damage: finalDmg,
           isCrit: false,
           trail: [],
@@ -3986,7 +4098,8 @@ class Game {
         while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
         // Fast enemies evade rockets — reduced turn rate
         // Fast enemies evade rockets — near-zero homing, rockets fly past
-        const turnRate = p.targetEnemy.specialType === 'fast' ? 0.3 : 4.0;
+        const homingBonus = 1 + this.getSkillBonus('sk_homing') / 100;
+        const turnRate = (p.targetEnemy.specialType === 'fast' ? 0.3 : 4.0) * homingBonus;
         const maxTurn = turnRate * dt;
         p.angle += Math.max(-maxTurn, Math.min(maxTurn, angleDiff));
         p.vx = Math.cos(p.angle) * p.speed;
@@ -4037,8 +4150,19 @@ class Game {
         // Rockets deal 2x damage to armored enemies
         let dmg = p.damage;
         const isRocket = p.weaponKey && p.weaponKey.startsWith('rocket');
+        const isGun = p.weaponKey && p.weaponKey.startsWith('gun');
         if (isRocket && hitEnemy.specialType === 'armored') dmg *= 2;
-        const dmgResult = calculateDamage(dmg, p.isCrit, hitEnemy, this.getTotalBonus('syshit'), this.getTotalBonus('pierce') / 100);
+
+        // Specialist pierce bonuses (weapon-specific)
+        let pierceTotal = this.getTotalBonus('pierce') / 100;
+        if (isRocket) pierceTotal += this.getSkillBonus('sk_shrapnel') / 100;
+        if (isGun) pierceTotal += this.getSkillBonus('sk_hardened') / 100;
+
+        // Specialist sys-hit bonus (guns only)
+        let sysTotal = this.getTotalBonus('syshit');
+        if (isGun) sysTotal += this.getSkillBonus('sk_sys_guns');
+
+        const dmgResult = calculateDamage(dmg, p.isCrit, hitEnemy, sysTotal, pierceTotal);
         hitEnemy.shield -= dmgResult.shieldDmg;
         hitEnemy.hp -= dmgResult.hullDmg;
         hitEnemy.hitFlash = 0.1;
@@ -4197,15 +4321,17 @@ class Game {
         enemy.fireTimer -= dt;
         if (enemy.fireTimer <= 0 && enemy.weaponDisabled <= 0) {
           enemy.fireTimer = 1 / enemy.fireRate;
-          // Direct hull damage, bypasses shield
-          this.stationHP -= enemy.damage;
+          // Direct hull damage, bypasses shield (reduced by hull armor specialist)
+          const hullArmorReduction = 1 - this.getSkillBonus('sk_hull_armor') / 100;
+          const enterDmg = enemy.damage * Math.max(0.3, hullArmorReduction);
+          this.stationHP -= enterDmg;
           this.shakeTimer = 0.15;
           this.shakeIntensity = 4;
           // Damage number on station
           this.damageNumbers.push({
             x: this.stationCenter.x + (Math.random() - 0.5) * 30,
             y: this.stationCenter.y - 20,
-            value: 'ENTER ' + enemy.damage.toFixed(1),
+            value: 'ENTER ' + enterDmg.toFixed(1),
             life: 1.0, maxLife: 1.0, isCrit: true,
           });
           if (this.stationHP <= 0) {
@@ -4355,7 +4481,10 @@ class Game {
   }
 
   damageStation(dmg, hitX, hitY) {
+    // Reactive armor: shield absorbs more
+    const reactiveBonus = 1 + this.getSkillBonus('sk_reactive_armor') / 100;
     if (this.stationShield > 0) {
+      dmg = dmg / reactiveBonus; // effectively shield absorbs more
       const absorbed = Math.min(this.stationShield, dmg);
       this.stationShield -= absorbed;
       dmg -= absorbed;
@@ -4710,7 +4839,8 @@ class Game {
     if (defInfo) {
       const usedE = this.getUsedEnergy();
       const poolE = this.getEnergyPool();
-      const repairRate = (5 * (1 + this.getTotalBonus('reserve') / 100)).toFixed(1);
+      const baseRepRate = 5 * (1 + this.getTotalBonus('reserve') / 100);
+      const repairRate = baseRepRate.toFixed(1);
       defInfo.innerHTML = `${this.station.name} — HP ${Math.floor(this.stationHP)}/${this.stationMaxHP} | Schild ${Math.floor(this.stationShield)}/${this.stationMaxShield} | Rep ${repairRate}/s | <span style="color:${usedE > poolE * 0.8 ? '#FF5028' : 'var(--ilzarah)'}">Bau ${usedE}/${poolE}%</span> | Kern ${this.shieldRegenRate.toFixed(0)}/s`;
     }
   }
