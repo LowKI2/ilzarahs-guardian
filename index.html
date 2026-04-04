@@ -1796,7 +1796,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.12.9 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.13.0 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2341,6 +2341,8 @@ const SKILL_TREE = {
   sk_shrapnel:      { name: 'Schrapnell',          desc: '+3% Pierce (Raketen)',             cat: 'attack', type: 'medium', perLevel: 3,  baseCost: 25, costStep: 12, parentStat: 'sk_pierce', requires: [] },
   sk_hardened:      { name: 'Gehärtete Geschosse',  desc: '+3% Pierce (Guns)',               cat: 'attack', type: 'medium', perLevel: 3,  baseCost: 25, costStep: 12, parentStat: 'sk_pierce', requires: [] },
   sk_laser_eff:     { name: 'Laserkühlung',       desc: '−2% Laser-Schildregen-Verlust pro Stufe', cat: 'attack', type: 'medium', perLevel: 2, baseCost: 25, costStep: 12, parentStat: 'sk_energy', requires: [], needsUnlock: 'laser', maxLevel: 13 },
+  sk_bolt_charge:   { name: 'Schnellladung',      desc: '−5% Bolt/Rail Aufladezeit pro Stufe',     cat: 'attack', type: 'medium', perLevel: 5,  baseCost: 20, costStep: 10, parentStat: 'sk_rof', requires: [], needsUnlock: 'boltgun' },
+  sk_bolt_dmg:      { name: 'Überladen',          desc: '+8% Bolt/Rail Schaden pro Stufe',          cat: 'attack', type: 'medium', perLevel: 8,  baseCost: 25, costStep: 12, parentStat: 'sk_dmg', requires: [], needsUnlock: 'boltgun' },
 
   // --- DEFENSE ---
   sk_hull:     { name: 'Hülle',          desc: '+5% Station HP pro Stufe',          cat: 'defense',  type: 'small', perLevel: 5,  baseCost: 10, costStep: 5,  requires: [] },
@@ -4476,12 +4478,15 @@ class Game {
       else if (isChargeWeapon) {
         if (nearestEnemy && turret.cooldown <= 0) {
           turret.chargeProgress = (turret.chargeProgress || 0) + dt;
-          if (turret.chargeProgress >= wDef.chargeTime) {
+          const chargeReduction = 1 - this.getSkillBonus('sk_bolt_charge') / 100;
+          const effectiveChargeTime = wDef.chargeTime * Math.max(0.3, chargeReduction);
+          if (turret.chargeProgress >= effectiveChargeTime) {
             // Fire!
             turret.chargeProgress = 0;
             const rofMult = 1 + this.getTotalBonus('rof') / 100;
             turret.cooldown = 0.15; // short recovery after shot
-            const finalDmg = turret.damage * (1 + this.station.dmgBonus) * (1 + this.getTotalBonus('dmg') / 100);
+            const boltDmgBonus = 1 + this.getSkillBonus('sk_bolt_dmg') / 100;
+            const finalDmg = turret.damage * (1 + this.station.dmgBonus) * (1 + this.getTotalBonus('dmg') / 100) * boltDmgBonus;
             const muzzleDist = (this.isMobile ? 36 : 42) * 0.5;
             const muzzleX = slot.x + Math.cos(turret.barrelAngle) * muzzleDist;
             const muzzleY = slot.y + Math.sin(turret.barrelAngle) * muzzleDist;
@@ -6167,7 +6172,9 @@ class Game {
     // Charge flare for bolt/rail weapons (purple glow, opacity increasing)
     const wDef = WEAPONS[b.weaponKey] || {};
     if (wDef.chargeTime && b.chargeProgress > 0) {
-      const progress = Math.min(b.chargeProgress / wDef.chargeTime, 1);
+      const chargeRed = 1 - (this.getSkillBonus ? this.getSkillBonus('sk_bolt_charge') / 100 : 0);
+      const effCharge = wDef.chargeTime * Math.max(0.3, chargeRed);
+      const progress = Math.min(b.chargeProgress / effCharge, 1);
       const muzzleDist = (this.isMobile ? 36 : 42) * 0.5;
       const mx = slot.x + Math.cos(b.barrelAngle) * muzzleDist;
       const my = slot.y + Math.sin(b.barrelAngle) * muzzleDist;
