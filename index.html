@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.14.5 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.14.6 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -5663,19 +5663,22 @@ class Game {
     const epEarned = Math.floor((this.wave * 3 + this.kills * 0.3) * epKillBonus2);
     this.totalEP += epEarned;
     this.saveEP();
-    this._gameOverReason = 'Run Beendet';
-    this._gameOverSubtitle = '// FREIWILLIG BEENDET //';
-    this._gameOverEP = epEarned;
+    document.getElementById('goWaves').textContent = this.wave;
+    document.getElementById('goEP').textContent = epEarned;
+    document.getElementById('goKills').textContent = this.kills;
+    document.getElementById('goTitle').textContent = 'Run Beendet';
+    document.getElementById('goSubtitle').textContent = '// FREIWILLIG BEENDET //';
+    document.getElementById('gameOverScreen').style.display = 'flex';
     document.getElementById('buildUI').style.display = 'none';
     document.getElementById('combatControls').style.display = 'none';
     this.closeUpgPanel();
     document.getElementById('hud').style.display = 'none';
+    document.getElementById('hudLower').style.display = 'none';
     this.state = 'gameover';
     this.enemies = [];
     this.projectiles = [];
     this.enemyProjectiles = [];
     stopMusic();
-    this.showScoreboard();
   }
 
   newRun() {
