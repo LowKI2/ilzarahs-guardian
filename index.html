@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.15.0 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.15.1 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -3176,6 +3176,11 @@ class Game {
 
     document.getElementById('mainMenu').style.display = 'none';
     document.getElementById('techScreen').style.display = 'flex';
+    // Reload persistent skill state from localStorage
+    this.totalEP = parseInt(localStorage.getItem('ilzarah_totalEP') || '0', 10) || 0;
+    this.totalEPSpent = parseInt(localStorage.getItem('ilzarah_totalEPSpent') || '0', 10) || 0;
+    try { this.skillLevels = JSON.parse(localStorage.getItem('ilzarah_skillLevels') || '{}'); } catch(e) { this.skillLevels = {}; }
+    try { this.unlockedTech = new Set(JSON.parse(localStorage.getItem('ilzarah_unlockedTech') || '[]')); } catch(e) { this.unlockedTech = new Set(); }
     document.getElementById('techEP').textContent = 'EP: ' + this.totalEP;
     this.state = 'tech';
     this._snapshotSkills();
@@ -6009,7 +6014,9 @@ class Game {
       this.runTimer = data.runTimer || 0;
       this.timedMode = data.timedMode !== undefined ? data.timedMode : true;
 
-      this.unlockedTech = new Set(data.unlockedTech || []);
+      // Load persistent skill state from localStorage (not from run save, which may be stale)
+      try { this.skillLevels = JSON.parse(localStorage.getItem('ilzarah_skillLevels') || '{}'); } catch(e) { this.skillLevels = {}; }
+      try { this.unlockedTech = new Set(JSON.parse(localStorage.getItem('ilzarah_unlockedTech') || '[]')); } catch(e) { this.unlockedTech = new Set(); }
       this.enemies = [];
       this.projectiles = [];
       this.enemyProjectiles = [];
