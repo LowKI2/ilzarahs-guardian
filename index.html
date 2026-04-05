@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.16.8 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.16.9 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -6331,7 +6331,13 @@ class Game {
       }
     }
 
-    // Station sprite (above drones)
+    // Enemies BEHIND station (below center — flying "under")
+    const stationR = this.getStationSpriteSize() * 0.5;
+    for (const enemy of this.enemies) {
+      if (enemy.y > this.stationCenter.y) this.renderEnemy(ctx, enemy);
+    }
+
+    // Station sprite (above drones and behind-enemies)
     this.renderStation(ctx);
 
     // Core hover point (center of station)
@@ -6424,9 +6430,9 @@ class Game {
       }
     }
 
-    // Enemies
+    // Enemies IN FRONT of station (above center — flying "over")
     for (const enemy of this.enemies) {
-      this.renderEnemy(ctx, enemy);
+      if (enemy.y <= this.stationCenter.y) this.renderEnemy(ctx, enemy);
     }
 
     // Enemy projectiles — TRACER style
@@ -7042,16 +7048,18 @@ class Game {
   renderEnemy(ctx, enemy) {
     const spriteImg = IMAGES.enemies[enemy.tier];
 
-    // Depth scale only when enemy overlaps station area
+    // Depth scale: smooth transition near station area
     const dx = enemy.x - this.stationCenter.x;
     const dy = enemy.y - this.stationCenter.y;
     const distToStation = Math.sqrt(dx * dx + dy * dy);
-    const stationSize = this.getStationSpriteSize() * 0.6;
+    const stationSize = this.getStationSpriteSize() * 0.7;
     let depthScale = 1;
     if (distToStation < stationSize) {
-      const overlap = 1 - distToStation / stationSize; // 0 at edge, 1 at center
-      const yDir = dy < 0 ? 1 : -1; // above=bigger, below=smaller
-      depthScale = 1 + yDir * overlap * 0.3;
+      // Smooth ease-in-out: cubic curve for gradual transition
+      const t = 1 - distToStation / stationSize; // 0 at edge, 1 at center
+      const eased = t * t * (3 - 2 * t); // smoothstep
+      const yNorm = dy / (stationSize || 1); // -1 to 1, negative=above
+      depthScale = 1 + yNorm * eased * -0.25; // above=bigger, below=smaller
     }
 
     if (isDrawable(spriteImg)) {
