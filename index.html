@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.17.0 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.17.1 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -6331,15 +6331,12 @@ class Game {
       }
     }
 
-    // Enemies BEHIND station (moving away from center = passed through)
+    // Enemies BEHIND station (normal + fast types dive under)
     const stationR = this.getStationSpriteSize() * 0.45;
+    const diveRange = stationR * 2; // start dive animation from this distance
     for (const enemy of this.enemies) {
-      const edx = enemy.x - this.stationCenter.x;
-      const edy = enemy.y - this.stationCenter.y;
-      const eDist = Math.sqrt(edx * edx + edy * edy);
-      // Inside station area AND moving away = behind
-      const movingAway = eDist < stationR && (edx * Math.cos(enemy.rotation) + edy * Math.sin(enemy.rotation)) > 0;
-      if (movingAway) this.renderEnemy(ctx, enemy);
+      const divesUnder = !enemy.specialType || enemy.specialType === 'fast';
+      if (divesUnder) this.renderEnemy(ctx, enemy, diveRange, stationR);
     }
 
     // Station sprite (above drones and behind-enemies)
@@ -6435,13 +6432,10 @@ class Game {
       }
     }
 
-    // Enemies IN FRONT of station (not rendered behind)
+    // Enemies IN FRONT of station (armored, rocketeer, boss fly over)
     for (const enemy of this.enemies) {
-      const edx = enemy.x - this.stationCenter.x;
-      const edy = enemy.y - this.stationCenter.y;
-      const eDist = Math.sqrt(edx * edx + edy * edy);
-      const movingAway = eDist < stationR && (edx * Math.cos(enemy.rotation) + edy * Math.sin(enemy.rotation)) > 0;
-      if (!movingAway) this.renderEnemy(ctx, enemy);
+      const divesUnder = !enemy.specialType || enemy.specialType === 'fast';
+      if (!divesUnder) this.renderEnemy(ctx, enemy, diveRange, stationR);
     }
 
     // Enemy projectiles — TRACER style
@@ -7054,22 +7048,19 @@ class Game {
     }
   }
 
-  renderEnemy(ctx, enemy) {
+  renderEnemy(ctx, enemy, diveRange, stationR) {
     const spriteImg = IMAGES.enemies[enemy.tier];
 
-    // Depth scale: based on flight direction through station
+    // Depth scale: smooth dive effect near station
     const dx = enemy.x - this.stationCenter.x;
     const dy = enemy.y - this.stationCenter.y;
     const distToStation = Math.sqrt(dx * dx + dy * dy);
-    const stationSize = this.getStationSpriteSize() * 0.5;
+    const divesUnder = !enemy.specialType || enemy.specialType === 'fast';
     let depthScale = 1;
-    if (distToStation < stationSize) {
-      const t = 1 - distToStation / stationSize; // 0 at edge, 1 at center
+    if (diveRange && distToStation < diveRange) {
+      const t = 1 - distToStation / diveRange; // 0 at edge, 1 at center
       const eased = t * t * (3 - 2 * t); // smoothstep
-      // Use dot product: moving away from center = behind (smaller)
-      const dot = dx * Math.cos(enemy.rotation) + dy * Math.sin(enemy.rotation);
-      const dir = dot > 0 ? -1 : 1; // approaching=bigger, leaving=smaller
-      depthScale = 1 + dir * eased * 0.2;
+      depthScale = divesUnder ? (1 - eased * 0.25) : (1 + eased * 0.15); // under=smaller, over=bigger
     }
 
     if (isDrawable(spriteImg)) {
