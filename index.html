@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.17.6 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.18.0 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2658,7 +2658,7 @@ const WEAPONS = {
     unlock: null, // immer verfuegbar
   },
   gun_t2: {
-    name: "Gun T2", cost: 55, energyCost: 30, range: 180, fireRate: 10, damage: 2.8, projSpeed: 750,
+    name: "Gun T2", cost: 55, energyCost: 35, range: 180, fireRate: 10, damage: 2.8, projSpeed: 750,
     color: "#33CCFF", desc: "Mittleres Geschuetz (2 Läufe)", sprite: 'gun_t2',
     projSize: 2.5, projColor: '#33CCFF', splashRadius: 0,
     unlock: 'gun_t2', barrels: 2,
@@ -2683,7 +2683,7 @@ const WEAPONS = {
     unlock: 'rocket_t2',
   },
   boltgun: {
-    name: "Boltgun", cost: 75, energyCost: 35, range: 180, fireRate: 1, damage: 22, projSpeed: 1200,
+    name: "Boltgun", cost: 75, energyCost: 30, range: 180, fireRate: 1, damage: 22, projSpeed: 1200,
     color: "#AA55FF", desc: "Aufladende Bolzenkanone", sprite: 'boltgun',
     projSize: 3.5, projColor: '#AA55FF', splashRadius: 0,
     unlock: 'boltgun', chargeTime: 1.0,
@@ -2797,10 +2797,17 @@ function calculateDamage(baseDmg, isCrit, target, sysHitBonus = 0, pierceChance 
   // Returns { totalDmg, shieldDmg, hullDmg, penetrated, systemHit }
   const result = { totalDmg: 0, shieldDmg: 0, hullDmg: 0, penetrated: false, systemHit: null };
 
+  // Pierce overflow: >100% pierce → extra damage bonus
+  let pierceDmgBonus = 0;
+  if (pierceChance > 1.0) {
+    pierceDmgBonus = pierceChance - 1.0;
+    pierceChance = 1.0;
+  }
+
   // Penetration (Pierce): upgrade-based chance, bypasses armor
   result.penetrated = Math.random() < pierceChance;
 
-  let dmg = baseDmg;
+  let dmg = baseDmg * (1 + pierceDmgBonus); // Überschuss-Pierce als Extra-Damage
 
   // If not penetrated, armor reduces damage
   if (!result.penetrated) {
@@ -4142,6 +4149,36 @@ class Game {
 
     this.generateSlots();
 
+    // Wellen-Skip: wenn bestWave >= 20, Abfrage ob Wellen 1-20 überspringen
+    if (this.bestWave >= 20) {
+      const rew = this.getRewardMult();
+      const epWaveBonus = 1 + this.getTotalBonus('epWave') / 100;
+      const vsuKillBonus = 1 + this.getTotalBonus('vsuKill') / 100;
+      const vsuWaveBonus = 1 + this.getTotalBonus('vsuWave') / 100;
+      // Simuliere Rewards für Wellen 1-20
+      let skipVSU = 0;
+      let skipEP = 0;
+      for (let w = 1; w <= 20; w++) {
+        // VSU pro Welle (Kills + Wave-Bonus)
+        const enemyCount = w === 1 ? 1 : Math.min(20, 2 + Math.floor(Math.log2(w) * 3));
+        const avgKillVSU = (8 + w) * 1.2 * rew; // durchschnittlicher Kill-Reward
+        skipVSU += Math.floor(avgKillVSU * enemyCount * vsuKillBonus);
+        skipVSU += Math.floor((20 + w * 5) * rew * vsuWaveBonus);
+        // EP bei Meilensteinen (alle 5 Wellen)
+        if (w % 5 === 0) {
+          skipEP += Math.floor(w * 3 * epWaveBonus * rew);
+        }
+      }
+      const doSkip = confirm(`Wellen 1-20 überspringen?\nDu erhältst: ${skipVSU} VSU und ${skipEP} EP`);
+      if (doSkip) {
+        this.wave = 21;
+        this.vsu += skipVSU;
+        this.ep += skipEP;
+        this.totalEP += skipEP;
+        this.saveEP();
+      }
+    }
+
     document.getElementById('stationSelect').style.display = 'none';
     document.getElementById('hud').style.display = 'flex';
     document.getElementById('hudLower').style.display = 'flex';
@@ -4473,10 +4510,11 @@ class Game {
     this.bossSpawned = false;
 
     if (this.isBossWave) {
-      this.waveEnemyCount = 3 + Math.floor(this.wave * 0.3); // small escorts
+      this.waveEnemyCount = Math.min(8, 3 + Math.floor(this.wave * 0.2)); // capped escorts
       this.showBanner(`WELLE ${this.wave} — BOSSWELLE!`);
     } else {
-      this.waveEnemyCount = this.wave === 1 ? 1 : 1 + Math.floor(this.wave * 0.8);
+      // Logarithmische Skalierung: weniger Gegner, dafür stärker
+      this.waveEnemyCount = this.wave === 1 ? 1 : Math.min(20, 2 + Math.floor(Math.log2(this.wave) * 3));
       this.showBanner(`WELLE ${this.wave} — KAMPF!`);
     }
     this.waveEnemiesSpawned = 0;
@@ -4487,16 +4525,16 @@ class Game {
     this.mines = [];
     if (this.unlockedTech.has('mines')) {
       const mineCount = 3 + (this.skillLevels['sk_mine_count'] || 0);
-      const baseRadius = 120;
       const radiusBonus = 1 + this.getSkillBonus('sk_mine_radius') / 100;
-      const mineRadius = baseRadius * radiusBonus;
+      this.mineOrbitRadius = 120 * radiusBonus * (1 + this.getTotalBonus('range') / 200);
       for (let i = 0; i < mineCount; i++) {
         const a = (i / mineCount) * Math.PI * 2;
         this.mines.push({
-          x: this.stationCenter.x + Math.cos(a) * mineRadius,
-          y: this.stationCenter.y + Math.sin(a) * mineRadius,
-          radius: 25 * radiusBonus, // detonation trigger radius
-          damage: 8 * (1 + this.getSkillBonus('sk_mine_dmg') / 100),
+          angle: a,
+          x: this.stationCenter.x + Math.cos(a) * this.mineOrbitRadius,
+          y: this.stationCenter.y + Math.sin(a) * this.mineOrbitRadius,
+          radius: 25 * radiusBonus,
+          damage: 8 * (1 + this.getSkillBonus('sk_mine_dmg') / 100) * (1 + this.getTotalBonus('dmg') / 100),
           alive: true,
           pulsePhase: Math.random() * Math.PI * 2,
         });
@@ -4571,7 +4609,7 @@ class Game {
     const angle = Math.random() * Math.PI * 2;
     const dist = Math.max(this.W, this.H) * 0.65;
     const diff = this.getDifficultyMult();
-    const baseHP = (12 + this.wave * 3) * diff;
+    const baseHP = (12 + this.wave * 5) * diff;
 
     // Pirate tier based on wave
     let tier = 0;
@@ -4598,7 +4636,7 @@ class Game {
     const rew = this.getRewardMult();
     let vsuReward = (8 + this.wave) * (1 + tier * 0.5) * rew;
     const firingRange = 140 + tier * 20;
-    let armor = 0.05 + tier * 0.08;
+    let armor = 0.05 + tier * 0.08 + Math.floor(this.wave / 10) * 0.03;
     let fireRate = 3 + tier * 0.8;
     let enemyRadius = (12 + tier * 2) * sizeMultiplier;
 
@@ -4723,8 +4761,15 @@ class Game {
       }
     }
 
-    // Proximity mines — check against all enemies
+    // Proximity mines — orbit + check against all enemies
     if (this.mines) {
+      const mineOrbitSpeed = 0.3 * (1 + this.getTotalBonus('rof') / 200);
+      for (const mine of this.mines) {
+        if (!mine.alive) continue;
+        mine.angle += mineOrbitSpeed * dt;
+        mine.x = this.stationCenter.x + Math.cos(mine.angle) * (this.mineOrbitRadius || 120);
+        mine.y = this.stationCenter.y + Math.sin(mine.angle) * (this.mineOrbitRadius || 120);
+      }
       for (const mine of this.mines) {
         if (!mine.alive) continue;
         for (const enemy of this.enemies) {
@@ -4789,6 +4834,13 @@ class Game {
     // Shield regeneration from energy core (reduced by active lasers)
     if (this.stationShield < this.stationMaxShield && this.stationHP > 0) {
       let regenRate = this.shieldRegenRate;
+      // Wellen-Skalierung: Schild-Regen wächst mit Wellen-Fortschritt
+      const waveScaling = 1 + Math.floor(this.wave / 10) * 0.15;
+      regenRate *= waveScaling;
+      // Adaptive Regen: verdoppelt wenn Schild unter 30%
+      if (this.stationShield < this.stationMaxShield * 0.3) {
+        regenRate *= 2;
+      }
       // Shield burst: bonus regen when shield is not full (recently hit)
       const burstBonus = this.getSkillBonus('sk_shield_burst');
       if (burstBonus > 0 && this.stationShield < this.stationMaxShield * 0.9) {
@@ -5161,13 +5213,21 @@ class Game {
         if (isGun || isBolt) pierceTotal += this.getSkillBonus('sk_hardened') / 100;
         // Bolt/rail: 25% of RoF bonus → extra pierce
         if (isBolt && p.rofPierceBonus) pierceTotal += p.rofPierceBonus;
+        // Bolt/rail: guaranteed 100% base pierce
+        if (isBolt) pierceTotal += 1.0;
         // Multi-barrel: split pierce chance per projectile
         const bSplit = p.barrelSplit || 1;
         if (bSplit > 1) pierceTotal /= bSplit;
 
+        // RoF-Normalisierung: hohe Feuerrate = weniger Pierce/Sys pro Schuss
+        const wDef = p.weaponKey ? WEAPONS[p.weaponKey] : null;
+        const rofNorm = Math.max(1, wDef ? wDef.fireRate : 1);
         // Specialist sys-hit bonus (guns and bolt/rail)
         let sysTotal = this.getTotalBonus('syshit');
         if (isGun || isBolt) sysTotal += this.getSkillBonus('sk_sys_guns');
+        // Normalisiere Pierce und Syshit durch RoF
+        if (!isBolt) pierceTotal /= rofNorm; // Bolt/Rail haben garantierte Pierce, nicht normalisieren
+        sysTotal /= rofNorm;
         // Multi-barrel: split sys chance per projectile
         if (bSplit > 1) sysTotal /= bSplit;
 
@@ -6654,10 +6714,11 @@ class Game {
     }
     ctx.globalAlpha = 1;
 
-    // Damage numbers
-    if (this.dmgNumScale > 0) {
+    // Damage numbers (Loot-Texte immer sichtbar, Schadenszahlen per Slider)
+    {
       for (const d of this.damageNumbers) {
-        const alpha = d.life / d.maxLife * this.dmgNumScale;
+        const alpha = d.life / d.maxLife * (d.isLoot ? 1.0 : this.dmgNumScale);
+        if (alpha <= 0) continue;
         ctx.globalAlpha = alpha;
         ctx.font = d.isCrit ? 'bold 18px "Share Tech Mono"' : '14px "Share Tech Mono"';
         ctx.fillStyle = d.isLoot ? '#D4A03C' : d.isCrit ? '#FFD700' : '#FF3344';
