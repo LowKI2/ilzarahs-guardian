@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.16.0 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.16.1 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -6735,7 +6735,7 @@ class Game {
       // Hover: show effective attack range (fire arc wedge, brighter)
       if (this.hoveredSlot === slot && slot.building) {
         const b = slot.building;
-        const range = b.range;
+        const range = b.range * (1 + this.getTotalBonus('range') / 100);
         const facingAngle = slot.angle; // outward-facing
         const halfArc = this.getFireArc() / 2;
 
@@ -6770,13 +6770,24 @@ class Game {
   renderBuilding(ctx, slot) {
     const b = slot.building;
 
-    // Range circle during combat
+    // Fire arc during combat (very subtle)
     if (this.state === 'combat') {
+      const range = b.range * (1 + this.getTotalBonus('range') / 100);
+      const facingAngle = slot.angle;
+      const halfArc = this.getFireArc() / 2;
       ctx.beginPath();
-      ctx.arc(slot.x, slot.y, b.range, 0, Math.PI * 2);
-      ctx.strokeStyle = `${b.color}08`;
-      ctx.lineWidth = 1;
+      ctx.moveTo(slot.x, slot.y);
+      ctx.arc(slot.x, slot.y, range, facingAngle - halfArc, facingAngle + halfArc);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(255,51,68,0.015)';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(slot.x, slot.y, range, facingAngle - halfArc, facingAngle + halfArc);
+      ctx.strokeStyle = 'rgba(255,51,68,0.06)';
+      ctx.lineWidth = 0.5;
+      ctx.setLineDash([4, 4]);
       ctx.stroke();
+      ctx.setLineDash([]);
     }
 
     // Draw weapon sprite with CORRECT ASPECT RATIO
