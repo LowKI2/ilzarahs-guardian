@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.16.6 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.16.7 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -6322,7 +6322,30 @@ class Game {
       ctx.fill();
     }
 
-    // Station sprite
+    // Collection drones — rendered UNDER station
+    if (this.collectDrones) {
+      for (const drone of this.collectDrones) {
+        const sz = 3;
+        const pulse = 0.6 + Math.sin(this.gridPulse * 5) * 0.3;
+        ctx.save();
+        ctx.translate(drone.x, drone.y);
+        ctx.beginPath();
+        ctx.arc(0, 0, sz * 2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(68,170,255,${pulse * 0.08})`;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(0, -sz);
+        ctx.lineTo(sz * 0.6, 0);
+        ctx.lineTo(0, sz);
+        ctx.lineTo(-sz * 0.6, 0);
+        ctx.closePath();
+        ctx.fillStyle = drone.carrying ? `rgba(255,215,0,${pulse})` : `rgba(68,170,255,${pulse})`;
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // Station sprite (above drones)
     this.renderStation(ctx);
 
     // Core hover point (center of station)
@@ -6409,34 +6432,6 @@ class Game {
         ctx.beginPath();
         ctx.arc(0, 0, 1.5, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255,220,100,${pulse + 0.3})`;
-        ctx.fill();
-
-        ctx.restore();
-      }
-    }
-
-    // Collection drones — small blue diamonds
-    if (this.collectDrones) {
-      for (const drone of this.collectDrones) {
-        const sz = 3;
-        const pulse = 0.6 + Math.sin(this.gridPulse * 5) * 0.3;
-        ctx.save();
-        ctx.translate(drone.x, drone.y);
-
-        // Subtle glow
-        ctx.beginPath();
-        ctx.arc(0, 0, sz * 2, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(68,170,255,${pulse * 0.08})`;
-        ctx.fill();
-
-        // Diamond shape
-        ctx.beginPath();
-        ctx.moveTo(0, -sz);
-        ctx.lineTo(sz * 0.6, 0);
-        ctx.lineTo(0, sz);
-        ctx.lineTo(-sz * 0.6, 0);
-        ctx.closePath();
-        ctx.fillStyle = drone.carrying ? `rgba(255,215,0,${pulse})` : `rgba(68,170,255,${pulse})`;
         ctx.fill();
 
         ctx.restore();
@@ -7061,8 +7056,12 @@ class Game {
   renderEnemy(ctx, enemy) {
     const spriteImg = IMAGES.enemies[enemy.tier];
 
+    // Depth scale: enemies above station appear larger (closer), below appear smaller (farther)
+    const yOffset = (this.stationCenter.y - enemy.y) / this.H;
+    const depthScale = 1 + yOffset * 0.25; // ±12.5% at screen edges
+
     if (isDrawable(spriteImg)) {
-      const size = enemy.radius * 2.5;
+      const size = enemy.radius * 2.5 * depthScale;
       ctx.save();
       ctx.translate(enemy.x, enemy.y);
       ctx.rotate(enemy.rotation + Math.PI / 2);
@@ -7095,7 +7094,7 @@ class Game {
     } else {
       // Fallback
       ctx.beginPath();
-      ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
+      ctx.arc(enemy.x, enemy.y, enemy.radius * depthScale, 0, Math.PI * 2);
       const baseColor = enemy.tier >= 3 ? '#FFD700' : '#88FF44';
       ctx.fillStyle = enemy.hitFlash > 0 ? '#FFFFFF' : '#1A2A10';
       ctx.fill();
@@ -7105,10 +7104,11 @@ class Game {
     }
 
     // HP bar
-    const barW = enemy.isBoss ? enemy.radius * 3 : enemy.radius * 2.5;
+    const scaledRadius = enemy.radius * depthScale;
+    const barW = enemy.isBoss ? scaledRadius * 3 : scaledRadius * 2.5;
     const barH = enemy.isBoss ? 5 : 3;
     const barX = enemy.x - barW / 2;
-    const barY = enemy.y - enemy.radius * 1.4 - 6;
+    const barY = enemy.y - scaledRadius * 1.4 - 6;
     const hpRatio = enemy.hp / enemy.maxHP;
 
     ctx.fillStyle = 'rgba(20,24,32,0.7)';
