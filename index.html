@@ -443,19 +443,22 @@ canvas {
 
 /* -- Slot Weapon Dropdown -- */
 #slotMenu {
-  position: absolute;
+  position: fixed;
+  left: 0;
+  top: 48px;
+  bottom: 0;
   display: none;
   flex-direction: column;
   gap: 2px;
-  background: rgba(20,24,32,0.96);
-  border: 1px solid var(--amber-dim);
-  border-radius: 6px;
+  background: rgba(20,24,32,0.97);
+  border-right: 1px solid var(--amber-dim);
   padding: 6px;
   z-index: 25;
-  min-width: 150px;
-  max-width: 200px;
+  width: 140px;
+  max-width: 140px;
   pointer-events: auto;
-  transform: translate(-50%, 8px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 #slotMenu.visible { display: flex; }
@@ -557,22 +560,16 @@ canvas {
 
 @media (max-width: 600px) {
   #slotMenu {
-    position: fixed;
-    left: 8px !important;
-    right: 8px;
-    bottom: 8px !important;
-    top: auto !important;
-    transform: none;
-    min-width: 0;
-    max-width: none;
-    border-radius: 8px;
-    padding: 8px;
+    width: 130px;
+    max-width: 130px;
+    top: 44px;
+    padding: 4px;
   }
 
-  .slot-menu-item { padding: 8px 10px; min-height: 40px; }
-  .slot-menu-item-name { font-size: 12px; }
-  .slot-menu-item-cost { font-size: 10px; }
-  .slot-menu-item img { width: 28px; height: 28px; }
+  .slot-menu-item { padding: 4px 6px; min-height: 32px; }
+  .slot-menu-item-name { font-size: 10px; }
+  .slot-menu-item-cost { font-size: 9px; }
+  .slot-menu-item img { width: 22px; height: 22px; }
 }
 
 /* -- Combat Controls (bottom-right, KAMPF + AUTO) -- */
@@ -2114,7 +2111,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.19.0 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.19.1 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2695,13 +2692,13 @@ const WEAPONS = {
     unlock: 'railgun', chargeTime: 1.5,
   },
   laser: {
-    name: "Laser", cost: 55, energyCost: 25, range: 180, fireRate: 30, damage: 0.35, projSpeed: 0,
+    name: "Laser", cost: 55, energyCost: 25, range: 180, fireRate: 30, damage: 1.7, projSpeed: 0,
     color: "#FF3333", desc: "Dauerfeuer-Laser (−50% Schildregen)", sprite: 'laser',
     projSize: 0, projColor: '#FF3333', splashRadius: 0,
     unlock: 'laser', isLaser: true, laserBeams: 1, shieldRegenDrain: 0.50,
   },
   doublelaser: {
-    name: "Doppellaser", cost: 95, energyCost: 40, range: 180, fireRate: 30, damage: 0.35, projSpeed: 0,
+    name: "Doppellaser", cost: 95, energyCost: 40, range: 180, fireRate: 30, damage: 1.7, projSpeed: 0,
     color: "#FF4444", desc: "Dualer Dauerfeuer-Laser (−75% Schildregen)", sprite: 'doublelaser',
     projSize: 0, projColor: '#FF4444', splashRadius: 0,
     unlock: 'doublelaser', isLaser: true, laserBeams: 2, shieldRegenDrain: 0.75,
@@ -4390,8 +4387,6 @@ class Game {
     const rect = this.canvas.getBoundingClientRect();
     const sx = slot.x * (rect.width / this.W) + rect.left;
     const sy = slot.y * (rect.height / this.H) + rect.top;
-    menu.style.left = sx + 'px';
-    menu.style.top = (sy + 20) + 'px';
     menu.classList.add('visible');
 
     // Close on outside click — but don't consume the event so slots still work
@@ -5000,6 +4995,8 @@ class Game {
         turret.laserTarget = null;
         if (nearestEnemy) {
           turret.laserTarget = nearestEnemy;
+          // Laser aims instantly at target
+          turret.barrelAngle = Math.atan2(nearestEnemy.y - slot.y, nearestEnemy.x - slot.x);
           const rofMult = 1 + this.getTotalBonus('rof') / 100;
           const finalDmg = turret.damage * (1 + this.station.dmgBonus) * (1 + this.getTotalBonus('dmg') / 100);
           const tickDmg = finalDmg * rofMult * dt;
