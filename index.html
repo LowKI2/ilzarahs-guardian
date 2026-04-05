@@ -2380,6 +2380,11 @@ const ASSET_PATHS = {
     'assets/sprites/enemies/wreck4.png',
     'assets/sprites/enemies/wreck5.png',
   ],
+  drones: {
+    sammeldrone: 'assets/sprites/drones/sammeldrone.png',
+    repairdrohne: 'assets/sprites/drones/repairdrohne.png',
+  },
+  mine: 'assets/sprites/mine.png',
   fx: {
     explosionSheet: 'assets/fx/explosionship_grid.png',
     muzzleSheet: 'assets/fx/muzzle.png',
@@ -2457,6 +2462,12 @@ function prepareSpriteCache() {
   for (const key of Object.keys(IMAGES.weapons)) {
     IMAGES.weapons[key] = downsampleSprite(IMAGES.weapons[key], 128);
   }
+  // Drone sprites: rendered at ~28px → cache at 128px
+  for (const key of Object.keys(IMAGES.drones)) {
+    IMAGES.drones[key] = downsampleSprite(IMAGES.drones[key], 128);
+  }
+  // Mine sprite: rendered at ~20px → cache at 128px
+  IMAGES.mine = downsampleSprite(IMAGES.mine, 128);
 }
 
 function loadAssets() {
@@ -2523,6 +2534,24 @@ function loadAssets() {
       img.src = path;
       IMAGES.wrecks[i] = img;
     });
+
+    // Drone sprites
+    IMAGES.drones = {};
+    for (const [key, path] of Object.entries(ASSET_PATHS.drones)) {
+      total++;
+      const img = new Image();
+      img.onload = onLoad;
+      img.onerror = onLoad;
+      img.src = path;
+      IMAGES.drones[key] = img;
+    }
+
+    // Mine sprite
+    total++;
+    IMAGES.mine = new Image();
+    IMAGES.mine.onload = onLoad;
+    IMAGES.mine.onerror = onLoad;
+    IMAGES.mine.src = ASSET_PATHS.mine;
 
     // FX sprites
     IMAGES.fx = {};
@@ -5836,6 +5865,7 @@ class Game {
           x: this.stationCenter.x, y: this.stationCenter.y,
           targetWreck: w, state: 'collecting', speed: 160,
           carrying: null,
+          angle: 0,
         });
       }
       for (let i = this.collectDrones.length - 1; i >= 0; i--) {
@@ -5856,6 +5886,7 @@ class Game {
           } else {
             const spd = drone.speed * dt;
             drone.x += (ddx / dd) * spd; drone.y += (ddy / dd) * spd;
+            drone.angle = Math.atan2(ddy, ddx);
           }
         } else if (drone.state === 'returning') {
           const ddx = this.stationCenter.x - drone.x, ddy = this.stationCenter.y - drone.y;
@@ -5870,6 +5901,7 @@ class Game {
           } else {
             const spd = drone.speed * dt;
             drone.x += (ddx / dd) * spd; drone.y += (ddy / dd) * spd;
+            drone.angle = Math.atan2(ddy, ddx);
           }
         }
       }
@@ -6310,23 +6342,34 @@ class Game {
 
     // Collection drones — rendered UNDER station
     if (this.collectDrones) {
+      const droneImg = IMAGES.drones && IMAGES.drones.sammeldrone;
       for (const drone of this.collectDrones) {
-        const sz = 3;
+        const sz = 28;
         const pulse = 0.6 + Math.sin(this.gridPulse * 5) * 0.3;
         ctx.save();
         ctx.translate(drone.x, drone.y);
-        ctx.beginPath();
-        ctx.arc(0, 0, sz * 2, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(68,170,255,${pulse * 0.08})`;
-        ctx.fill();
-        ctx.beginPath();
-        ctx.moveTo(0, -sz);
-        ctx.lineTo(sz * 0.6, 0);
-        ctx.lineTo(0, sz);
-        ctx.lineTo(-sz * 0.6, 0);
-        ctx.closePath();
-        ctx.fillStyle = drone.carrying ? `rgba(255,215,0,${pulse})` : `rgba(68,170,255,${pulse})`;
-        ctx.fill();
+        // Sprite front is at the bottom (angle π/2), rotate so front faces flight direction
+        ctx.rotate(drone.angle - Math.PI / 2);
+        if (isDrawable(droneImg)) {
+          // Tint golden when carrying loot
+          if (drone.carrying) {
+            ctx.filter = 'sepia(1) saturate(3) hue-rotate(10deg) brightness(1.2)';
+          }
+          ctx.globalAlpha = 0.92;
+          ctx.drawImage(droneImg, -sz / 2, -sz / 2, sz, sz);
+          ctx.filter = 'none';
+          ctx.globalAlpha = 1;
+        } else {
+          // Fallback diamond
+          ctx.beginPath();
+          ctx.moveTo(0, -sz * 0.15);
+          ctx.lineTo(sz * 0.1, 0);
+          ctx.lineTo(0, sz * 0.15);
+          ctx.lineTo(-sz * 0.1, 0);
+          ctx.closePath();
+          ctx.fillStyle = drone.carrying ? `rgba(255,215,0,${pulse})` : `rgba(68,170,255,${pulse})`;
+          ctx.fill();
+        }
         ctx.restore();
       }
     }
@@ -6393,11 +6436,12 @@ class Game {
 
     // Mines
     if (this.mines) {
+      const mineImg = IMAGES.mine;
       for (const mine of this.mines) {
         if (!mine.alive) continue;
         mine.pulsePhase += 0.05;
         const pulse = 0.4 + Math.sin(mine.pulsePhase) * 0.2;
-        const sz = 5;
+        const sz = 22;
 
         ctx.save();
         ctx.translate(mine.x, mine.y);
@@ -6409,24 +6453,32 @@ class Game {
         ctx.lineWidth = 0.5;
         ctx.stroke();
 
-        // Mine body — diamond shape
-        ctx.beginPath();
-        ctx.moveTo(0, -sz);
-        ctx.lineTo(sz * 0.7, 0);
-        ctx.lineTo(0, sz);
-        ctx.lineTo(-sz * 0.7, 0);
-        ctx.closePath();
-        ctx.fillStyle = `rgba(255,80,30,${pulse})`;
-        ctx.fill();
-        ctx.strokeStyle = '#FF5020';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-
-        // Center dot
-        ctx.beginPath();
-        ctx.arc(0, 0, 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,220,100,${pulse + 0.3})`;
-        ctx.fill();
+        // Mine body — sprite with slow spin
+        ctx.rotate(mine.pulsePhase * 0.12);
+        if (isDrawable(mineImg)) {
+          ctx.globalAlpha = 0.85 + pulse * 0.1;
+          ctx.drawImage(mineImg, -sz / 2, -sz / 2, sz, sz);
+          ctx.globalAlpha = 1;
+          // Danger glow overlay
+          ctx.beginPath();
+          ctx.arc(0, 0, sz * 0.45, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(255,80,30,${pulse * 0.5})`;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        } else {
+          // Fallback diamond
+          ctx.beginPath();
+          ctx.moveTo(0, -sz * 0.25);
+          ctx.lineTo(sz * 0.18, 0);
+          ctx.lineTo(0, sz * 0.25);
+          ctx.lineTo(-sz * 0.18, 0);
+          ctx.closePath();
+          ctx.fillStyle = `rgba(255,80,30,${pulse})`;
+          ctx.fill();
+          ctx.strokeStyle = '#FF5020';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
 
         ctx.restore();
       }
