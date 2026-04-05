@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.16.5 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.16.6 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -4473,18 +4473,9 @@ class Game {
       }
     }
 
-    // Spawn collection drone if unlocked
+    // Collection drones — spawned dynamically per wreck (max 10)
     this.collectDrones = [];
-    if (this.unlockedTech.has('drone')) {
-      this.collectDrones.push({
-        x: this.stationCenter.x,
-        y: this.stationCenter.y,
-        targetWreck: null,
-        state: 'idle', // idle, collecting, returning
-        speed: 150,
-        carrying: null, // { vsuReward, epGain }
-      });
-    }
+    this._droneUnlocked = this.unlockedTech.has('drone');
 
     // Treasure ships — spawn as bonus wrecks
     // VSU-Frachter: before boss waves (every 10)
@@ -4742,71 +4733,64 @@ class Game {
       }
     }
 
-    // Collection drones — fly to wrecks, collect, return
-    if (this.collectDrones) {
-      for (const drone of this.collectDrones) {
-        if (drone.state === 'idle') {
-          // Find nearest unlooted wreck
-          let nearest = null;
-          let nearestDist = Infinity;
-          for (const w of this.wrecks) {
-            if (w.looted || w.delay > 0 || w._droneTarget) continue;
-            const dx = w.x - drone.x;
-            const dy = w.y - drone.y;
-            const d = Math.sqrt(dx * dx + dy * dy);
-            if (d < nearestDist) { nearestDist = d; nearest = w; }
-          }
-          if (nearest) {
-            drone.targetWreck = nearest;
-            nearest._droneTarget = true;
-            drone.state = 'collecting';
-          }
-        } else if (drone.state === 'collecting') {
+    // Collection drones — spawn one per untagged wreck, max 10
+    if (this._droneUnlocked) {
+      // Spawn new drones for untagged wrecks
+      for (const w of this.wrecks) {
+        if (w.looted || w.delay > 0 || w._droneTarget) continue;
+        if (this.collectDrones.length >= 10) break;
+        w._droneTarget = true;
+        this.collectDrones.push({
+          x: this.stationCenter.x, y: this.stationCenter.y,
+          targetWreck: w, state: 'collecting', speed: 160,
+          carrying: null,
+        });
+      }
+
+      // Update active drones
+      for (let i = this.collectDrones.length - 1; i >= 0; i--) {
+        const drone = this.collectDrones[i];
+        if (drone.state === 'collecting') {
           const w = drone.targetWreck;
           if (!w || w.looted || w.life <= 0) {
-            drone.state = 'idle';
-            drone.targetWreck = null;
+            this.collectDrones.splice(i, 1);
             continue;
           }
           const dx = w.x - drone.x;
           const dy = w.y - drone.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < 8) {
-            // Collect wreck
             w.looted = true;
             const wrackVsuB = 1 + this.getSkillBonus('sk_wrack_vsu') / 100;
             const wrackEpB = 1 + this.getSkillBonus('sk_wrack_ep') / 100;
             drone.carrying = { vsu: Math.floor(w.vsuReward * wrackVsuB), ep: Math.floor((w.epReward || 1) * wrackEpB) };
             drone.targetWreck = null;
             drone.state = 'returning';
-            // Loot particles at wreck
-            for (let i = 0; i < 4; i++) {
-              this.particles.push({ x: w.x, y: w.y, vx: (Math.random()-0.5)*60, vy: (Math.random()-0.5)*60, life: 0.4, maxLife: 0.4, color: '#44AAFF', size: 2 });
+            for (let j = 0; j < 3; j++) {
+              this.particles.push({ x: w.x, y: w.y, vx: (Math.random()-0.5)*50, vy: (Math.random()-0.5)*50, life: 0.3, maxLife: 0.3, color: '#44AAFF', size: 1.5 });
             }
           } else {
-            const speed = drone.speed * dt;
-            drone.x += (dx / dist) * speed;
-            drone.y += (dy / dist) * speed;
+            const spd = drone.speed * dt;
+            drone.x += (dx / dist) * spd;
+            drone.y += (dy / dist) * spd;
           }
         } else if (drone.state === 'returning') {
           const dx = this.stationCenter.x - drone.x;
           const dy = this.stationCenter.y - drone.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < 20) {
-            // Deliver loot
             if (drone.carrying) {
               this.vsu += drone.carrying.vsu;
               this.ep += drone.carrying.ep;
               this.totalEP += drone.carrying.ep;
               this.saveEP();
-              this.damageNumbers.push({ x: this.stationCenter.x, y: this.stationCenter.y - 25, value: `+${drone.carrying.vsu} VSU`, life: 1.0, maxLife: 1.0, isCrit: false, isLoot: true });
-              drone.carrying = null;
+              this.damageNumbers.push({ x: this.stationCenter.x + (Math.random()-0.5)*20, y: this.stationCenter.y - 25, value: `+${drone.carrying.vsu} VSU`, life: 1.0, maxLife: 1.0, isCrit: false, isLoot: true });
             }
-            drone.state = 'idle';
+            this.collectDrones.splice(i, 1); // drone done, remove
           } else {
-            const speed = drone.speed * dt;
-            drone.x += (dx / dist) * speed;
-            drone.y += (dy / dist) * speed;
+            const spd = drone.speed * dt;
+            drone.x += (dx / dist) * spd;
+            drone.y += (dy / dist) * spd;
           }
         }
       }
@@ -6431,40 +6415,29 @@ class Game {
       }
     }
 
-    // Collection drones — blue diamonds
+    // Collection drones — small blue diamonds
     if (this.collectDrones) {
       for (const drone of this.collectDrones) {
-        const sz = 5;
-        const pulse = 0.7 + Math.sin(this.gridPulse * 4) * 0.3;
+        const sz = 3;
+        const pulse = 0.6 + Math.sin(this.gridPulse * 5) * 0.3;
         ctx.save();
         ctx.translate(drone.x, drone.y);
 
-        // Trail glow
+        // Subtle glow
         ctx.beginPath();
         ctx.arc(0, 0, sz * 2, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(68,170,255,${pulse * 0.1})`;
+        ctx.fillStyle = `rgba(68,170,255,${pulse * 0.08})`;
         ctx.fill();
 
         // Diamond shape
         ctx.beginPath();
         ctx.moveTo(0, -sz);
-        ctx.lineTo(sz * 0.7, 0);
+        ctx.lineTo(sz * 0.6, 0);
         ctx.lineTo(0, sz);
-        ctx.lineTo(-sz * 0.7, 0);
+        ctx.lineTo(-sz * 0.6, 0);
         ctx.closePath();
-        ctx.fillStyle = `rgba(68,170,255,${pulse})`;
+        ctx.fillStyle = drone.carrying ? `rgba(255,215,0,${pulse})` : `rgba(68,170,255,${pulse})`;
         ctx.fill();
-        ctx.strokeStyle = '#88CCFF';
-        ctx.lineWidth = 0.8;
-        ctx.stroke();
-
-        // Carrying indicator
-        if (drone.carrying) {
-          ctx.beginPath();
-          ctx.arc(0, 0, 2, 0, Math.PI * 2);
-          ctx.fillStyle = '#FFD700';
-          ctx.fill();
-        }
 
         ctx.restore();
       }
