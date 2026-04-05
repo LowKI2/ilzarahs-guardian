@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.16.9 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.17.0 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -6331,10 +6331,15 @@ class Game {
       }
     }
 
-    // Enemies BEHIND station (below center — flying "under")
-    const stationR = this.getStationSpriteSize() * 0.5;
+    // Enemies BEHIND station (moving away from center = passed through)
+    const stationR = this.getStationSpriteSize() * 0.45;
     for (const enemy of this.enemies) {
-      if (enemy.y > this.stationCenter.y) this.renderEnemy(ctx, enemy);
+      const edx = enemy.x - this.stationCenter.x;
+      const edy = enemy.y - this.stationCenter.y;
+      const eDist = Math.sqrt(edx * edx + edy * edy);
+      // Inside station area AND moving away = behind
+      const movingAway = eDist < stationR && (edx * Math.cos(enemy.rotation) + edy * Math.sin(enemy.rotation)) > 0;
+      if (movingAway) this.renderEnemy(ctx, enemy);
     }
 
     // Station sprite (above drones and behind-enemies)
@@ -6430,9 +6435,13 @@ class Game {
       }
     }
 
-    // Enemies IN FRONT of station (above center — flying "over")
+    // Enemies IN FRONT of station (not rendered behind)
     for (const enemy of this.enemies) {
-      if (enemy.y <= this.stationCenter.y) this.renderEnemy(ctx, enemy);
+      const edx = enemy.x - this.stationCenter.x;
+      const edy = enemy.y - this.stationCenter.y;
+      const eDist = Math.sqrt(edx * edx + edy * edy);
+      const movingAway = eDist < stationR && (edx * Math.cos(enemy.rotation) + edy * Math.sin(enemy.rotation)) > 0;
+      if (!movingAway) this.renderEnemy(ctx, enemy);
     }
 
     // Enemy projectiles — TRACER style
@@ -7048,18 +7057,19 @@ class Game {
   renderEnemy(ctx, enemy) {
     const spriteImg = IMAGES.enemies[enemy.tier];
 
-    // Depth scale: smooth transition near station area
+    // Depth scale: based on flight direction through station
     const dx = enemy.x - this.stationCenter.x;
     const dy = enemy.y - this.stationCenter.y;
     const distToStation = Math.sqrt(dx * dx + dy * dy);
-    const stationSize = this.getStationSpriteSize() * 0.7;
+    const stationSize = this.getStationSpriteSize() * 0.5;
     let depthScale = 1;
     if (distToStation < stationSize) {
-      // Smooth ease-in-out: cubic curve for gradual transition
       const t = 1 - distToStation / stationSize; // 0 at edge, 1 at center
       const eased = t * t * (3 - 2 * t); // smoothstep
-      const yNorm = dy / (stationSize || 1); // -1 to 1, negative=above
-      depthScale = 1 + yNorm * eased * -0.25; // above=bigger, below=smaller
+      // Use dot product: moving away from center = behind (smaller)
+      const dot = dx * Math.cos(enemy.rotation) + dy * Math.sin(enemy.rotation);
+      const dir = dot > 0 ? -1 : 1; // approaching=bigger, leaving=smaller
+      depthScale = 1 + dir * eased * 0.2;
     }
 
     if (isDrawable(spriteImg)) {
