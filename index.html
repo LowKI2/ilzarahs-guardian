@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.16.4 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.16.5 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2724,6 +2724,12 @@ const SKILL_TREE = {
   sk_repair_eff:{ name: 'Reparatureffizienz', desc: '+1% Reparatur-Menge',          cat: 'resource', type: 'small', perLevel: 1,  baseCost: 10, costStep: 5,  requires: [] },
   sk_repair_cost:{ name: 'Reparaturkosten', desc: '-2 VSU Reparaturkosten',         cat: 'resource', type: 'small', perLevel: 2,  baseCost: 10, costStep: 5,  requires: [] },
   sk_start_vsu:{ name: 'Startkapital',   desc: '+25 Start-VSU pro Stufe',            cat: 'resource', type: 'small', perLevel: 25, baseCost: 10, costStep: 5,  requires: [] },
+
+  // --- RESOURCE SPECIALISTS ---
+  sk_treasure_vsu: { name: 'VSU-Frachter',    desc: 'Schatzschiff vor Bosswellen (+VSU)', cat: 'resource', type: 'medium', perLevel: 1, baseCost: 30, costStep: 15, parentStat: 'sk_vsu_wave', requires: [], maxLevel: 1 },
+  sk_treasure_ep:  { name: 'EP-Frachter',     desc: 'EP-Schiff alle 15 Wellen',           cat: 'resource', type: 'medium', perLevel: 1, baseCost: 35, costStep: 15, parentStat: 'sk_ep_wave', requires: [], maxLevel: 1 },
+  sk_wrack_vsu:    { name: 'Wrack-Plünderung',desc: '+15% VSU aus Wracks pro Stufe',      cat: 'resource', type: 'medium', perLevel: 15, baseCost: 20, costStep: 10, parentStat: 'sk_vsu_kill', requires: [] },
+  sk_wrack_ep:     { name: 'Wrack-Analyse',   desc: '+10% EP aus Wracks pro Stufe',       cat: 'resource', type: 'medium', perLevel: 10, baseCost: 25, costStep: 12, parentStat: 'sk_ep_kill', requires: [] },
 
   // --- FREISCHALTUNGEN — Reihenfolge: Rocket T1 → Bolt → Gun T2 → Laser → (mk2: Rocket T2, Gun T3) → (Nexus: Rail, Doublelaser) ---
   sk_mines:      { name: 'Annäherungsminen', desc: '3 Minen um die Station',     cat: 'unlock', type: 'big', cost: 20,  unlocks: 'mines', requires: [], waveReq: 5, epReqCat: 'defense', epReqAmount: 10 },
@@ -4479,6 +4485,39 @@ class Game {
         carrying: null, // { vsuReward, epGain }
       });
     }
+
+    // Treasure ships — spawn as bonus wrecks
+    // VSU-Frachter: before boss waves (every 10)
+    if (this.isBossWave && this.getSkillBonus('sk_treasure_vsu') > 0) {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = Math.max(this.W, this.H) * 0.4;
+      const rew = this.getRewardMult();
+      this.wrecks.push({
+        x: this.stationCenter.x + Math.cos(angle) * dist,
+        y: this.stationCenter.y + Math.sin(angle) * dist,
+        rotation: Math.random() * Math.PI * 2,
+        tier: 3, delay: 0, spawnAge: 0,
+        life: 12.0, maxLife: 12.0, looted: false,
+        vsuReward: Math.floor((50 + this.wave * 5) * rew),
+        isTreasure: true,
+      });
+      this.showBanner(`WELLE ${this.wave} — BOSSWELLE! (Frachter gesichtet)`);
+    }
+    // EP-Frachter: every 15/25/35... waves
+    if (this.wave >= 15 && (this.wave - 15) % 10 === 0 && this.getSkillBonus('sk_treasure_ep') > 0) {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = Math.max(this.W, this.H) * 0.35;
+      this.wrecks.push({
+        x: this.stationCenter.x + Math.cos(angle) * dist,
+        y: this.stationCenter.y + Math.sin(angle) * dist,
+        rotation: Math.random() * Math.PI * 2,
+        tier: 3, delay: 0, spawnAge: 0,
+        life: 12.0, maxLife: 12.0, looted: false,
+        vsuReward: 10,
+        epReward: Math.floor(5 + this.wave * 0.5),
+        isTreasure: true,
+      });
+    }
   }
 
   // Difficulty & reward scaling based on station tier
@@ -4735,7 +4774,9 @@ class Game {
           if (dist < 8) {
             // Collect wreck
             w.looted = true;
-            drone.carrying = { vsu: w.vsuReward, ep: 1 };
+            const wrackVsuB = 1 + this.getSkillBonus('sk_wrack_vsu') / 100;
+            const wrackEpB = 1 + this.getSkillBonus('sk_wrack_ep') / 100;
+            drone.carrying = { vsu: Math.floor(w.vsuReward * wrackVsuB), ep: Math.floor((w.epReward || 1) * wrackEpB) };
             drone.targetWreck = null;
             drone.state = 'returning';
             // Loot particles at wreck
@@ -7314,8 +7355,10 @@ class Game {
         const hitRadius = this.isMobile ? 25 : 18;
         if (dx * dx + dy * dy < hitRadius * hitRadius) {
           w.looted = true;
-          const epGain = 1;
-          const vsuGain = w.vsuReward;
+          const wrackVsuBonus = 1 + this.getSkillBonus('sk_wrack_vsu') / 100;
+          const wrackEpBonus = 1 + this.getSkillBonus('sk_wrack_ep') / 100;
+          const epGain = Math.floor((w.epReward || 1) * wrackEpBonus);
+          const vsuGain = Math.floor(w.vsuReward * wrackVsuBonus);
           this.ep += epGain;
           this.totalEP += epGain;
           this.vsu += vsuGain;
