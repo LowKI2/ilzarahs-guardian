@@ -2111,7 +2111,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.19.1 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.19.2 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -7180,9 +7180,12 @@ class Game {
         ctx.shadowBlur = 6;
         ctx.shadowColor = 'rgba(80,160,255,0.35)';
       }
-      // Pivot offset: new weapons have turret base further back
-      const isBoltType = b.weaponKey === 'boltgun' || b.weaponKey === 'railgun' || b.weaponKey === 'laser' || b.weaponKey === 'doublelaser';
-      const pivotX = isBoltType ? -drawW * 0.15 : -drawW / 2; // shift pivot toward rear
+      // Pivot offset: align rotation center with turret base
+      const isBoltType = b.weaponKey === 'boltgun' || b.weaponKey === 'railgun';
+      const isLaserType = b.weaponKey === 'laser' || b.weaponKey === 'doublelaser';
+      let pivotX = -drawW / 2; // default: center
+      if (isBoltType) pivotX = -drawW * 0.35;
+      else if (isLaserType) pivotX = -drawW * 0.38;
       ctx.drawImage(spriteImg, pivotX, -drawH/2, drawW, drawH);
       ctx.restore();
     } else {
@@ -7237,7 +7240,7 @@ class Game {
 
     // Laser beam rendering (red line from muzzle to target)
     if (wDef.isLaser && b.laserTarget && this.state === 'combat') {
-      const muzzleDist = (this.isMobile ? 36 : 42) * 0.5;
+      const muzzleDist = (this.isMobile ? 36 : 42) * 0.8; // longer barrel
       const mx = slot.x + Math.cos(b.barrelAngle) * muzzleDist;
       const my = slot.y + Math.sin(b.barrelAngle) * muzzleDist;
       const tx = b.laserTarget.x;
