@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.16.1 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.16.2 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -6704,32 +6704,13 @@ class Game {
         const facingAngle = slot.angle;
         const halfArc = this.getFireArc() / 2;
 
-        // Subtle filled arc area
+        // Subtle filled arc area only
         ctx.beginPath();
         ctx.moveTo(slot.x, slot.y);
         ctx.arc(slot.x, slot.y, range, facingAngle - halfArc, facingAngle + halfArc);
         ctx.closePath();
-        ctx.fillStyle = 'rgba(255,51,68,0.03)';
+        ctx.fillStyle = 'rgba(255,51,68,0.02)';
         ctx.fill();
-
-        // Dashed arc border
-        ctx.beginPath();
-        ctx.arc(slot.x, slot.y, range, facingAngle - halfArc, facingAngle + halfArc);
-        ctx.strokeStyle = 'rgba(255,51,68,0.12)';
-        ctx.lineWidth = 1;
-        ctx.setLineDash([5, 4]);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // Side lines
-        ctx.beginPath();
-        ctx.moveTo(slot.x, slot.y);
-        ctx.lineTo(slot.x + Math.cos(facingAngle - halfArc) * range, slot.y + Math.sin(facingAngle - halfArc) * range);
-        ctx.moveTo(slot.x, slot.y);
-        ctx.lineTo(slot.x + Math.cos(facingAngle + halfArc) * range, slot.y + Math.sin(facingAngle + halfArc) * range);
-        ctx.strokeStyle = 'rgba(255,51,68,0.08)';
-        ctx.lineWidth = 1;
-        ctx.stroke();
       }
 
       // Hover: show effective attack range (fire arc wedge, brighter)
@@ -6770,7 +6751,7 @@ class Game {
   renderBuilding(ctx, slot) {
     const b = slot.building;
 
-    // Fire arc during combat (very subtle)
+    // Fire arc during combat (very subtle, no dash for performance)
     if (this.state === 'combat') {
       const range = b.range * (1 + this.getTotalBonus('range') / 100);
       const facingAngle = slot.angle;
@@ -6779,15 +6760,8 @@ class Game {
       ctx.moveTo(slot.x, slot.y);
       ctx.arc(slot.x, slot.y, range, facingAngle - halfArc, facingAngle + halfArc);
       ctx.closePath();
-      ctx.fillStyle = 'rgba(255,51,68,0.015)';
+      ctx.fillStyle = 'rgba(255,51,68,0.01)';
       ctx.fill();
-      ctx.beginPath();
-      ctx.arc(slot.x, slot.y, range, facingAngle - halfArc, facingAngle + halfArc);
-      ctx.strokeStyle = 'rgba(255,51,68,0.06)';
-      ctx.lineWidth = 0.5;
-      ctx.setLineDash([4, 4]);
-      ctx.stroke();
-      ctx.setLineDash([]);
     }
 
     // Draw weapon sprite with CORRECT ASPECT RATIO
