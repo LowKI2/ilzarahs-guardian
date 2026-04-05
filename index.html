@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.16.2 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.16.3 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -6698,7 +6698,7 @@ class Game {
       }
 
       // Build phase: always show fire arc for placed weapons
-      if (this.state === 'build' && slot.building && slot.building.range && this.hoveredSlot !== slot) {
+      if (this.state === 'build' && slot.building && slot.building.range && this.hoveredSlot !== slot && this._menuSlot !== slot) {
         const b = slot.building;
         const range = b.range * (1 + this.getTotalBonus('range') / 100);
         const facingAngle = slot.angle;
@@ -6711,6 +6711,27 @@ class Game {
         ctx.closePath();
         ctx.fillStyle = 'rgba(255,51,68,0.02)';
         ctx.fill();
+      }
+
+      // Selected slot (menu open): highlight arc in cyan
+      if (this._menuSlot === slot && slot.building && slot.building.range) {
+        const b = slot.building;
+        const range = b.range * (1 + this.getTotalBonus('range') / 100);
+        const facingAngle = slot.angle;
+        const halfArc = this.getFireArc() / 2;
+
+        ctx.beginPath();
+        ctx.moveTo(slot.x, slot.y);
+        ctx.arc(slot.x, slot.y, range, facingAngle - halfArc, facingAngle + halfArc);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(0,180,220,0.06)';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(slot.x, slot.y, range, facingAngle - halfArc, facingAngle + halfArc);
+        ctx.strokeStyle = 'rgba(0,180,220,0.3)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
       }
 
       // Hover: show effective attack range (fire arc wedge, brighter)
