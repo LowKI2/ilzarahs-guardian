@@ -4506,6 +4506,21 @@ class Game {
     this.collectDrones = [];
     this._droneUnlocked = this.unlockedTech.has('drone');
 
+    // Repair drones (visual) — orbit station when HP < max
+    this.repairDrones = [];
+    const rdCount = Math.max(1, Math.min(4, 1 + Math.floor(this.getSkillBonus('sk_reserve') / 40)));
+    const rdBaseR = this.getStationSpriteSize() * 0.34;
+    for (let i = 0; i < rdCount; i++) {
+      this.repairDrones.push({
+        angle: (i / rdCount) * Math.PI * 2 + Math.random() * 0.5,
+        orbitR: rdBaseR + Math.random() * rdBaseR * 0.18,
+        speed: (0.6 + Math.random() * 0.5) * (i % 2 === 0 ? 1 : -1),
+        weldTimer: Math.random() * 2,
+        weldInterval: 1.5 + Math.random() * 2.5,
+        weldFlash: 0,
+      });
+    }
+
     // Treasure ships — spawn as bonus wrecks
     // VSU-Frachter: before boss waves (every 10)
     if (this.isBossWave && this.getSkillBonus('sk_treasure_vsu') > 0) {
@@ -4801,6 +4816,33 @@ class Game {
         repairRate *= 2;
       }
       this.stationHP = Math.min(this.stationMaxHP, this.stationHP + repairRate * dt);
+    }
+
+    // Visual repair drones — orbit + welding sparks when HP < max
+    if (this.repairDrones && this.stationHP > 0 && this.stationHP < this.stationMaxHP) {
+      for (const rd of this.repairDrones) {
+        rd.angle += rd.speed * dt;
+        if (rd.weldFlash > 0) rd.weldFlash -= dt;
+        rd.weldTimer -= dt;
+        if (rd.weldTimer <= 0) {
+          rd.weldTimer = rd.weldInterval + Math.random() * 1;
+          rd.weldFlash = 0.14;
+          const wx = this.stationCenter.x + Math.cos(rd.angle) * rd.orbitR;
+          const wy = this.stationCenter.y + Math.sin(rd.angle) * rd.orbitR;
+          for (let k = 0; k < 5; k++) {
+            const sa = Math.random() * Math.PI * 2;
+            const sv = 25 + Math.random() * 55;
+            this.particles.push({
+              x: wx, y: wy,
+              vx: Math.cos(sa) * sv, vy: Math.sin(sa) * sv,
+              life: 0.12 + Math.random() * 0.18,
+              maxLife: 0.3,
+              color: Math.random() < 0.55 ? '#FFFFFF' : '#88CCFF',
+              size: 1 + Math.random() * 0.8,
+            });
+          }
+        }
+      }
     }
 
     // Station damage smoke/fire particles — fine, numerous
@@ -6391,6 +6433,47 @@ class Game {
     // Slots
     this.renderSlots(ctx);
 
+    // Repair drones — rendered above station when HP < max during combat
+    if (this.repairDrones && this.state === 'combat' && this.stationHP < this.stationMaxHP) {
+      const rdImg = IMAGES.drones && IMAGES.drones.repairdrohne;
+      for (const rd of this.repairDrones) {
+        const rx = this.stationCenter.x + Math.cos(rd.angle) * rd.orbitR;
+        const ry = this.stationCenter.y + Math.sin(rd.angle) * rd.orbitR;
+        const sz = 16;
+        ctx.save();
+        ctx.translate(rx, ry);
+        // Face toward station center
+        ctx.rotate(rd.angle + Math.PI);
+        if (isDrawable(rdImg)) {
+          ctx.globalAlpha = 0.88;
+          ctx.drawImage(rdImg, -sz / 2, -sz / 2, sz, sz);
+          ctx.globalAlpha = 1;
+        }
+        // Welding flash — random lightning streaks
+        if (rd.weldFlash > 0) {
+          const fi = rd.weldFlash / 0.14;
+          ctx.globalAlpha = fi * 0.95;
+          ctx.strokeStyle = '#CCEEFF';
+          ctx.lineWidth = 1;
+          for (let k = 0; k < 4; k++) {
+            const a = Math.random() * Math.PI * 2;
+            const len = 3 + Math.random() * 7;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(a) * len, Math.sin(a) * len);
+            ctx.stroke();
+          }
+          // Bright center flash
+          ctx.fillStyle = `rgba(200,235,255,${fi * 0.8})`;
+          ctx.beginPath();
+          ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+        ctx.restore();
+      }
+    }
+
     // Range preview: show range for highlighted slot in menu
     if (this.state === 'build' && this._menuSlot) {
       const slot = this._menuSlot;
@@ -6465,6 +6548,20 @@ class Game {
           ctx.strokeStyle = `rgba(255,80,30,${pulse * 0.5})`;
           ctx.lineWidth = 1.5;
           ctx.stroke();
+          // Blinking red warning light (rotates with mine body)
+          const blink = (Math.sin(mine.pulsePhase * 8) + 1) * 0.5;
+          const dotY = -sz * 0.18;
+          const grd = ctx.createRadialGradient(0, dotY, 0, 0, dotY, 5);
+          grd.addColorStop(0, `rgba(255,30,30,${0.5 + blink * 0.5})`);
+          grd.addColorStop(1, 'rgba(255,30,30,0)');
+          ctx.fillStyle = grd;
+          ctx.beginPath();
+          ctx.arc(0, dotY, 5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(0, dotY, 2, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255,60,60,${0.6 + blink * 0.4})`;
+          ctx.fill();
         } else {
           // Fallback diamond
           ctx.beginPath();
