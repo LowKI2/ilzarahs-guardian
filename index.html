@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.17.1 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.17.2 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2703,13 +2703,13 @@ const SKILL_TREE = {
 
   // --- DEFENSE ---
   sk_hull:     { name: 'Hülle',          desc: '+5% Station HP pro Stufe',          cat: 'defense',  type: 'small', perLevel: 5,  baseCost: 10, costStep: 5,  requires: [] },
-  sk_shield:   { name: 'Schild',         desc: '+5% Schildkapazität pro Stufe',     cat: 'defense',  type: 'small', perLevel: 5,  baseCost: 10, costStep: 5,  requires: [] },
-  sk_energy:   { name: 'Energie',        desc: '+4% Schildregeneration pro Stufe',  cat: 'defense',  type: 'small', perLevel: 4,  baseCost: 10, costStep: 5,  requires: [] },
+  sk_shield:   { name: 'Schild',         desc: '+8% Schildkapazität pro Stufe',     cat: 'defense',  type: 'small', perLevel: 8,  baseCost: 10, costStep: 5,  requires: [] },
+  sk_energy:   { name: 'Energie',        desc: '+6% Schildregeneration pro Stufe',  cat: 'defense',  type: 'small', perLevel: 6,  baseCost: 10, costStep: 5,  requires: [] },
   sk_reserve:  { name: 'Reparaturdrohnen', desc: '+20% Reparaturdrohnen-Leistung',  cat: 'defense',  type: 'small', perLevel: 20, baseCost: 20, costStep: 10, requires: [] },
 
   // --- DEFENSE SPECIALISTS ---
-  sk_reactive_armor: { name: 'Reaktive Panzerung',  desc: '+10% Schild-Absorption',       cat: 'defense', type: 'medium', perLevel: 10, baseCost: 20, costStep: 10, parentStat: 'sk_shield', requires: [] },
-  sk_shield_burst:   { name: 'Schnellladung',       desc: '+15% Schild-Regen nach Treffer', cat: 'defense', type: 'medium', perLevel: 15, baseCost: 20, costStep: 10, parentStat: 'sk_energy', requires: [] },
+  sk_reactive_armor: { name: 'Reaktive Panzerung',  desc: '+15% Schild-Absorption',       cat: 'defense', type: 'medium', perLevel: 15, baseCost: 20, costStep: 10, parentStat: 'sk_shield', requires: [] },
+  sk_shield_burst:   { name: 'Schnellladung',       desc: '+20% Schild-Regen nach Treffer', cat: 'defense', type: 'medium', perLevel: 20, baseCost: 20, costStep: 10, parentStat: 'sk_energy', requires: [] },
   sk_drone_eff:      { name: 'Drohnen-Effizienz',   desc: 'Rep x2 unter 30% HP',            cat: 'defense', type: 'medium', perLevel: 1,  baseCost: 25, costStep: 12, parentStat: 'sk_reserve', requires: [] },
   sk_hull_armor:     { name: 'Verstärkte Hülle',    desc: '-10% Boss-Enter-Schaden',        cat: 'defense', type: 'medium', perLevel: 10, baseCost: 25, costStep: 12, parentStat: 'sk_hull', requires: [] },
   sk_mine_dmg:       { name: 'Minensprengkraft',   desc: '+20% Minenschaden',              cat: 'defense', type: 'medium', perLevel: 20, baseCost: 20, costStep: 10, parentStat: 'sk_hull', requires: [], needsUnlock: 'mines' },
@@ -3732,8 +3732,8 @@ class Game {
     pierce:    { label: 'Durchschuss',        cat: 'attack',   perLevel: 3 },
     syshit:    { label: 'Systemtreffer',      cat: 'attack',   perLevel: 2 },
     hull:      { label: 'Hülle verstärken',   cat: 'defense',  perLevel: 5 },
-    shield:    { label: 'Schild verstärken',  cat: 'defense',  perLevel: 5 },
-    energy:    { label: 'Energie erhöhen',    cat: 'defense',  perLevel: 4 },
+    shield:    { label: 'Schild verstärken',  cat: 'defense',  perLevel: 8 },
+    energy:    { label: 'Energie erhöhen',    cat: 'defense',  perLevel: 6 },
     reserve:   { label: 'Reparaturdrohnen',    cat: 'defense',  perLevel: 20 },
     energySave:{ label: 'Bauplatz erweitern', cat: 'defense',  perLevel: 5, maxLevel: 6 },
     vsuKill:   { label: 'VSU bei Abschuss',   cat: 'resource', perLevel: 3 },
