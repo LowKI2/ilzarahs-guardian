@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.16.3 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.16.4 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -4466,6 +4466,19 @@ class Game {
         });
       }
     }
+
+    // Spawn collection drone if unlocked
+    this.collectDrones = [];
+    if (this.unlockedTech.has('drone')) {
+      this.collectDrones.push({
+        x: this.stationCenter.x,
+        y: this.stationCenter.y,
+        targetWreck: null,
+        state: 'idle', // idle, collecting, returning
+        speed: 150,
+        carrying: null, // { vsuReward, epGain }
+      });
+    }
   }
 
   // Difficulty & reward scaling based on station tier
@@ -4685,6 +4698,74 @@ class Game {
             this.shakeIntensity = 3;
             playSound('torpedoexplosion');
             break; // one mine per enemy
+          }
+        }
+      }
+    }
+
+    // Collection drones — fly to wrecks, collect, return
+    if (this.collectDrones) {
+      for (const drone of this.collectDrones) {
+        if (drone.state === 'idle') {
+          // Find nearest unlooted wreck
+          let nearest = null;
+          let nearestDist = Infinity;
+          for (const w of this.wrecks) {
+            if (w.looted || w.delay > 0 || w._droneTarget) continue;
+            const dx = w.x - drone.x;
+            const dy = w.y - drone.y;
+            const d = Math.sqrt(dx * dx + dy * dy);
+            if (d < nearestDist) { nearestDist = d; nearest = w; }
+          }
+          if (nearest) {
+            drone.targetWreck = nearest;
+            nearest._droneTarget = true;
+            drone.state = 'collecting';
+          }
+        } else if (drone.state === 'collecting') {
+          const w = drone.targetWreck;
+          if (!w || w.looted || w.life <= 0) {
+            drone.state = 'idle';
+            drone.targetWreck = null;
+            continue;
+          }
+          const dx = w.x - drone.x;
+          const dy = w.y - drone.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 8) {
+            // Collect wreck
+            w.looted = true;
+            drone.carrying = { vsu: w.vsuReward, ep: 1 };
+            drone.targetWreck = null;
+            drone.state = 'returning';
+            // Loot particles at wreck
+            for (let i = 0; i < 4; i++) {
+              this.particles.push({ x: w.x, y: w.y, vx: (Math.random()-0.5)*60, vy: (Math.random()-0.5)*60, life: 0.4, maxLife: 0.4, color: '#44AAFF', size: 2 });
+            }
+          } else {
+            const speed = drone.speed * dt;
+            drone.x += (dx / dist) * speed;
+            drone.y += (dy / dist) * speed;
+          }
+        } else if (drone.state === 'returning') {
+          const dx = this.stationCenter.x - drone.x;
+          const dy = this.stationCenter.y - drone.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 20) {
+            // Deliver loot
+            if (drone.carrying) {
+              this.vsu += drone.carrying.vsu;
+              this.ep += drone.carrying.ep;
+              this.totalEP += drone.carrying.ep;
+              this.saveEP();
+              this.damageNumbers.push({ x: this.stationCenter.x, y: this.stationCenter.y - 25, value: `+${drone.carrying.vsu} VSU`, life: 1.0, maxLife: 1.0, isCrit: false, isLoot: true });
+              drone.carrying = null;
+            }
+            drone.state = 'idle';
+          } else {
+            const speed = drone.speed * dt;
+            drone.x += (dx / dist) * speed;
+            drone.y += (dy / dist) * speed;
           }
         }
       }
@@ -6304,6 +6385,45 @@ class Game {
         ctx.arc(0, 0, 1.5, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255,220,100,${pulse + 0.3})`;
         ctx.fill();
+
+        ctx.restore();
+      }
+    }
+
+    // Collection drones — blue diamonds
+    if (this.collectDrones) {
+      for (const drone of this.collectDrones) {
+        const sz = 5;
+        const pulse = 0.7 + Math.sin(this.gridPulse * 4) * 0.3;
+        ctx.save();
+        ctx.translate(drone.x, drone.y);
+
+        // Trail glow
+        ctx.beginPath();
+        ctx.arc(0, 0, sz * 2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(68,170,255,${pulse * 0.1})`;
+        ctx.fill();
+
+        // Diamond shape
+        ctx.beginPath();
+        ctx.moveTo(0, -sz);
+        ctx.lineTo(sz * 0.7, 0);
+        ctx.lineTo(0, sz);
+        ctx.lineTo(-sz * 0.7, 0);
+        ctx.closePath();
+        ctx.fillStyle = `rgba(68,170,255,${pulse})`;
+        ctx.fill();
+        ctx.strokeStyle = '#88CCFF';
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+
+        // Carrying indicator
+        if (drone.carrying) {
+          ctx.beginPath();
+          ctx.arc(0, 0, 2, 0, Math.PI * 2);
+          ctx.fillStyle = '#FFD700';
+          ctx.fill();
+        }
 
         ctx.restore();
       }
