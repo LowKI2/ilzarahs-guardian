@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.18.0 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.19.0 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2770,7 +2770,7 @@ const SKILL_TREE = {
   sk_missile_def:{ name: 'Raketenabwehr', desc: 'Guns fangen Raketen ab',      cat: 'unlock', type: 'big', cost: 50,  unlocks: 'missile_def', requires: [], waveReq: 20, epReqCat: 'defense', epReqAmount: 25 },
   sk_arc1:       { name: 'Feuerwinkel I', desc: '180° → 200°',                 cat: 'unlock', type: 'big', cost: 40,  unlocks: 'arc1', requires: ['sk_gun_t2'], waveReq: 25, epReqCat: 'attack', epReqAmount: 40 },
   sk_drone:      { name: 'Sammeldrohne',  desc: 'Drohne sammelt Wrack-VSU',    cat: 'unlock', type: 'big', cost: 60,  unlocks: 'drone', requires: [], waveReq: 25, epReqCat: 'resource', epReqAmount: 30 },
-  sk_core_t2:    { name: 'Core T2',      desc: '+50% Energiekern',             cat: 'unlock', type: 'big', cost: 80,  unlocks: 'core_t2', requires: [], waveReq: 30, epReqCat: 'defense', epReqAmount: 40 },
+  sk_core_t2:    { name: 'Core T2',      desc: '+50% Energiekern, +10 Bauplatz', cat: 'unlock', type: 'big', cost: 80,  unlocks: 'core_t2', requires: [], waveReq: 30, epReqCat: 'defense', epReqAmount: 40 },
   sk_arc2:       { name: 'Feuerwinkel II',desc: '200° → 225°',                 cat: 'unlock', type: 'big', cost: 60,  unlocks: 'arc2', requires: ['sk_arc1'], waveReq: 40, epReqCat: 'attack', epReqAmount: 60 },
   sk_shield_t2:  { name: 'Schild T2',    desc: '+30% Schildkapazität',         cat: 'unlock', type: 'big', cost: 100, unlocks: 'shield_t2', requires: ['sk_core_t2'], waveReq: 42, epReqCat: 'defense', epReqAmount: 60 },
   // --- ab Mk.II (Welle 50) ---
@@ -4114,7 +4114,7 @@ class Game {
     });
   }
 
-  selectStation(station) {
+  async selectStation(station) {
     this.station = station;
     this.stationHP = station.hp;
     this.stationMaxHP = station.hp;
@@ -4169,7 +4169,7 @@ class Game {
           skipEP += Math.floor(w * 3 * epWaveBonus * rew);
         }
       }
-      const doSkip = confirm(`Wellen 1-20 überspringen?\nDu erhältst: ${skipVSU} VSU und ${skipEP} EP`);
+      const doSkip = await this.showConfirm(`Wellen 1-20 überspringen? Du erhältst: ${skipVSU} VSU und ${skipEP} EP`, 'Überspringen', 'Ab Welle 1');
       if (doSkip) {
         this.wave = 21;
         this.vsu += skipVSU;
@@ -4428,7 +4428,9 @@ class Game {
     if (!this.station) return 100;
     // energySave reduces consumption = effectively increases pool
     const saveBonus = this.getUpgBonus('energySave');
-    return Math.round(this.station.energyPool * (1 + saveBonus / 100));
+    // Core T2: +10 Bauplatz
+    const coreT2Bonus = this.unlockedTech.has('core_t2') ? 10 : 0;
+    return Math.round(this.station.energyPool * (1 + saveBonus / 100)) + coreT2Bonus;
   }
 
   getRemainingEnergy() {
@@ -5029,7 +5031,7 @@ class Game {
             this.waveEnemiesDefeated++;
             playSound('torpedoexplosion');
             this.explosions.push({ x: nearestEnemy.x, y: nearestEnemy.y, life: 0.8, maxLife: 0.8, size: 40 + nearestEnemy.tier * 8 });
-            this.wrecks.push({ x: nearestEnemy.x, y: nearestEnemy.y, rotation: nearestEnemy.rotation || Math.random() * Math.PI * 2, tier: nearestEnemy.tier, delay: 0, spawnAge: 0, life: 5.0, maxLife: 5.0, looted: false, vsuReward: nearestEnemy.tier >= 3 ? 10 : 5 + Math.floor(Math.random() * 6) });
+            this.wrecks.push({ x: nearestEnemy.x, y: nearestEnemy.y, rotation: nearestEnemy.rotation || Math.random() * Math.PI * 2, tier: nearestEnemy.tier, delay: 0, spawnAge: 0, life: 5.0, maxLife: 5.0, looted: false, vsuReward: Math.floor((nearestEnemy.tier >= 3 ? 10 : 5 + Math.random() * 6) * (1 + this.wave * 0.1)) });
           }
         }
       }
@@ -5292,7 +5294,7 @@ class Game {
             spawnAge: 0, // for scale-in animation
             life: 5.0, maxLife: 5.0,
             looted: false,
-            vsuReward: hitEnemy.tier >= 3 ? 10 : 5 + Math.floor(Math.random() * 6),
+            vsuReward: Math.floor((hitEnemy.tier >= 3 ? 10 : 5 + Math.random() * 6) * (1 + this.wave * 0.1)),
           });
 
           // Some debris particles
@@ -6137,21 +6139,44 @@ class Game {
 
     const dmgMult = (1 + this.station.dmgBonus) * (1 + this.getTotalBonus('dmg') / 100);
     const rofMult = 1 + this.getTotalBonus('rof') / 100;
-    const pierceChance = this.getTotalBonus('pierce') / 100;
-    const sysHitChance = this.getTotalBonus('syshit');
+    const basePierce = this.getTotalBonus('pierce') / 100;
+    const baseSys = this.getTotalBonus('syshit');
 
-    // DPS per turret type
+    // DPS + effective Pierce/Sys per turret type
     let dpsParts = [];
     for (const [key, info] of Object.entries(turretMap)) {
-      const dps = info.def.damage * dmgMult * info.def.fireRate * rofMult * info.count;
-      dpsParts.push(`${info.def.name}${info.count > 1 ? ' x' + info.count : ''} ${dps.toFixed(1)}`);
+      const isBolt = key === 'boltgun' || key === 'railgun';
+      const isLaser = key.startsWith('laser') || key.startsWith('doublelaser');
+      const rofNorm = Math.max(1, info.def.fireRate || 1);
+      const barrels = info.def.barrels || 1;
+
+      // DPS: Charge-Weapons brauchen chargeTime-Berücksichtigung
+      let effectiveRoF = info.def.fireRate * rofMult;
+      if (info.def.chargeTime) {
+        const chargeReduction = 1 - this.getSkillBonus('sk_bolt_charge') / 100;
+        const effectiveCharge = info.def.chargeTime * Math.max(0.3, chargeReduction);
+        effectiveRoF = 1 / effectiveCharge;
+      }
+      let wepDmg = info.def.damage * dmgMult;
+      if (isBolt) wepDmg *= (1 + this.getSkillBonus('sk_bolt_dmg') / 100);
+      const dps = wepDmg * effectiveRoF * barrels * info.count;
+
+      // Effektive Pierce/Sys pro Schuss (nach RoF-Normalisierung)
+      let wepPierce = basePierce + (isBolt ? 1.0 : 0);
+      if (!isBolt) wepPierce /= rofNorm;
+      wepPierce /= barrels;
+      let wepSys = baseSys / rofNorm / barrels;
+
+      const pierceStr = `P${Math.min(100, Math.round(wepPierce * 100))}%`;
+      const sysStr = `S${Math.round(wepSys)}%`;
+      dpsParts.push(`${info.def.name}${info.count > 1 ? 'x' + info.count : ''} ${dps.toFixed(1)} ${pierceStr} ${sysStr}`);
     }
 
     // Attack panel info
     const atkInfo = document.getElementById('upgStationAttack');
     if (atkInfo) {
-      const dpsText = dpsParts.length > 0 ? dpsParts.join(' | ') + ' DPS' : 'Keine Waffen';
-      atkInfo.textContent = `${this.station.name} +${Math.round(this.station.dmgBonus * 100)}% — ${dpsText} | Pierce ${(pierceChance * 100).toFixed(0)}% | Sys ${sysHitChance.toFixed(0)}%`;
+      const dpsText = dpsParts.length > 0 ? dpsParts.join(' | ') : 'Keine Waffen';
+      atkInfo.textContent = `${this.station.name} +${Math.round(this.station.dmgBonus * 100)}% — ${dpsText}`;
     }
 
     // Defense panel info
