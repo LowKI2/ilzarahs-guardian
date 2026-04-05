@@ -2114,7 +2114,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.15.9 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.16.0 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -4877,10 +4877,14 @@ class Game {
           if (turret.chargeProgress >= effectiveChargeTime) {
             // Fire!
             turret.chargeProgress = 0;
-            const rofMult = 1 + this.getTotalBonus('rof') / 100;
-            turret.cooldown = 0.15; // short recovery after shot
+            const rofBonus = this.getTotalBonus('rof') / 100;
+            turret.cooldown = 0.15;
             const boltDmgBonus = 1 + this.getSkillBonus('sk_bolt_dmg') / 100;
-            const finalDmg = turret.damage * (1 + this.station.dmgBonus) * (1 + this.getTotalBonus('dmg') / 100) * boltDmgBonus;
+            // RoF splits: 50% → proj speed, 25% → pierce, 25% → damage
+            const rofSpeedMult = 1 + rofBonus * 0.5;
+            const rofDmgMult = 1 + rofBonus * 0.25;
+            const finalDmg = turret.damage * (1 + this.station.dmgBonus) * (1 + this.getTotalBonus('dmg') / 100) * boltDmgBonus * rofDmgMult;
+            const projSpd = turret.projSpeed * rofSpeedMult;
             const muzzleDist = (this.isMobile ? 36 : 42) * 0.5;
             const muzzleX = slot.x + Math.cos(turret.barrelAngle) * muzzleDist;
             const muzzleY = slot.y + Math.sin(turret.barrelAngle) * muzzleDist;
@@ -4888,11 +4892,12 @@ class Game {
 
             this.projectiles.push({
               x: muzzleX, y: muzzleY,
-              vx: Math.cos(pAngle) * turret.projSpeed,
-              vy: Math.sin(pAngle) * turret.projSpeed,
+              vx: Math.cos(pAngle) * projSpd,
+              vy: Math.sin(pAngle) * projSpd,
               targetEnemy: nearestEnemy,
-              speed: turret.projSpeed,
+              speed: projSpd,
               damage: finalDmg,
+              rofPierceBonus: rofBonus * 0.25,
               isCrit: false, trail: [],
               size: turret.projSize, color: turret.projColor,
               angle: pAngle,
@@ -5036,6 +5041,8 @@ class Game {
         let pierceTotal = this.getTotalBonus('pierce') / 100;
         if (isRocket) pierceTotal += this.getSkillBonus('sk_shrapnel') / 100;
         if (isGun || isBolt) pierceTotal += this.getSkillBonus('sk_hardened') / 100;
+        // Bolt/rail: 25% of RoF bonus → extra pierce
+        if (isBolt && p.rofPierceBonus) pierceTotal += p.rofPierceBonus;
 
         // Specialist sys-hit bonus (guns and bolt/rail)
         let sysTotal = this.getTotalBonus('syshit');
