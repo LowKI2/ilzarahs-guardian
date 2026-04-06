@@ -1180,38 +1180,55 @@ canvas {
 
 .sb-breakdown {
   display: flex;
-  gap: 20px;
-  margin-bottom: 16px;
+  gap: 10px;
+  margin-bottom: 6px;
   flex-wrap: wrap;
   justify-content: center;
 }
 
 .sb-stat {
   text-align: center;
-  min-width: 70px;
+  min-width: 50px;
 }
 
 .sb-stat .sb-val {
   font-family: var(--font-mono);
-  font-size: clamp(18px, 4vw, 26px);
+  font-size: clamp(14px, 3.5vw, 22px);
   font-weight: 700;
   color: var(--amber-bright);
 }
 
 .sb-stat .sb-label {
-  font-size: 10px;
+  font-size: 9px;
   color: var(--text-dim);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
+}
+
+.sb-dmg-row {
+  text-align: center;
+  margin-bottom: 6px;
+}
+.sb-dmg-row .sb-val {
+  font-family: var(--font-mono);
+  font-size: clamp(16px, 4vw, 24px);
+  font-weight: 700;
+  color: #FF5028;
+}
+.sb-dmg-row .sb-label {
+  font-size: 9px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .sb-final {
   font-family: var(--font-ui);
-  font-size: clamp(28px, 7vw, 42px);
+  font-size: clamp(22px, 6vw, 36px);
   font-weight: 700;
   color: var(--ilzarah);
   text-shadow: 0 0 20px rgba(0,200,255,0.4);
-  margin: 8px 0 20px 0;
+  margin: 4px 0 10px 0;
 }
 
 .sb-name-row {
@@ -2184,7 +2201,7 @@ canvas {
         <button class="mm-btn" id="btnScoreboard">Rangliste</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.22.2 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.23.0 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2259,9 +2276,9 @@ canvas {
       <div class="sb-stat"><div class="sb-val" id="sbWaves">0</div><div class="sb-label">Wellen</div></div>
       <div class="sb-stat"><div class="sb-val" id="sbKills">0</div><div class="sb-label">Kills</div></div>
       <div class="sb-stat"><div class="sb-val" id="sbEP">0</div><div class="sb-label">EP</div></div>
-      <div class="sb-stat"><div class="sb-val" id="sbDmg">0</div><div class="sb-label">Schaden</div></div>
       <div class="sb-stat"><div class="sb-val" id="sbHandicap">1.00</div><div class="sb-label">Handicap</div></div>
     </div>
+    <div class="sb-dmg-row"><div class="sb-val" id="sbDmg">0</div><div class="sb-label">Gesamtschaden</div></div>
     <div class="sb-final" id="sbFinalScore">0</div>
     <div class="sb-name-row">
       <input class="sb-name-input" id="sbNameInput" type="text" maxlength="16" placeholder="Dein Name">
@@ -2755,7 +2772,7 @@ const WEAPONS = {
     unlock: 'rocket_t1',
   },
   rocket_t2: {
-    name: "Rocket T2", cost: 90, energyCost: 50, range: 180, fireRate: 1, damage: 40, projSpeed: 500,
+    name: "Rocket T2", cost: 90, energyCost: 40, range: 180, fireRate: 1, damage: 40, projSpeed: 500,
     color: "#66AAFF", desc: "Verbesserte Lenkraketen", sprite: 'rocket_t2',
     projSize: 6, projColor: '#66AAFF', splashRadius: 0,
     unlock: 'rocket_t2',
@@ -2773,16 +2790,16 @@ const WEAPONS = {
     unlock: 'railgun', chargeTime: 1.5,
   },
   laser: {
-    name: "Laser", cost: 55, energyCost: 25, range: 180, fireRate: 30, damage: 3.5, projSpeed: 0,
+    name: "Laser", cost: 55, energyCost: 55, range: 180, fireRate: 30, damage: 3.5, projSpeed: 0,
     color: "#FF3333", desc: "Dauerfeuer-Laser (−50% Schildregen)", sprite: 'laser',
     projSize: 0, projColor: '#FF3333', splashRadius: 0,
-    unlock: 'laser', isLaser: true, laserBeams: 1, shieldRegenDrain: 0.50,
+    unlock: 'laser', isLaser: true, laserBeams: 1, shieldRegenDrain: 2.0,
   },
   doublelaser: {
     name: "Doppellaser", cost: 95, energyCost: 40, range: 180, fireRate: 30, damage: 3.5, projSpeed: 0,
     color: "#FF4444", desc: "Dualer Dauerfeuer-Laser (−75% Schildregen)", sprite: 'doublelaser',
     projSize: 0, projColor: '#FF4444', splashRadius: 0,
-    unlock: 'doublelaser', isLaser: true, laserBeams: 2, shieldRegenDrain: 0.75,
+    unlock: 'doublelaser', isLaser: true, laserBeams: 2, shieldRegenDrain: 3.0,
   },
 };
 
@@ -4939,19 +4956,10 @@ class Game {
       if (enemy.weaponDisabled > 0) enemy.weaponDisabled -= dt;
       this.updateEnemyAI(enemy, dt);
       if (enemy.hitFlash > 0) enemy.hitFlash -= dt;
-      // Accumulated damage number: tick down, flush when expired
+      // Damage counter fade timer — reset accum when fully faded
       if (enemy._dmgTimer > 0) {
         enemy._dmgTimer -= dt;
-        if (enemy._dmgTimer <= 0 && enemy._dmgAccum > 0) {
-          const label = enemy._hadPen ? 'PEN ' : '';
-          this.damageNumbers.push({
-            x: enemy.x, y: enemy.y - 15,
-            value: label + enemy._dmgAccum.toFixed(1),
-            life: 0.6, maxLife: 0.6, isCrit: !!enemy._hadPen,
-          });
-          enemy._dmgAccum = 0;
-          enemy._hadPen = false;
-        }
+        if (enemy._dmgTimer <= 0) { enemy._dmgAccum = 0; enemy._hadPen = false; }
       }
     }
 
@@ -5128,18 +5136,15 @@ class Game {
           let sysChance = this.getTotalBonus('syshit') * 0.03;
           if (this.runStats) this.runStats.damageDealt += tickDmg * (wDef.laserBeams || 1);
 
-          // Damage number throttle (show every 0.5s)
-          turret._laserDmgAccum = (turret._laserDmgAccum || 0);
-          turret._laserDmgTimer = (turret._laserDmgTimer || 0) + dt;
-
           for (let b = 0; b < beams; b++) {
             nearestEnemy.hp -= tickDmg;
             nearestEnemy.hitFlash = 0.05;
-            turret._laserDmgAccum += tickDmg;
+            nearestEnemy._dmgAccum = (nearestEnemy._dmgAccum || 0) + tickDmg;
+            nearestEnemy._dmgTimer = 1.0;
             if (Math.random() < pierceChance * dt * turret.fireRate) {
               const bonusDmg = tickDmg * 2;
               nearestEnemy.hp -= bonusDmg;
-              turret._laserDmgAccum += bonusDmg;
+              nearestEnemy._dmgAccum += bonusDmg;
             }
             if (Math.random() < sysChance / 100 * dt * turret.fireRate && nearestEnemy.hp > 0) {
               const systems = ['DRIVE', 'WEAPON', 'SHIELD'];
@@ -5151,23 +5156,8 @@ class Game {
             }
           }
 
-          // Show accumulated damage number every 0.5s
-          if (turret._laserDmgTimer >= 0.5 && turret._laserDmgAccum > 0) {
-            this.damageNumbers.push({
-              x: nearestEnemy.x + (Math.random() - 0.5) * 10,
-              y: nearestEnemy.y - 15,
-              value: turret._laserDmgAccum.toFixed(1),
-              life: 0.6, maxLife: 0.6, isCrit: false,
-            });
-            turret._laserDmgAccum = 0;
-            turret._laserDmgTimer = 0;
-          }
-
           if (nearestEnemy.hp <= 0) {
-            if (nearestEnemy._dmgAccum > 0) {
-              this.damageNumbers.push({ x: nearestEnemy.x, y: nearestEnemy.y - 15, value: nearestEnemy._dmgAccum.toFixed(1), life: 0.6, maxLife: 0.6, isCrit: false });
-              nearestEnemy._dmgAccum = 0;
-            }
+            nearestEnemy._dmgAccum = 0;
             this.kills++;
             const _vr = Math.floor(nearestEnemy.vsuReward * (1 + this.getTotalBonus('vsuKill') / 100));
             this.vsu += _vr; if (this.runStats) this.runStats.vsuEarned += _vr;
@@ -5415,12 +5405,7 @@ class Game {
         }
 
         if (hitEnemy.hp <= 0) {
-          // Flush accumulated damage number on kill
-          if (hitEnemy._dmgAccum > 0) {
-            const label = hitEnemy._hadPen ? 'PEN ' : '';
-            this.damageNumbers.push({ x: hitEnemy.x, y: hitEnemy.y - 15, value: label + hitEnemy._dmgAccum.toFixed(1), life: 0.6, maxLife: 0.6, isCrit: !!hitEnemy._hadPen });
-            hitEnemy._dmgAccum = 0;
-          }
+          hitEnemy._dmgAccum = 0;
           this.kills++;
           const _vr2 = Math.floor(hitEnemy.vsuReward * (1 + this.getTotalBonus('vsuKill') / 100));
           this.vsu += _vr2; if (this.runStats) this.runStats.vsuEarned += _vr2;
@@ -5801,6 +5786,7 @@ class Game {
     document.getElementById('sbTitle').textContent = 'Rangliste';
     document.getElementById('sbSubtitle').textContent = '// TOP 20 //';
     document.querySelector('.sb-breakdown').style.display = 'none';
+    document.querySelector('.sb-dmg-row').style.display = 'none';
     document.getElementById('sbFinalScore').style.display = 'none';
     document.querySelector('.sb-name-row').style.display = 'none';
     document.getElementById('sbContinueBtn').textContent = 'Zurück';
@@ -5938,7 +5924,7 @@ class Game {
     const mainLabel = tab === 'waves' ? 'Welle' : tab === 'damage' ? 'Schaden' : 'Score';
 
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/scores?select=name,score,waves,kills,station,total_damage&order=${order}&limit=20`, {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/scores?select=name,score,waves,kills,station,total_damage&order=${order}&limit=15`, {
         headers: {
           'apikey': SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
@@ -5976,6 +5962,7 @@ class Game {
     document.getElementById('scoreboardScreen').style.display = 'none';
     // Restore hidden elements for next use
     document.querySelector('.sb-breakdown').style.display = '';
+    document.querySelector('.sb-dmg-row').style.display = '';
     document.getElementById('sbFinalScore').style.display = '';
 
     // If opened from main menu, go back
@@ -7620,6 +7607,18 @@ class Game {
       ctx.arc(enemy.x, barY - 3, 2, 0, Math.PI * 2);
       ctx.fillStyle = '#FF4444';
       ctx.fill();
+    }
+
+    // Live damage counter
+    if (enemy._dmgAccum > 0 && this.dmgNumScale > 0) {
+      const fadeAlpha = enemy._dmgTimer > 0.3 ? 1.0 : Math.max(0, enemy._dmgTimer / 0.3);
+      ctx.globalAlpha = fadeAlpha * this.dmgNumScale;
+      ctx.font = 'bold 13px "Share Tech Mono"';
+      ctx.fillStyle = '#FF3344';
+      ctx.textAlign = 'center';
+      const fmt = enemy._dmgAccum >= 1000 ? (enemy._dmgAccum / 1000).toFixed(1) + 'K' : enemy._dmgAccum.toFixed(1);
+      ctx.fillText(fmt, enemy.x, enemy.y - enemy.radius - 8);
+      ctx.globalAlpha = 1;
     }
   }
 
