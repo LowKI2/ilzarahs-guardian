@@ -2184,7 +2184,7 @@ canvas {
         <button class="mm-btn" id="btnScoreboard">Rangliste</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.22.1 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.22.2 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -4104,6 +4104,12 @@ class Game {
     return Math.max(120, Math.min(260, base));
   }
 
+  // Scale weapon range to screen height so max upgraded range stays on screen vertically
+  getBaseRange() {
+    const maxRange = this.H * 0.42;
+    return Math.min(180, maxRange);
+  }
+
   // Per-station hardpoint positions as [x, y] fractions of sprite size (-0.5 to 0.5)
   // Manually placed on the actual structural hardpoints of each sprite
   static HARDPOINTS = {
@@ -5048,7 +5054,7 @@ class Game {
         const dx = enemy.x - slot.x;
         const dy = enemy.y - slot.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const effectiveRange = turret.range * (1 + this.getTotalBonus('range') / 100);
+        const effectiveRange = this.getBaseRange() * (1 + this.getTotalBonus('range') / 100);
         if (dist >= effectiveRange || dist >= nearestDist) continue;
 
         // Fire arc check: only shoot in outward 180° hemisphere
@@ -5207,7 +5213,7 @@ class Game {
               isCrit: false, trail: [],
               size: turret.projSize, color: turret.projColor,
               angle: pAngle,
-              maxRange: turret.range * (1 + this.getTotalBonus('range') / 100) * 1.5,
+              maxRange: this.getBaseRange() * (1 + this.getTotalBonus('range') / 100) * 1.5,
               traveled: 0, weaponKey: turret.weaponKey,
             });
             this.particles.push({ x: muzzleX, y: muzzleY, vx: 0, vy: 0, life: 0.2, maxLife: 0.2, isMuzzleFlash: true, angle: turret.barrelAngle, muzzleType: Math.floor(Math.random() * 3), size: 20 });
@@ -5249,7 +5255,7 @@ class Game {
             size: turret.projSize,
             color: '#ffffff',
             angle: pAngle,
-            maxRange: turret.range * (1 + this.getTotalBonus('range') / 100) * 1.5,
+            maxRange: this.getBaseRange() * (1 + this.getTotalBonus('range') / 100) * 1.5,
             traveled: 0,
             weaponKey: turret.weaponKey,
             barrelSplit: barrelCount,
@@ -6803,7 +6809,7 @@ class Game {
     if (this.state === 'build' && this._menuSlot) {
       const slot = this._menuSlot;
       if (slot.building) {
-        const range = slot.building.range * (1 + this.getTotalBonus('range') / 100);
+        const range = this.getBaseRange() * (1 + this.getTotalBonus('range') / 100);
         ctx.beginPath();
         ctx.arc(slot.x, slot.y, range, 0, Math.PI * 2);
         ctx.strokeStyle = 'rgba(212,130,10,0.15)';
@@ -7302,7 +7308,7 @@ class Game {
       // Build phase: always show fire arc for placed weapons
       if (this.state === 'build' && slot.building && slot.building.range && this.hoveredSlot !== slot && this._menuSlot !== slot) {
         const b = slot.building;
-        const range = b.range * (1 + this.getTotalBonus('range') / 100);
+        const range = this.getBaseRange() * (1 + this.getTotalBonus('range') / 100);
         const facingAngle = slot.angle;
         const halfArc = this.getFireArc() / 2;
 
@@ -7318,7 +7324,7 @@ class Game {
       // Selected slot (menu open): highlight arc in cyan
       if (this._menuSlot === slot && slot.building && slot.building.range) {
         const b = slot.building;
-        const range = b.range * (1 + this.getTotalBonus('range') / 100);
+        const range = this.getBaseRange() * (1 + this.getTotalBonus('range') / 100);
         const facingAngle = slot.angle;
         const halfArc = this.getFireArc() / 2;
 
@@ -7339,7 +7345,7 @@ class Game {
       // Hover: show effective attack range (fire arc wedge, brighter)
       if (this.hoveredSlot === slot && slot.building) {
         const b = slot.building;
-        const range = b.range * (1 + this.getTotalBonus('range') / 100);
+        const range = this.getBaseRange() * (1 + this.getTotalBonus('range') / 100);
         const facingAngle = slot.angle; // outward-facing
         const halfArc = this.getFireArc() / 2;
 
@@ -7376,7 +7382,7 @@ class Game {
 
     // Fire arc during combat (very subtle, no dash for performance)
     if (this.state === 'combat') {
-      const range = b.range * (1 + this.getTotalBonus('range') / 100);
+      const range = this.getBaseRange() * (1 + this.getTotalBonus('range') / 100);
       const facingAngle = slot.angle;
       const halfArc = this.getFireArc() / 2;
       ctx.beginPath();
