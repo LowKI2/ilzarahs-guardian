@@ -604,9 +604,51 @@ canvas {
 }
 #btnPauseMenu:hover { background: rgba(212,130,10,0.15); border-color: var(--amber); }
 
+#btnStats {
+  position: absolute;
+  top: 6px; right: 78px;
+  width: 28px; height: 28px;
+  background: rgba(44,52,64,0.7);
+  border: 1px solid var(--amber-dim);
+  color: var(--amber);
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: bold;
+  cursor: pointer;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 11;
+  transition: background 0.15s, border-color 0.15s;
+  padding: 0;
+}
+#btnStats:hover, #btnStats.active { background: rgba(212,130,10,0.15); border-color: var(--amber); }
+
+#statsOverlay {
+  position: absolute;
+  top: 38px; right: 6px;
+  background: rgba(20,24,32,0.9);
+  border: 1px solid var(--amber-dim);
+  border-radius: 4px;
+  padding: 4px 8px;
+  z-index: 11;
+  pointer-events: none;
+  display: none;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 100px;
+}
+#statsOverlay.visible { display: flex; }
+.so-row { display: flex; justify-content: space-between; gap: 6px; }
+.so-label { font-family: var(--font-mono); font-size: 8px; color: var(--text-dim); text-transform: uppercase; }
+.so-val { font-family: var(--font-mono); font-size: 8px; color: var(--amber); text-align: right; }
+
 @media (min-width: 600px) {
   #btnPauseMenu { top: 8px; right: 16px; width: 36px; height: 36px; font-size: 18px; }
   #btnFullscreen { top: 8px; right: 56px; width: 36px; height: 36px; }
+  #btnStats { top: 8px; right: 96px; width: 36px; height: 36px; font-size: 14px; }
+  #statsOverlay { top: 50px; right: 16px; padding: 6px 10px; min-width: 120px; }
+  .so-label, .so-val { font-size: 9px; }
 }
 
 #btnFullscreen {
@@ -1234,6 +1276,34 @@ canvas {
   width: 90%;
   max-width: 500px;
   margin: 16px 0;
+}
+
+.sb-tabs {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.sb-tab {
+  font-family: var(--font-ui);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 8px;
+  background: rgba(44,52,64,0.6);
+  border: 1px solid var(--amber-dim);
+  color: var(--text-dim);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.15s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.sb-tab:hover { border-color: var(--amber); color: var(--amber); }
+.sb-tab.active { background: rgba(212,130,10,0.15); border-color: var(--amber); color: var(--amber); }
+@media (min-width: 600px) {
+  .sb-tab { font-size: 10px; padding: 5px 12px; letter-spacing: 1px; }
 }
 
 .sb-leaderboard h3 {
@@ -2067,8 +2137,14 @@ canvas {
     <div class="hud-item"><span class="hud-label">Welle</span><span class="hud-value cyan" id="hudWave">1</span></div>
     <div class="hud-item"><span class="hud-label">Kills</span><span class="hud-value" id="hudKills">0</span></div>
     <div class="hud-item" id="hudTimerItem" style="display:none"><span class="hud-label">Zeit</span><span class="hud-value" id="hudTimer">30:00</span></div>
+    <button id="btnStats" title="Statistiken">S</button>
     <button id="btnFullscreen"></button>
     <button id="btnPauseMenu">☰</button>
+  </div>
+  <div id="statsOverlay">
+    <div class="so-row"><span class="so-label">DMG ▸</span><span class="so-val" id="soDealt">0</span></div>
+    <div class="so-row"><span class="so-label">DMG ◂</span><span class="so-val" id="soTaken">0</span></div>
+    <div class="so-row"><span class="so-label">VSU Σ</span><span class="so-val" id="soVSU">0</span></div>
   </div>
   <div id="hudLower">
     <div class="hl-bar-wrap">
@@ -2111,7 +2187,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.19.4 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.20.0 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2180,12 +2256,13 @@ canvas {
   </div>
 
   <div id="scoreboardScreen">
-    <h2>Zeit Abgelaufen</h2>
-    <div class="sb-subtitle">// 30-MINUTEN WERTUNG //</div>
+    <h2 id="sbTitle">Wertung</h2>
+    <div class="sb-subtitle" id="sbSubtitle">// RUN BEENDET //</div>
     <div class="sb-breakdown">
       <div class="sb-stat"><div class="sb-val" id="sbWaves">0</div><div class="sb-label">Wellen</div></div>
       <div class="sb-stat"><div class="sb-val" id="sbKills">0</div><div class="sb-label">Kills</div></div>
       <div class="sb-stat"><div class="sb-val" id="sbEP">0</div><div class="sb-label">EP</div></div>
+      <div class="sb-stat"><div class="sb-val" id="sbDmg">0</div><div class="sb-label">Schaden</div></div>
       <div class="sb-stat"><div class="sb-val" id="sbHandicap">1.00</div><div class="sb-label">Handicap</div></div>
     </div>
     <div class="sb-final" id="sbFinalScore">0</div>
@@ -2194,7 +2271,11 @@ canvas {
       <button class="sb-submit-btn" id="sbSubmitBtn">Eintragen</button>
     </div>
     <div class="sb-leaderboard">
-      <h3>Top 20 Rangliste</h3>
+      <div class="sb-tabs">
+        <button class="sb-tab active" data-tab="score">Punktzahl</button>
+        <button class="sb-tab" data-tab="waves">Höchste Welle</button>
+        <button class="sb-tab" data-tab="damage">Gesamtschaden</button>
+      </div>
       <div id="sbLeaderboardBody"><div class="sb-lb-loading">Lade Rangliste...</div></div>
     </div>
     <div class="sb-buttons">
@@ -2355,6 +2436,8 @@ const ASSET_PATHS = {
     'assets/sprites/enemies/pirate3.png',
     'assets/sprites/enemies/pirate4.png',
     'assets/sprites/enemies/pirate5.png',
+    'assets/sprites/enemies/Rigger.png',       // index 5 = boss
+    'assets/sprites/enemies/merchant3.png',    // index 6 = frachter
   ],
   weapons: {
     'rocket_t1': 'assets/sprites/weapons/rocket_t1.png',
@@ -2668,13 +2751,13 @@ const WEAPONS = {
     unlock: 'gun_t3',
   },
   rocket_t1: {
-    name: "Rocket T1", cost: 60, energyCost: 35, range: 180, fireRate: 2, damage: 10, projSpeed: 450,
+    name: "Rocket T1", cost: 60, energyCost: 35, range: 180, fireRate: 1, damage: 20, projSpeed: 450,
     color: "#4488FF", desc: "Lenkraketen", sprite: 'rocket_t1',
     projSize: 6, projColor: '#4488FF', splashRadius: 0,
     unlock: 'rocket_t1',
   },
   rocket_t2: {
-    name: "Rocket T2", cost: 90, energyCost: 50, range: 180, fireRate: 2, damage: 12, projSpeed: 500,
+    name: "Rocket T2", cost: 90, energyCost: 50, range: 180, fireRate: 1, damage: 40, projSpeed: 500,
     color: "#66AAFF", desc: "Verbesserte Lenkraketen", sprite: 'rocket_t2',
     projSize: 6, projColor: '#66AAFF', splashRadius: 0,
     unlock: 'rocket_t2',
@@ -3104,6 +3187,17 @@ class Game {
     document.addEventListener('fullscreenchange', () => {
       document.body.classList.toggle('is-fullscreen', !!document.fullscreenElement);
     });
+
+    // Stats overlay toggle
+    const statsBtn = document.getElementById('btnStats');
+    const statsOverlay = document.getElementById('statsOverlay');
+    const statsFn = () => {
+      playSound('click');
+      statsOverlay.classList.toggle('visible');
+      statsBtn.classList.toggle('active');
+    };
+    statsBtn.addEventListener('click', statsFn);
+    statsBtn.addEventListener('touchend', (e) => { e.preventDefault(); statsFn(); });
     const resumeFn = () => { playSound('click'); this.resumeGame(); };
     document.getElementById('btnResume').addEventListener('click', resumeFn);
     document.getElementById('btnResume').addEventListener('touchend', (e) => { e.preventDefault(); resumeFn(); });
@@ -4126,6 +4220,7 @@ class Game {
     this.runTimer = 0;
     this.timedMode = true;
     this.totalVSUSpent = 0;
+    this.runStats = { damageDealt: 0, damageTaken: 0, vsuEarned: 0 };
 
     // In-Run upgrades (VSU, temporary per run)
     this.runUpgrades = {
@@ -4169,7 +4264,7 @@ class Game {
       const doSkip = await this.showConfirm(`Wellen 1-20 überspringen? Du erhältst: ${skipVSU} VSU und ${skipEP} EP`, 'Überspringen', 'Ab Welle 1');
       if (doSkip) {
         this.wave = 21;
-        this.vsu += skipVSU;
+        this.vsu += skipVSU; if (this.runStats) this.runStats.vsuEarned += skipVSU;
         this.ep += skipEP;
         this.totalEP += skipEP;
         this.saveEP();
@@ -4719,6 +4814,7 @@ class Game {
       rotation: angle + Math.PI,
       strafeOffset: 0,
       isBoss: true,
+      spriteIndex: 5, // Rigger boss sprite
     });
     this.bossSpawned = true;
     this.bossActive = true;
@@ -4777,6 +4873,7 @@ class Game {
             // Detonate!
             mine.alive = false;
             enemy.hp -= mine.damage;
+            if (this.runStats) this.runStats.damageDealt += mine.damage;
             enemy.hitFlash = 0.15;
 
             // 90% system hit chance
@@ -5005,6 +5102,7 @@ class Game {
           // Pierce/sys per tick (normalized for continuous fire)
           let pierceChance = (this.getTotalBonus('pierce') / 100) * 0.03;
           let sysChance = this.getTotalBonus('syshit') * 0.03;
+          if (this.runStats) this.runStats.damageDealt += tickDmg * (wDef.laserBeams || 1);
 
           // Damage number throttle (show every 0.5s)
           turret._laserDmgAccum = (turret._laserDmgAccum || 0);
@@ -5043,7 +5141,8 @@ class Game {
 
           if (nearestEnemy.hp <= 0) {
             this.kills++;
-            this.vsu += Math.floor(nearestEnemy.vsuReward * (1 + this.getTotalBonus('vsuKill') / 100));
+            const _vr = Math.floor(nearestEnemy.vsuReward * (1 + this.getTotalBonus('vsuKill') / 100));
+            this.vsu += _vr; if (this.runStats) this.runStats.vsuEarned += _vr;
             this.waveEnemiesDefeated++;
             playSound('torpedoexplosion');
             this.explosions.push({ x: nearestEnemy.x, y: nearestEnemy.y, life: 0.8, maxLife: 0.8, size: 40 + nearestEnemy.tier * 8 });
@@ -5264,6 +5363,8 @@ class Game {
           type: hitType,
         });
 
+        if (this.runStats) this.runStats.damageDealt += dmgResult.totalDmg;
+
         // Damage number
         const label = dmgResult.penetrated ? 'PEN ' : '';
         this.damageNumbers.push({
@@ -5290,7 +5391,8 @@ class Game {
 
         if (hitEnemy.hp <= 0) {
           this.kills++;
-          this.vsu += Math.floor(hitEnemy.vsuReward * (1 + this.getTotalBonus('vsuKill') / 100));
+          const _vr2 = Math.floor(hitEnemy.vsuReward * (1 + this.getTotalBonus('vsuKill') / 100));
+          this.vsu += _vr2; if (this.runStats) this.runStats.vsuEarned += _vr2;
           this.waveEnemiesDefeated++;
           playSound('torpedoexplosion');
 
@@ -5578,6 +5680,7 @@ class Game {
   }
 
   damageStation(dmg, hitX, hitY) {
+    if (this.runStats) this.runStats.damageTaken += dmg;
     // Reactive armor: shield absorbs more
     const reactiveBonus = 1 + this.getSkillBonus('sk_reactive_armor') / 100;
     if (this.stationShield > 0) {
@@ -5670,11 +5773,28 @@ class Game {
     const epHandicap = 1000 / (1000 + this.totalEPSpent);
     const finalScore = Math.round(rawScore * epHandicap);
 
+    document.getElementById('sbTitle').textContent = this._gameOverReason || 'Wertung';
+    document.getElementById('sbSubtitle').textContent = this._gameOverSubtitle || '// RUN BEENDET //';
     document.getElementById('sbWaves').textContent = this.wave;
     document.getElementById('sbKills').textContent = this.kills;
     document.getElementById('sbEP').textContent = this.ep;
+    const fmtDmg = (n) => n >= 1000000 ? (n/1000000).toFixed(1)+'M' : n >= 1000 ? (n/1000).toFixed(1)+'K' : Math.floor(n);
+    document.getElementById('sbDmg').textContent = fmtDmg(this.runStats ? this.runStats.damageDealt : 0);
     document.getElementById('sbHandicap').textContent = epHandicap.toFixed(3);
     document.getElementById('sbFinalScore').textContent = finalScore;
+
+    // Tab handlers
+    this._sbActiveTab = 'score';
+    document.querySelectorAll('.sb-tab').forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.tab === 'score');
+      const handler = () => {
+        playSound('click');
+        this._sbActiveTab = tab.dataset.tab;
+        document.querySelectorAll('.sb-tab').forEach(t => t.classList.toggle('active', t === tab));
+        this.fetchLeaderboard(tab.dataset.tab);
+      };
+      tab.onclick = handler;
+    });
 
     // Reset submit button state
     const submitBtn = document.getElementById('sbSubmitBtn');
@@ -5695,7 +5815,7 @@ class Game {
     this.closeUpgPanel();
     playSound('confirm');
 
-    this.fetchLeaderboard();
+    this.fetchLeaderboard(this._sbActiveTab || 'score');
   }
 
   async submitScore(name) {
@@ -5730,13 +5850,14 @@ class Game {
           kills: this.kills,
           station: this.station ? this.station.name : 'Unbekannt',
           ep_spent: this.totalEPSpent,
+          total_damage: Math.floor(this.runStats ? this.runStats.damageDealt : 0),
         }),
       });
 
       if (res.ok) {
         submitBtn.textContent = 'Eingetragen!';
         playSound('confirm');
-        this.fetchLeaderboard();
+        this.fetchLeaderboard(this._sbActiveTab || 'score');
       } else {
         submitBtn.textContent = 'Fehler!';
         submitBtn.disabled = false;
@@ -5747,12 +5868,17 @@ class Game {
     }
   }
 
-  async fetchLeaderboard() {
+  async fetchLeaderboard(tab = 'score') {
     const container = document.getElementById('sbLeaderboardBody');
     container.innerHTML = '<div class="sb-lb-loading">Lade Rangliste...</div>';
 
+    const orderMap = { score: 'score.desc', waves: 'waves.desc', damage: 'total_damage.desc' };
+    const order = orderMap[tab] || 'score.desc';
+    const mainCol = tab === 'waves' ? 'waves' : tab === 'damage' ? 'total_damage' : 'score';
+    const mainLabel = tab === 'waves' ? 'Welle' : tab === 'damage' ? 'Schaden' : 'Score';
+
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/scores?select=name,score,waves,kills,station&order=score.desc&limit=20`, {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/scores?select=name,score,waves,kills,station,total_damage&order=${order}&limit=20`, {
         headers: {
           'apikey': SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
@@ -5767,9 +5893,11 @@ class Game {
         return;
       }
 
-      let html = '<table class="sb-lb-table"><thead><tr><th>#</th><th>Name</th><th>Score</th><th>Wellen</th><th>Kills</th><th>Station</th></tr></thead><tbody>';
+      const fmtVal = (v) => v >= 1000000 ? (v/1000000).toFixed(1)+'M' : v >= 1000 ? (v/1000).toFixed(1)+'K' : v;
+      let html = `<table class="sb-lb-table"><thead><tr><th>#</th><th>Name</th><th>${mainLabel}</th><th>Kills</th><th>Station</th></tr></thead><tbody>`;
       rows.forEach((r, i) => {
-        html += `<tr${i < 3 ? ' class="sb-lb-top"' : ''}><td>${i + 1}</td><td>${this.escapeHtml(r.name)}</td><td>${r.score}</td><td>${r.waves}</td><td>${r.kills}</td><td>${this.escapeHtml(r.station || '')}</td></tr>`;
+        const val = mainCol === 'total_damage' ? fmtVal(r.total_damage || 0) : mainCol === 'waves' ? r.waves : r.score;
+        html += `<tr${i < 3 ? ' class="sb-lb-top"' : ''}><td>${i + 1}</td><td>${this.escapeHtml(r.name)}</td><td>${val}</td><td>${r.kills}</td><td>${this.escapeHtml(r.station || '')}</td></tr>`;
       });
       html += '</tbody></table>';
       container.innerHTML = html;
@@ -5818,7 +5946,7 @@ class Game {
     const rew = this.getRewardMult();
     const vsuBase = (20 + this.wave * 5) * rew;
     const vsuEarned = Math.floor(vsuBase * (1 + this.getTotalBonus('vsuWave') / 100));
-    this.vsu += vsuEarned;
+    this.vsu += vsuEarned; if (this.runStats) this.runStats.vsuEarned += vsuEarned;
 
     if (this.wave % 5 === 0) {
       const epWaveBonus = 1 + this.getTotalBonus('epWave') / 100;
@@ -6022,7 +6150,7 @@ class Game {
           const dd = Math.sqrt(ddx * ddx + ddy * ddy);
           if (dd < 20) {
             if (drone.carrying) {
-              this.vsu += drone.carrying.vsu; this.ep += drone.carrying.ep; this.totalEP += drone.carrying.ep;
+              this.vsu += drone.carrying.vsu; if (this.runStats) this.runStats.vsuEarned += drone.carrying.vsu; this.ep += drone.carrying.ep; this.totalEP += drone.carrying.ep;
               this.saveEP(); this.updateHUD();
               this.damageNumbers.push({ x: this.stationCenter.x + (Math.random()-0.5)*20, y: this.stationCenter.y - 25, value: `+${drone.carrying.vsu} VSU`, life: 1.0, maxLife: 1.0, isCrit: false, isLoot: true });
             }
@@ -6070,6 +6198,14 @@ class Game {
     document.getElementById('hudHP').textContent = Math.floor(this.stationHP);
     document.getElementById('hudShield').textContent = Math.floor(this.stationShield);
     document.getElementById('hudKills').textContent = this.kills;
+
+    // Stats overlay
+    if (this.runStats) {
+      const fmt = (n) => n >= 1000000 ? (n/1000000).toFixed(1)+'M' : n >= 1000 ? (n/1000).toFixed(1)+'K' : Math.floor(n);
+      document.getElementById('soDealt').textContent = fmt(this.runStats.damageDealt);
+      document.getElementById('soTaken').textContent = fmt(this.runStats.damageTaken);
+      document.getElementById('soVSU').textContent = fmt(this.runStats.vsuEarned);
+    }
 
     // Lower panel bars
     const lowerPanel = document.getElementById('hudLower');
@@ -6243,6 +6379,7 @@ class Game {
       slots: slotData,
       runUpgrades: { ...this.runUpgrades },
       ownedWeapons: { ...this.ownedWeapons },
+      runStats: { ...this.runStats },
       repairUsed: this.repairUsed,
 
       unlockedTech: [...this.unlockedTech],
@@ -6280,6 +6417,7 @@ class Game {
         vsuKill: 0, vsuWave: 0, epKill: 0, epWave: 0, repairEff: 0, repairCost: 0,
       };
       this.runUpgrades = { ...defaultUpgrades, ...(data.runUpgrades || {}) };
+      this.runStats = data.runStats || { damageDealt: 0, damageTaken: 0, vsuEarned: 0 };
 
       // Re-apply defense run upgrades so max HP/Shield/Regen include in-run purchases
       this.applyDefenseUpgrades('hull');
@@ -6604,7 +6742,7 @@ class Game {
     for (const w of this.wrecks) {
       if (w.delay > 0) continue;
       const alpha = w.life / w.maxLife;
-      const wreckImg = IMAGES.wrecks[w.tier % IMAGES.wrecks.length];
+      const wreckImg = w.isTreasure ? IMAGES.enemies[6] : IMAGES.wrecks[w.tier % IMAGES.wrecks.length];
       if (isDrawable(wreckImg)) {
         const s = 28 + w.tier * 4;
         const age = w.spawnAge || 0;
@@ -7259,7 +7397,7 @@ class Game {
 
     // Laser beam rendering (red line from muzzle to target)
     if (wDef.isLaser && b.laserTarget && this.state === 'combat') {
-      const muzzleDist = (this.isMobile ? 36 : 42) * 0.8; // longer barrel
+      const muzzleDist = (this.isMobile ? 36 : 42) * 0.62; // match sprite pivot (1 - 0.38)
       const mx = slot.x + Math.cos(b.barrelAngle) * muzzleDist;
       const my = slot.y + Math.sin(b.barrelAngle) * muzzleDist;
       const tx = b.laserTarget.x;
@@ -7318,7 +7456,7 @@ class Game {
   }
 
   renderEnemy(ctx, enemy, diveRange, stationR) {
-    const spriteImg = IMAGES.enemies[enemy.tier];
+    const spriteImg = IMAGES.enemies[enemy.spriteIndex != null ? enemy.spriteIndex : enemy.tier];
 
     // Depth scale: smooth dive effect near station
     const dx = enemy.x - this.stationCenter.x;
@@ -7606,7 +7744,7 @@ class Game {
           const vsuGain = Math.floor(w.vsuReward * wrackVsuBonus);
           this.ep += epGain;
           this.totalEP += epGain;
-          this.vsu += vsuGain;
+          this.vsu += vsuGain; if (this.runStats) this.runStats.vsuEarned += vsuGain;
           this.saveEP();
 
           // Loot pickup particles
