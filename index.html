@@ -605,7 +605,7 @@ canvas {
 }
 #btnPauseMenu { right: 6px; font-size: 15px; }
 #btnFullscreen { right: 40px; }
-#btnStats { right: 74px; font-family: var(--font-mono); font-size: 11px; font-weight: bold; }
+#btnStats { right: 76px; font-family: var(--font-mono); font-size: 11px; font-weight: bold; }
 #btnPauseMenu:hover, #btnFullscreen:hover { background: rgba(212,130,10,0.15); border-color: var(--amber); }
 #btnStats:hover, #btnStats.active { background: rgba(212,130,10,0.15); border-color: var(--amber); }
 
@@ -632,7 +632,7 @@ canvas {
   #btnPauseMenu, #btnFullscreen, #btnStats { top: 8px; width: 36px; height: 36px; }
   #btnPauseMenu { right: 16px; font-size: 18px; }
   #btnFullscreen { right: 56px; }
-  #btnStats { right: 96px; font-size: 14px; }
+  #btnStats { right: 100px; font-size: 14px; }
   #statsOverlay { top: 50px; right: 16px; padding: 6px 10px; min-width: 120px; }
   .so-label, .so-val { font-size: 9px; }
 }
@@ -1041,7 +1041,17 @@ canvas {
   display: flex;
   gap: 10px;
   justify-content: center;
+  flex-wrap: wrap;
 }
+#gcCancel {
+  width: 100%;
+  font-size: 10px;
+  padding: 5px 12px;
+  min-width: 0;
+  letter-spacing: 1px;
+  opacity: 0.6;
+}
+#gcCancel:hover { opacity: 1; }
 .gc-btn {
   font-family: var(--font-ui);
   font-size: 12px;
@@ -2174,7 +2184,7 @@ canvas {
         <button class="mm-btn" id="btnScoreboard">Rangliste</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.21.0 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.22.0 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -4359,14 +4369,16 @@ class Game {
     const repBtn = document.createElement('button');
     repBtn.className = 'build-btn';
     repBtn.id = 'btnRepairBar';
-    repBtn.style.borderColor = this.autoRepair ? 'var(--amber)' : 'rgba(212,130,10,0.5)';
-    repBtn.innerHTML = `<span style="font-size:14px">🔧</span><span style="font-size:8px">Auto-Rep ${this.autoRepair ? 'AN' : 'AUS'}</span>`;
-    if (this.autoRepair) repBtn.classList.add('selected');
+    const updateRepStyle = () => {
+      repBtn.style.borderColor = this.autoRepair ? 'var(--amber)' : 'rgba(100,120,140,0.3)';
+      repBtn.style.color = this.autoRepair ? 'var(--amber)' : 'var(--text-dim)';
+      repBtn.style.background = this.autoRepair ? 'rgba(212,130,10,0.15)' : 'rgba(44,52,64,0.6)';
+    };
+    repBtn.innerHTML = `<span style="font-size:16px">🔧</span>`;
+    updateRepStyle();
     const repFn = () => {
       this.autoRepair = !this.autoRepair;
-      repBtn.classList.toggle('selected', this.autoRepair);
-      repBtn.style.borderColor = this.autoRepair ? 'var(--amber)' : 'rgba(212,130,10,0.5)';
-      repBtn.innerHTML = `<span style="font-size:14px">🔧</span><span style="font-size:8px">Auto-Rep ${this.autoRepair ? 'AN' : 'AUS'}</span>`;
+      updateRepStyle();
       playSound('click');
     };
     repBtn.addEventListener('click', repFn);
@@ -4687,7 +4699,7 @@ class Game {
   // Difficulty & reward scaling based on station tier
   getDifficultyMult() {
     if (!this.station) return 1;
-    return 1 + this.station.tier * 0.5; // tier 0: 1x, tier 1: 1.5x, tier 2: 2x
+    return 1 + this.station.tier * 1.0; // tier 0: 1x, tier 1: 2x, tier 2: 3x
   }
 
   getRewardMult() {
@@ -4952,18 +4964,6 @@ class Game {
       if (burstBonus > 0 && this.stationShield < this.stationMaxShield * 0.9) {
         regenRate *= (1 + burstBonus / 100);
       }
-      // Laser drain: active lasers reduce shield regen
-      let laserDrain = 0;
-      for (const s of this.slots) {
-        if (s.building && s.building.laserTarget) {
-          const wd = WEAPONS[s.building.weaponKey];
-          if (wd && wd.shieldRegenDrain) laserDrain += wd.shieldRegenDrain;
-        }
-      }
-      if (laserDrain > 0) {
-        const effReduction = 1 - this.getSkillBonus('sk_laser_eff') / 100;
-        regenRate *= Math.max(0, 1 - laserDrain * effReduction);
-      }
       this.stationShield = Math.min(this.stationMaxShield, this.stationShield + regenRate * dt);
     }
 
@@ -5099,15 +5099,20 @@ class Game {
       const isChargeWeapon = !!wDef.chargeTime;
       const isLaserWeapon = !!wDef.isLaser;
 
-      // --- LASER WEAPONS: continuous beam damage, no projectiles ---
+      // --- LASER WEAPONS: damage scales with shield (100% at full, 5% at empty) ---
       if (isLaserWeapon) {
         turret.laserTarget = null;
         if (nearestEnemy) {
+          // Drain shield while firing
+          const shieldDrain = (wDef.shieldRegenDrain || 0.5) * this.shieldRegenRate * dt;
+          this.stationShield = Math.max(0, this.stationShield - shieldDrain);
           turret.laserTarget = nearestEnemy;
           // Laser aims instantly at target
           turret.barrelAngle = Math.atan2(nearestEnemy.y - slot.y, nearestEnemy.x - slot.x);
           const rofMult = 1 + this.getTotalBonus('rof') / 100;
-          const finalDmg = turret.damage * (1 + this.station.dmgBonus) * (1 + this.getTotalBonus('dmg') / 100);
+          const shieldPct = this.stationMaxShield > 0 ? this.stationShield / this.stationMaxShield : 0;
+          const laserEff = 0.05 + 0.95 * shieldPct; // 5%–100% based on shield
+          const finalDmg = turret.damage * (1 + this.station.dmgBonus) * (1 + this.getTotalBonus('dmg') / 100) * laserEff;
           const tickDmg = finalDmg * turret.fireRate * rofMult * dt;
           const beams = wDef.laserBeams || 1;
 
