@@ -2111,7 +2111,7 @@ canvas {
         <button class="mm-btn" id="btnTech">Technologie</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.19.3 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.19.4 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -4999,18 +4999,25 @@ class Game {
           turret.barrelAngle = Math.atan2(nearestEnemy.y - slot.y, nearestEnemy.x - slot.x);
           const rofMult = 1 + this.getTotalBonus('rof') / 100;
           const finalDmg = turret.damage * (1 + this.station.dmgBonus) * (1 + this.getTotalBonus('dmg') / 100);
-          const tickDmg = finalDmg * rofMult * dt;
+          const tickDmg = finalDmg * turret.fireRate * rofMult * dt;
           const beams = wDef.laserBeams || 1;
 
-          // Very low pierce/sys per tick (divided by fireRate to compensate high RoF)
+          // Pierce/sys per tick (normalized for continuous fire)
           let pierceChance = (this.getTotalBonus('pierce') / 100) * 0.03;
           let sysChance = this.getTotalBonus('syshit') * 0.03;
+
+          // Damage number throttle (show every 0.5s)
+          turret._laserDmgAccum = (turret._laserDmgAccum || 0);
+          turret._laserDmgTimer = (turret._laserDmgTimer || 0) + dt;
 
           for (let b = 0; b < beams; b++) {
             nearestEnemy.hp -= tickDmg;
             nearestEnemy.hitFlash = 0.05;
+            turret._laserDmgAccum += tickDmg;
             if (Math.random() < pierceChance * dt * turret.fireRate) {
-              nearestEnemy.hp -= tickDmg * 2;
+              const bonusDmg = tickDmg * 2;
+              nearestEnemy.hp -= bonusDmg;
+              turret._laserDmgAccum += bonusDmg;
             }
             if (Math.random() < sysChance / 100 * dt * turret.fireRate && nearestEnemy.hp > 0) {
               const systems = ['DRIVE', 'WEAPON', 'SHIELD'];
@@ -5020,6 +5027,18 @@ class Game {
               else if (sysHit === 'SHIELD') nearestEnemy.maxShield = 0;
               this.damageNumbers.push({ x: nearestEnemy.x, y: nearestEnemy.y - 30, value: sysHit + '!', life: 1.2, maxLife: 1.2, isCrit: true });
             }
+          }
+
+          // Show accumulated damage number every 0.5s
+          if (turret._laserDmgTimer >= 0.5 && turret._laserDmgAccum > 0) {
+            this.damageNumbers.push({
+              x: nearestEnemy.x + (Math.random() - 0.5) * 10,
+              y: nearestEnemy.y - 15,
+              value: turret._laserDmgAccum.toFixed(1),
+              life: 0.6, maxLife: 0.6, isCrit: false,
+            });
+            turret._laserDmgAccum = 0;
+            turret._laserDmgTimer = 0;
           }
 
           if (nearestEnemy.hp <= 0) {
