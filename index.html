@@ -2184,7 +2184,7 @@ canvas {
         <button class="mm-btn" id="btnScoreboard">Rangliste</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.22.0 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.22.1 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2805,7 +2805,7 @@ const SKILL_TREE = {
   sk_sys_guns:      { name: 'Präzisionsfeuer',     desc: '+3% Sys-Chance (Guns)',            cat: 'attack', type: 'medium', perLevel: 3,  baseCost: 25, costStep: 12, parentStat: 'sk_syshit', requires: [] },
   sk_shrapnel:      { name: 'Schrapnell',          desc: '+3% Pierce (Raketen)',             cat: 'attack', type: 'medium', perLevel: 3,  baseCost: 25, costStep: 12, parentStat: 'sk_pierce', requires: [] },
   sk_hardened:      { name: 'Gehärtete Geschosse',  desc: '+3% Pierce (Guns)',               cat: 'attack', type: 'medium', perLevel: 3,  baseCost: 25, costStep: 12, parentStat: 'sk_pierce', requires: [] },
-  sk_laser_eff:     { name: 'Laserkühlung',       desc: '−2% Laser-Schildregen-Verlust pro Stufe', cat: 'attack', type: 'medium', perLevel: 2, baseCost: 25, costStep: 12, parentStat: 'sk_energy', requires: [], needsUnlock: 'laser', maxLevel: 13 },
+  sk_laser_eff:     { name: 'Laserkühlung',       desc: '−5% Laser-Schild-Verbrauch pro Stufe',    cat: 'attack', type: 'medium', perLevel: 5, baseCost: 25, costStep: 12, parentStat: 'sk_energy', requires: [], needsUnlock: 'laser', maxLevel: 10 },
   sk_bolt_charge:   { name: 'Schnellladung',      desc: '−5% Bolt/Rail Aufladezeit pro Stufe',     cat: 'attack', type: 'medium', perLevel: 5,  baseCost: 20, costStep: 10, parentStat: 'sk_rof', requires: [], needsUnlock: 'boltgun' },
   sk_bolt_dmg:      { name: 'Überladen',          desc: '+8% Bolt/Rail Schaden pro Stufe',          cat: 'attack', type: 'medium', perLevel: 8,  baseCost: 25, costStep: 12, parentStat: 'sk_dmg', requires: [], needsUnlock: 'boltgun' },
 
@@ -5104,7 +5104,8 @@ class Game {
         turret.laserTarget = null;
         if (nearestEnemy) {
           // Drain shield while firing
-          const shieldDrain = (wDef.shieldRegenDrain || 0.5) * this.shieldRegenRate * dt;
+          const laserEffReduction = 1 - this.getSkillBonus('sk_laser_eff') / 100;
+          const shieldDrain = (wDef.shieldRegenDrain || 0.5) * this.shieldRegenRate * dt * Math.max(0.1, laserEffReduction);
           this.stationShield = Math.max(0, this.stationShield - shieldDrain);
           turret.laserTarget = nearestEnemy;
           // Laser aims instantly at target
