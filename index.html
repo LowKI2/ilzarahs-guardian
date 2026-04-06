@@ -65,7 +65,7 @@ canvas {
   display: none;
   align-items: center;
   justify-content: space-around;
-  padding: 0 78px 0 6px;
+  padding: 0 108px 0 6px;
   font-family: var(--font-mono);
   font-size: 11px;
   z-index: 10;
@@ -585,34 +585,15 @@ canvas {
 }
 
 /* -- Pause Menu Button (HUD top-right) -- */
-#btnPauseMenu {
+/* -- HUD top-right buttons: uniform size, evenly spaced -- */
+#btnPauseMenu, #btnFullscreen, #btnStats {
   position: absolute;
-  top: 6px; right: 8px;
-  width: 32px; height: 32px;
+  top: 7px;
+  width: 30px; height: 30px;
   background: rgba(44,52,64,0.7);
   border: 1px solid var(--amber-dim);
   color: var(--amber);
   font-family: var(--font-ui);
-  font-size: 16px;
-  cursor: pointer;
-  pointer-events: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 11;
-  transition: background 0.15s, border-color 0.15s;
-}
-#btnPauseMenu:hover { background: rgba(212,130,10,0.15); border-color: var(--amber); }
-
-#btnStats {
-  position: absolute;
-  top: 6px; right: 78px;
-  width: 28px; height: 28px;
-  background: rgba(44,52,64,0.7);
-  border: 1px solid var(--amber-dim);
-  color: var(--amber);
-  font-family: var(--font-mono);
-  font-size: 11px; font-weight: bold;
   cursor: pointer;
   pointer-events: auto;
   display: flex;
@@ -622,11 +603,15 @@ canvas {
   transition: background 0.15s, border-color 0.15s;
   padding: 0;
 }
+#btnPauseMenu { right: 6px; font-size: 15px; }
+#btnFullscreen { right: 40px; }
+#btnStats { right: 74px; font-family: var(--font-mono); font-size: 11px; font-weight: bold; }
+#btnPauseMenu:hover, #btnFullscreen:hover { background: rgba(212,130,10,0.15); border-color: var(--amber); }
 #btnStats:hover, #btnStats.active { background: rgba(212,130,10,0.15); border-color: var(--amber); }
 
 #statsOverlay {
   position: absolute;
-  top: 38px; right: 6px;
+  top: 40px; right: 6px;
   background: rgba(20,24,32,0.9);
   border: 1px solid var(--amber-dim);
   border-radius: 4px;
@@ -644,9 +629,10 @@ canvas {
 .so-val { font-family: var(--font-mono); font-size: 8px; color: var(--amber); text-align: right; }
 
 @media (min-width: 600px) {
-  #btnPauseMenu { top: 8px; right: 16px; width: 36px; height: 36px; font-size: 18px; }
-  #btnFullscreen { top: 8px; right: 56px; width: 36px; height: 36px; }
-  #btnStats { top: 8px; right: 96px; width: 36px; height: 36px; font-size: 14px; }
+  #btnPauseMenu, #btnFullscreen, #btnStats { top: 8px; width: 36px; height: 36px; }
+  #btnPauseMenu { right: 16px; font-size: 18px; }
+  #btnFullscreen { right: 56px; }
+  #btnStats { right: 96px; font-size: 14px; }
   #statsOverlay { top: 50px; right: 16px; padding: 6px 10px; min-width: 120px; }
   .so-label, .so-val { font-size: 9px; }
 }
@@ -2185,9 +2171,10 @@ canvas {
         <button class="mm-btn mm-btn-primary" id="btnContinueRun" style="display:none">Run Fortsetzen</button>
         <button class="mm-btn mm-btn-primary" id="btnRunStart">Neuer Run</button>
         <button class="mm-btn" id="btnTech">Technologie</button>
+        <button class="mm-btn" id="btnScoreboard">Rangliste</button>
         <button class="mm-btn" id="btnSettings">Einstellungen</button>
       </div>
-      <div class="mm-version">v0.20.0 — EARLY PROTOTYPE</div>
+      <div class="mm-version">v0.21.0 — EARLY PROTOTYPE</div>
     </div>
   </div>
 
@@ -2339,6 +2326,7 @@ canvas {
       <div class="gc-buttons">
         <button class="gc-btn gc-yes" id="gcYes">Ja</button>
         <button class="gc-btn gc-no" id="gcNo">Abbrechen</button>
+        <button class="gc-btn gc-no" id="gcCancel" style="display:none">Abbrechen</button>
       </div>
     </div>
   </div>
@@ -3015,6 +3003,9 @@ class Game {
     document.getElementById('btnTech').addEventListener('touchend', (e) => { e.preventDefault(); this.showTechScreen(); });
     document.getElementById('btnSettings').addEventListener('click', () => this.showSettingsScreen());
     document.getElementById('btnSettings').addEventListener('touchend', (e) => { e.preventDefault(); this.showSettingsScreen(); });
+    const sbMenuFn = () => { playSound('click'); this.showMenuScoreboard(); };
+    document.getElementById('btnScoreboard').addEventListener('click', sbMenuFn);
+    document.getElementById('btnScoreboard').addEventListener('touchend', (e) => { e.preventDefault(); sbMenuFn(); });
     document.getElementById('btnTechBack').addEventListener('click', () => this.backToMenu());
     document.getElementById('btnTechBack').addEventListener('touchend', (e) => { e.preventDefault(); this.backToMenu(); });
     const stationBackFn = () => { playSound('click'); document.getElementById('stationSelect').style.display = 'none'; document.getElementById('mainMenu').style.display = 'flex'; this.state = 'mainmenu'; };
@@ -3971,25 +3962,27 @@ class Game {
     this.shieldRegenRate = this.station.energyCore * energyBonus * coreT2;
   }
 
-  getRepairCost() {
-    const totalReduction = this.getTotalBonus('repairCost') || 0;
-    return Math.max(5, 25 - totalReduction);
-  }
-
   getRepairAmount() {
     const totalBonus = this.getTotalBonus('repairEff') || 0;
-    return 0.05 + totalBonus / 100;
+    return 0.20 + totalBonus / 100;
   }
 
-  doRepair() {
-    if (this.repairUsed || this.state !== 'build') return;
-    const cost = this.getRepairCost();
-    if (this.vsu < cost) return;
+  doAutoRepair() {
     if (this.stationHP >= this.stationMaxHP) return;
-    this.vsu -= cost;
-    this.repairUsed = true;
-    const heal = Math.round(this.stationMaxHP * this.getRepairAmount());
-    this.stationHP = Math.min(this.stationMaxHP, this.stationHP + heal);
+    const healAmount = Math.round(this.stationMaxHP * this.getRepairAmount());
+    const hpNeeded = this.stationMaxHP - this.stationHP;
+    const actualHeal = Math.min(healAmount, hpNeeded);
+    const cost = actualHeal; // 1 VSU pro 1 HP
+    if (this.vsu < cost) {
+      // Repariere so viel wie VSU erlaubt
+      const affordable = Math.floor(this.vsu);
+      if (affordable <= 0) return;
+      this.stationHP = Math.min(this.stationMaxHP, this.stationHP + affordable);
+      this.vsu -= affordable;
+    } else {
+      this.stationHP = Math.min(this.stationMaxHP, this.stationHP + actualHeal);
+      this.vsu -= cost;
+    }
     this.updateUpgradeUI();
     this.updateHUD();
     playSound('confirm');
@@ -4217,6 +4210,7 @@ class Game {
     this.wave = 1;
     this.kills = 0;
     this.repairUsed = false;
+    this.autoRepair = false;
     this.runTimer = 0;
     this.timedMode = true;
     this.totalVSUSpent = 0;
@@ -4261,7 +4255,13 @@ class Game {
           skipEP += Math.floor(w * 3 * epWaveBonus * rew);
         }
       }
-      const doSkip = await this.showConfirm(`Wellen 1-20 überspringen? Du erhältst: ${skipVSU} VSU und ${skipEP} EP`, 'Überspringen', 'Ab Welle 1');
+      const doSkip = await this.showConfirm(`Wellen 1-20 überspringen? Du erhältst: ${skipVSU} VSU und ${skipEP} EP`, 'Überspringen', 'Ab Welle 1', false, 'Abbrechen');
+      if (doSkip === 'cancel') {
+        // Zurück zur Stationsauswahl
+        document.getElementById('stationSelect').style.display = 'flex';
+        this.state = 'menu';
+        return;
+      }
       if (doSkip) {
         this.wave = 21;
         this.vsu += skipVSU; if (this.runStats) this.runStats.vsuEarned += skipVSU;
@@ -4355,13 +4355,20 @@ class Game {
       row.appendChild(btn);
     }
 
-    // Repair button
+    // Auto-Repair toggle button
     const repBtn = document.createElement('button');
     repBtn.className = 'build-btn';
     repBtn.id = 'btnRepairBar';
-    repBtn.style.borderColor = 'rgba(212,130,10,0.5)';
-    repBtn.innerHTML = `<span style="font-size:16px">🔧</span><span style="font-size:9px">Reparatur</span>`;
-    const repFn = () => this.doRepair();
+    repBtn.style.borderColor = this.autoRepair ? 'var(--amber)' : 'rgba(212,130,10,0.5)';
+    repBtn.innerHTML = `<span style="font-size:14px">🔧</span><span style="font-size:8px">Auto-Rep ${this.autoRepair ? 'AN' : 'AUS'}</span>`;
+    if (this.autoRepair) repBtn.classList.add('selected');
+    const repFn = () => {
+      this.autoRepair = !this.autoRepair;
+      repBtn.classList.toggle('selected', this.autoRepair);
+      repBtn.style.borderColor = this.autoRepair ? 'var(--amber)' : 'rgba(212,130,10,0.5)';
+      repBtn.innerHTML = `<span style="font-size:14px">🔧</span><span style="font-size:8px">Auto-Rep ${this.autoRepair ? 'AN' : 'AUS'}</span>`;
+      playSound('click');
+    };
     repBtn.addEventListener('click', repFn);
     repBtn.addEventListener('touchend', (e) => { e.preventDefault(); repFn(); });
     row.appendChild(repBtn);
@@ -4379,15 +4386,6 @@ class Game {
   }
 
   updateBuildBar() {
-    const repBtn = document.getElementById('btnRepairBar');
-    if (repBtn) {
-      const cost = this.getRepairCost();
-      if (this.repairUsed || this.stationHP >= this.stationMaxHP) {
-        repBtn.disabled = true;
-      } else {
-        repBtn.disabled = this.vsu < cost;
-      }
-    }
     // Update category badges
     const u = this.runUpgrades;
     const badges = {
@@ -4923,6 +4921,20 @@ class Game {
       if (enemy.weaponDisabled > 0) enemy.weaponDisabled -= dt;
       this.updateEnemyAI(enemy, dt);
       if (enemy.hitFlash > 0) enemy.hitFlash -= dt;
+      // Accumulated damage number: tick down, flush when expired
+      if (enemy._dmgTimer > 0) {
+        enemy._dmgTimer -= dt;
+        if (enemy._dmgTimer <= 0 && enemy._dmgAccum > 0) {
+          const label = enemy._hadPen ? 'PEN ' : '';
+          this.damageNumbers.push({
+            x: enemy.x, y: enemy.y - 15,
+            value: label + enemy._dmgAccum.toFixed(1),
+            life: 0.6, maxLife: 0.6, isCrit: !!enemy._hadPen,
+          });
+          enemy._dmgAccum = 0;
+          enemy._hadPen = false;
+        }
+      }
     }
 
     // Shield regeneration from energy core (reduced by active lasers)
@@ -5140,6 +5152,10 @@ class Game {
           }
 
           if (nearestEnemy.hp <= 0) {
+            if (nearestEnemy._dmgAccum > 0) {
+              this.damageNumbers.push({ x: nearestEnemy.x, y: nearestEnemy.y - 15, value: nearestEnemy._dmgAccum.toFixed(1), life: 0.6, maxLife: 0.6, isCrit: false });
+              nearestEnemy._dmgAccum = 0;
+            }
             this.kills++;
             const _vr = Math.floor(nearestEnemy.vsuReward * (1 + this.getTotalBonus('vsuKill') / 100));
             this.vsu += _vr; if (this.runStats) this.runStats.vsuEarned += _vr;
@@ -5365,13 +5381,10 @@ class Game {
 
         if (this.runStats) this.runStats.damageDealt += dmgResult.totalDmg;
 
-        // Damage number
-        const label = dmgResult.penetrated ? 'PEN ' : '';
-        this.damageNumbers.push({
-          x: hitEnemy.x, y: hitEnemy.y - 15,
-          value: label + dmgResult.totalDmg.toFixed(1),
-          life: 0.8, maxLife: 0.8, isCrit: dmgResult.penetrated,
-        });
+        // Accumulate damage per enemy (displayed as rolling number)
+        hitEnemy._dmgAccum = (hitEnemy._dmgAccum || 0) + dmgResult.totalDmg;
+        hitEnemy._dmgTimer = 1.0; // reset fade timer
+        if (dmgResult.penetrated) hitEnemy._hadPen = true;
 
         // System hit effects
         if (dmgResult.systemHit) {
@@ -5390,6 +5403,12 @@ class Game {
         }
 
         if (hitEnemy.hp <= 0) {
+          // Flush accumulated damage number on kill
+          if (hitEnemy._dmgAccum > 0) {
+            const label = hitEnemy._hadPen ? 'PEN ' : '';
+            this.damageNumbers.push({ x: hitEnemy.x, y: hitEnemy.y - 15, value: label + hitEnemy._dmgAccum.toFixed(1), life: 0.6, maxLife: 0.6, isCrit: !!hitEnemy._hadPen });
+            hitEnemy._dmgAccum = 0;
+          }
           this.kills++;
           const _vr2 = Math.floor(hitEnemy.vsuReward * (1 + this.getTotalBonus('vsuKill') / 100));
           this.vsu += _vr2; if (this.runStats) this.runStats.vsuEarned += _vr2;
@@ -5764,6 +5783,30 @@ class Game {
     this.showScoreboard();
   }
 
+  showMenuScoreboard() {
+    // Show scoreboard from main menu (view-only, no submit)
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('sbTitle').textContent = 'Rangliste';
+    document.getElementById('sbSubtitle').textContent = '// TOP 20 //';
+    document.querySelector('.sb-breakdown').style.display = 'none';
+    document.getElementById('sbFinalScore').style.display = 'none';
+    document.querySelector('.sb-name-row').style.display = 'none';
+    document.getElementById('sbContinueBtn').textContent = 'Zurück';
+    this._sbFromMenu = true;
+    this._sbActiveTab = 'score';
+    document.querySelectorAll('.sb-tab').forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.tab === 'score');
+      tab.onclick = () => {
+        playSound('click');
+        this._sbActiveTab = tab.dataset.tab;
+        document.querySelectorAll('.sb-tab').forEach(t => t.classList.toggle('active', t === tab));
+        this.fetchLeaderboard(tab.dataset.tab);
+      };
+    });
+    document.getElementById('scoreboardScreen').style.display = 'flex';
+    this.fetchLeaderboard(this._sbActiveTab || 'score');
+  }
+
   showScoreboard() {
     this.paused = true;
     this.stateBeforePause = this.state;
@@ -5796,14 +5839,19 @@ class Game {
       tab.onclick = handler;
     });
 
-    // Reset submit button state
+    // Submit: disabled after timer expired + weiterspielen
     const submitBtn = document.getElementById('sbSubmitBtn');
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Eintragen';
-
-    // Restore last used name
-    const savedName = localStorage.getItem('ilzarah_playerName') || '';
-    document.getElementById('sbNameInput').value = savedName;
+    const nameInput = document.getElementById('sbNameInput');
+    const nameRow = document.querySelector('.sb-name-row');
+    if (this.scoreSubmitDisabled) {
+      nameRow.style.display = 'none';
+    } else {
+      nameRow.style.display = '';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Eintragen';
+      const savedName = localStorage.getItem('ilzarah_playerName') || '';
+      nameInput.value = savedName;
+    }
 
     // Adjust continue button text based on context
     const continueBtn = document.getElementById('sbContinueBtn');
@@ -5914,6 +5962,16 @@ class Game {
 
   continueAfterScoreboard() {
     document.getElementById('scoreboardScreen').style.display = 'none';
+    // Restore hidden elements for next use
+    document.querySelector('.sb-breakdown').style.display = '';
+    document.getElementById('sbFinalScore').style.display = '';
+
+    // If opened from main menu, go back
+    if (this._sbFromMenu) {
+      this._sbFromMenu = false;
+      document.getElementById('mainMenu').style.display = 'flex';
+      return;
+    }
 
     // If game over: show game over screen instead of resuming
     if (this.state === 'gameover') {
@@ -5926,8 +5984,9 @@ class Game {
       return;
     }
 
-    // Timer expired mid-run: continue without time limit
+    // Timer expired mid-run: continue without time limit, no more score submissions
     this.timedMode = false;
+    this.scoreSubmitDisabled = true;
     this.paused = false;
     document.getElementById('hud').style.display = 'flex';
     document.getElementById('hudLower').style.display = 'flex';
@@ -5966,6 +6025,9 @@ class Game {
     }
     this.state = 'build';
     this.repairUsed = false;
+
+    // Auto-Repair: automatisch reparieren bei Wellenende
+    if (this.autoRepair) this.doAutoRepair();
 
     document.getElementById('buildUI').style.display = 'flex';
     document.getElementById('combatControls').style.display = 'none';
@@ -6567,23 +6629,29 @@ class Game {
     localStorage.setItem('ilzarah_tutorialDone', '1');
   }
 
-  showConfirm(text, yesLabel = 'Ja', noLabel = 'Abbrechen', danger = false) {
+  showConfirm(text, yesLabel = 'Ja', noLabel = 'Abbrechen', danger = false, cancelLabel = null) {
     return new Promise((resolve) => {
       const overlay = document.getElementById('gameConfirm');
       document.getElementById('gcText').textContent = text;
       const yesBtn = document.getElementById('gcYes');
       const noBtn = document.getElementById('gcNo');
+      const cancelBtn = document.getElementById('gcCancel');
       yesBtn.textContent = yesLabel;
       noBtn.textContent = noLabel;
       yesBtn.className = danger ? 'gc-btn gc-danger' : 'gc-btn gc-yes';
+      cancelBtn.style.display = cancelLabel ? '' : 'none';
+      if (cancelLabel) cancelBtn.textContent = cancelLabel;
       overlay.classList.add('visible');
       const cleanup = () => {
         overlay.classList.remove('visible');
         yesBtn.onclick = null;
         noBtn.onclick = null;
+        cancelBtn.onclick = null;
+        cancelBtn.style.display = 'none';
       };
       yesBtn.onclick = () => { cleanup(); playSound('confirm'); resolve(true); };
       noBtn.onclick = () => { cleanup(); playSound('click'); resolve(false); };
+      cancelBtn.onclick = () => { cleanup(); playSound('click'); resolve('cancel'); };
     });
   }
 
